@@ -1,17 +1,20 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-illustration.jpg";
+import AfricanAvatar from "@/components/ui/AfricanAvatar";
 
 const Hero = () => {
+  const freelancers = [
+    { name: "Amadou Diallo", role: "Dev" },
+    { name: "Fatoumata Camara", role: "Designer" },
+    { name: "Mamadou Bah", role: "Marketing" },
+    { name: "Aissatou Sow", role: "PM" },
+  ];
+
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-hero opacity-[0.03]" />
-      <div className="absolute top-20 right-0 w-[600px] h-[600px] rounded-full bg-primary/5 blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-secondary/5 blur-3xl" />
-
       <div className="container mx-auto px-4 lg:px-8 pt-24 pb-16">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left - Content */}
@@ -20,9 +23,10 @@ const Hero = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6"
+              whileHover={{ scale: 1.05, y: -2 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass shadow-elevation-2 text-primary text-sm font-semibold mb-6"
             >
-              <Sparkles size={16} />
+              <Briefcase size={16} />
               La plateforme freelance #1 en Guinée
             </motion.div>
 
@@ -53,15 +57,19 @@ const Hero = () => {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="flex flex-wrap gap-4"
             >
-              <Button variant="hero" size="xl" asChild>
-                <Link to="/signup">
-                  Commencer Gratuitement
-                  <ArrowRight size={20} />
-                </Link>
-              </Button>
-              <Button variant="outline" size="xl" asChild>
-                <Link to="/projects">Voir les Projets</Link>
-              </Button>
+              <motion.div whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.98 }}>
+                <Button variant="hero" size="xl" asChild className="btn-3d shadow-glow-orange">
+                  <Link to="/signup">
+                    Commencer Gratuitement
+                    <ArrowRight size={20} />
+                  </Link>
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.98 }}>
+                <Button variant="outline" size="xl" asChild className="btn-3d glass">
+                  <Link to="/projects">Voir les Projets</Link>
+                </Button>
+              </motion.div>
             </motion.div>
 
             <motion.div
@@ -70,18 +78,25 @@ const Hero = () => {
               transition={{ duration: 0.5, delay: 0.5 }}
               className="mt-10 flex items-center gap-6 text-sm text-muted-foreground"
             >
-              <div className="flex -space-x-2">
-                {[...Array(4)].map((_, i) => (
-                  <div
+              <div className="flex -space-x-3">
+                {freelancers.map((freelancer, i) => (
+                  <motion.div
                     key={i}
-                    className="w-8 h-8 rounded-full bg-gradient-hero border-2 border-background flex items-center justify-center text-[10px] font-bold text-primary-foreground"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.6 + i * 0.1 }}
                   >
-                    {["AD", "KB", "MC", "FS"][i]}
-                  </div>
+                    <AfricanAvatar 
+                      name={freelancer.name}
+                      role={freelancer.role}
+                      size="sm"
+                      showBadge
+                    />
+                  </motion.div>
                 ))}
               </div>
               <span>
-                <strong className="text-foreground">2,500+</strong> freelancers actifs
+                <strong className="text-foreground">2,500+</strong> freelancers africains actifs
               </span>
             </motion.div>
           </div>
@@ -90,21 +105,16 @@ const Hero = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
             className="hidden lg:block"
           >
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="relative"
-            >
+            <div className="relative">
               <img
                 src={heroImage}
                 alt="FreeJobGN - Plateforme freelance"
-                className="w-full rounded-2xl shadow-elevation-4"
+                className="relative w-full rounded-3xl shadow-elevation-5 border-4 border-white/20"
               />
-              <div className="absolute inset-0 rounded-2xl bg-gradient-hero opacity-10" />
-            </motion.div>
+            </div>
           </motion.div>
         </div>
       </div>

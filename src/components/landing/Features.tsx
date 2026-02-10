@@ -43,24 +43,37 @@ const Features = () => {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 lg:perspective-container">
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-              whileHover={{ y: -8 }}
-              className="bg-card rounded-xl p-6 shadow-elevation-1 hover:shadow-elevation-3 border border-border/50 transition-shadow duration-300"
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              whileHover={{ 
+                y: -16, 
+                scale: 1.05,
+                transition: { duration: 0.3 }
+              }}
+              className="lg:card-3d glass rounded-2xl p-8 shadow-elevation-3 hover:shadow-elevation-5 border border-white/30 group"
             >
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                <feature.icon className="text-primary" size={24} />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
+              <motion.div 
+                className="w-16 h-16 rounded-2xl bg-gradient-hero flex items-center justify-center mb-6 shadow-elevation-2"
+                whileHover={{ rotate: 360, scale: 1.1 }}
+                transition={{ duration: 0.6 }}
+              >
+                <feature.icon className="text-white" size={28} />
+              </motion.div>
+              <h3 className="text-xl font-bold mb-3 group-hover:text-gradient-hero transition-all">
+                {feature.title}
+              </h3>
+              <p className="text-muted-foreground leading-relaxed">
                 {feature.description}
               </p>
+              
+              {/* 3D Accent */}
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-hero opacity-10 blur-2xl rounded-full" />
             </motion.div>
           ))}
         </div>

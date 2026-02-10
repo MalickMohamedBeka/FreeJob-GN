@@ -10,8 +10,16 @@ const Testimonials = () => {
   const prev = () => setCurrent((c) => (c - 1 + mockTestimonials.length) % mockTestimonials.length);
 
   return (
-    <section className="py-20 lg:py-28 bg-muted/50">
-      <div className="container mx-auto px-4 lg:px-8">
+    <section className="py-20 lg:py-28 bg-muted/50 relative overflow-hidden">
+      {/* 3D Background */}
+      <div className="absolute inset-0 bg-gradient-hero opacity-[0.02]" />
+      <motion.div 
+        animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
+        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-secondary/5 blur-3xl"
+      />
+      
+      <div className="container mx-auto px-4 lg:px-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -27,63 +35,106 @@ const Testimonials = () => {
           </p>
         </motion.div>
 
-        <div className="max-w-3xl mx-auto relative">
+        <div className="max-w-3xl mx-auto relative lg:perspective-container">
           <AnimatePresence mode="wait">
             <motion.div
               key={current}
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.3 }}
-              className="bg-card rounded-2xl p-8 md:p-12 shadow-elevation-2 border border-border/50 text-center"
+              initial={{ opacity: 0, x: 100, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: -100, scale: 0.9 }}
+              transition={{ duration: 0.5, type: "spring" }}
+              whileHover={{ y: -8, scale: 1.02 }}
+              className="glass rounded-3xl p-8 md:p-12 shadow-elevation-4 hover:shadow-elevation-5 border border-white/30 text-center lg:card-3d relative"
             >
-              <Quote className="mx-auto mb-6 text-primary/20" size={48} />
+              {/* 3D Quote Icon */}
+              <motion.div
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-6 right-6 w-16 h-16 rounded-2xl glass-dark flex items-center justify-center shadow-elevation-2"
+              >
+                <Quote className="text-primary" size={28} />
+              </motion.div>
 
-              <p className="text-lg md:text-xl leading-relaxed text-foreground/80 mb-8">
+              <p className="text-lg md:text-xl leading-relaxed text-foreground/90 mb-8 font-medium">
                 "{mockTestimonials[current].content}"
               </p>
 
-              <div className="flex justify-center gap-1 mb-4">
+              <motion.div 
+                className="flex justify-center gap-1 mb-6"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.3, type: "spring" }}
+              >
                 {[...Array(mockTestimonials[current].rating)].map((_, i) => (
-                  <Star key={i} size={18} className="fill-warning text-warning" />
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 + i * 0.1 }}
+                    whileHover={{ scale: 1.3, rotate: 360 }}
+                  >
+                    <Star size={20} className="fill-warning text-warning drop-shadow-lg" />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
 
-              <div className="w-12 h-12 rounded-full bg-gradient-hero mx-auto mb-3 flex items-center justify-center text-sm font-bold text-primary-foreground">
-                {mockTestimonials[current].name.split(" ").map((n) => n[0]).join("")}
-              </div>
-              <h4 className="font-semibold">{mockTestimonials[current].name}</h4>
-              <p className="text-sm text-muted-foreground">{mockTestimonials[current].role}</p>
+              <motion.div 
+                className="w-16 h-16 rounded-full mx-auto mb-4 overflow-hidden shadow-elevation-3 relative border-2 border-white/30"
+                whileHover={{ scale: 1.15, rotate: 5 }}
+                transition={{ duration: 0.5 }}
+              >
+                <img 
+                  src={`/avatars/client-${(current % 10) + 1}.jpg`}
+                  alt={mockTestimonials[current].name}
+                  className="relative z-10 w-full h-full object-cover"
+                />
+              </motion.div>
+              
+              <h4 className="font-bold text-lg">{mockTestimonials[current].name}</h4>
+              <p className="text-sm text-muted-foreground font-medium">{mockTestimonials[current].role}</p>
+              
+              {/* 3D Glow */}
+              <div className="absolute inset-0 rounded-3xl bg-gradient-hero opacity-0 hover:opacity-5 blur-2xl transition-opacity duration-500" />
             </motion.div>
           </AnimatePresence>
 
-          <div className="flex justify-center gap-4 mt-8">
-            <button
+          <div className="flex justify-center gap-4 mt-10">
+            <motion.button
               onClick={prev}
-              className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
+              whileHover={{ scale: 1.1, x: -4 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-12 h-12 rounded-full glass border border-white/30 flex items-center justify-center shadow-elevation-2 hover:shadow-elevation-3 transition-all"
               aria-label="Précédent"
             >
-              <ChevronLeft size={20} />
-            </button>
+              <ChevronLeft size={22} />
+            </motion.button>
+            
             <div className="flex items-center gap-2">
               {mockTestimonials.map((_, i) => (
-                <button
+                <motion.button
                   key={i}
                   onClick={() => setCurrent(i)}
-                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                    i === current ? "bg-primary w-6" : "bg-border"
+                  whileHover={{ scale: 1.3 }}
+                  whileTap={{ scale: 0.9 }}
+                  className={`h-3 rounded-full transition-all duration-300 ${
+                    i === current 
+                      ? "bg-gradient-hero w-8 shadow-glow-orange" 
+                      : "bg-border w-3 hover:bg-primary/50"
                   }`}
                   aria-label={`Témoignage ${i + 1}`}
                 />
               ))}
             </div>
-            <button
+            
+            <motion.button
               onClick={next}
-              className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
+              whileHover={{ scale: 1.1, x: 4 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-12 h-12 rounded-full glass border border-white/30 flex items-center justify-center shadow-elevation-2 hover:shadow-elevation-3 transition-all"
               aria-label="Suivant"
             >
-              <ChevronRight size={20} />
-            </button>
+              <ChevronRight size={22} />
+            </motion.button>
           </div>
         </div>
       </div>

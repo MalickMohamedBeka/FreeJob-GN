@@ -6,20 +6,30 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import Testimonials from "@/components/landing/Testimonials";
 import Stats from "@/components/landing/Stats";
 import CTASection from "@/components/landing/CTASection";
+import PartnersCarousel from "@/components/landing/PartnersCarousel";
+import TeamShowcase from "@/components/landing/TeamShowcase";
+import PaymentMethods from "@/components/landing/PaymentMethods";
+import { LiquidGradientMesh } from "@/components/backgrounds/LiquidGradientMesh";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main>
-        <Hero />
-        <Features />
-        <HowItWorks />
-        <Stats />
-        <Testimonials />
-        <CTASection />
-      </main>
-      <Footer />
+    <div className="min-h-screen relative bg-white">
+      <LiquidGradientMesh />
+      <div className="relative z-10">
+        <Navbar />
+        <main>
+          <Hero />
+          <Features />
+          <HowItWorks />
+          <TeamShowcase />
+          <Stats />
+          <PartnersCarousel />
+          <PaymentMethods />
+          <Testimonials />
+          <CTASection />
+        </main>
+        <Footer />
+      </div>
     </div>
   );
 };

@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Search, SlidersHorizontal, Clock, DollarSign, Users } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Target, Users, Rocket } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { mockProjects } from "@/lib/mockData";
-import { Link } from "react-router-dom";
+import ProjectsHero3D from "@/components/projects/ProjectsHero3D";
+import FilterBar3D from "@/components/projects/FilterBar3D";
+import ProjectCard3D from "@/components/projects/ProjectCard3D";
+import { LiquidGradientMesh } from "@/components/backgrounds/LiquidGradientMesh";
 
-const skillFilters = ["Tous", "React", "Node.js", "Python", "Design", "Marketing", "Mobile"];
+const skillFilters = ["Tous", "React", "Node.js", "Python", "Design", "Marketing", "Mobile", "SEO", "Data Science"];
 
 const Projects = () => {
   const [search, setSearch] = useState("");
@@ -24,127 +25,141 @@ const Projects = () => {
   });
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main className="pt-24 pb-16">
-        <div className="container mx-auto px-4 lg:px-8">
-          {/* Header */}
+    <div className="min-h-screen relative overflow-hidden bg-white">
+      <LiquidGradientMesh />
+      <div className="relative z-10">
+        <Navbar />
+      
+      <main className="relative z-10">
+        {/* Hero Section with 3D */}
+        <ProjectsHero3D />
+
+        {/* Main Content */}
+        <div className="container mx-auto px-4 lg:px-8 pb-20">
+          {/* Filter Bar */}
+          <FilterBar3D
+            search={search}
+            setSearch={setSearch}
+            activeFilter={activeFilter}
+            setActiveFilter={setActiveFilter}
+            filters={skillFilters}
+          />
+
+          {/* Projects Count with Animation */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-10"
+            className="text-center mb-12"
           >
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">
-              Projets <span className="text-gradient-hero">Disponibles</span>
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Trouvez le projet qui correspond à vos compétences.
-            </p>
-          </motion.div>
-
-          {/* Search & Filters */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mb-8 space-y-4"
-          >
-            <div className="relative max-w-xl">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-              <input
-                type="text"
-                placeholder="Rechercher un projet..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full h-12 pl-12 pr-4 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {skillFilters.map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => setActiveFilter(filter)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                    activeFilter === filter
-                      ? "bg-primary text-primary-foreground shadow-elevation-1"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Projects Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((project, index) => (
+            <motion.div
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="inline-flex items-center gap-3 glass rounded-full px-6 py-3 shadow-elevation-2 border border-white/30"
+            >
               <motion.div
-                key={project.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                whileHover={{ y: -6 }}
-                className="bg-card rounded-xl border border-border/50 p-6 shadow-elevation-1 hover:shadow-elevation-3 hover:border-primary/30 transition-all duration-300"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <Badge variant="secondary" className="bg-primary/10 text-primary border-0 text-xs">
-                    {project.status === "open" ? "Ouvert" : "En cours"}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">{project.postedAt}</span>
-                </div>
-
-                <h3 className="text-lg font-semibold mb-2 line-clamp-1">{project.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{project.description}</p>
-
-                <div className="flex flex-wrap gap-1.5 mb-4">
-                  {project.skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="px-2.5 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-medium"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                  <span className="flex items-center gap-1">
-                    <DollarSign size={14} />
-                    {project.budget.min.toLocaleString()} - {project.budget.max.toLocaleString()} GNF
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock size={14} />
-                    {project.duration}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-gradient-hero flex items-center justify-center text-[10px] font-bold text-primary-foreground">
-                      {project.client.name.split(" ").map((n) => n[0]).join("")}
-                    </div>
-                    <span className="text-sm font-medium">{project.client.name}</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Users size={12} />
-                    {project.proposalsCount} propositions
-                  </span>
-                </div>
+                <Rocket className="text-primary" size={20} />
               </motion.div>
-            ))}
-          </div>
+              <span className="font-bold">
+                <span className="text-gradient-hero text-2xl">{filtered.length}</span>
+                <span className="text-muted-foreground ml-2">
+                  {filtered.length === 1 ? "projet trouvé" : "projets trouvés"}
+                </span>
+              </span>
+            </motion.div>
+          </motion.div>
 
-          {filtered.length === 0 && (
-            <div className="text-center py-20">
-              <SlidersHorizontal className="mx-auto mb-4 text-muted-foreground" size={48} />
-              <h3 className="text-xl font-semibold mb-2">Aucun projet trouvé</h3>
-              <p className="text-muted-foreground">Essayez de modifier vos filtres.</p>
-            </div>
+          {/* Projects Grid with 3D Cards */}
+          <AnimatePresence mode="wait">
+            {filtered.length > 0 ? (
+              <motion.div
+                key="projects-grid"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 lg:perspective-container"
+                style={{ perspective: "2000px" }}
+              >
+                {filtered.map((project, index) => (
+                  <ProjectCard3D 
+                    key={project.id} 
+                    project={project} 
+                    index={index}
+                  />
+                ))}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="no-results"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="text-center py-20"
+              >
+                <motion.div
+                  animate={{ 
+                    y: [0, -20, 0],
+                    rotate: [0, 10, -10, 0]
+                  }}
+                  transition={{ duration: 4, repeat: Infinity }}
+                  className="inline-block mb-6"
+                >
+                  <div className="w-32 h-32 rounded-full bg-gradient-hero opacity-20 blur-2xl mx-auto mb-4" />
+                  <Search className="mx-auto text-muted-foreground" size={64} />
+                </motion.div>
+                <h3 className="text-2xl font-bold mb-3">Aucun projet trouvé</h3>
+                <p className="text-muted-foreground text-lg mb-6">
+                  Essayez de modifier vos critères de recherche
+                </p>
+                <motion.button
+                  whileHover={{ scale: 1.05, y: -3 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setSearch("");
+                    setActiveFilter("Tous");
+                  }}
+                  className="glass rounded-full px-8 py-3 font-semibold shadow-elevation-2 hover:shadow-elevation-3 border border-white/30"
+                >
+                  Réinitialiser les filtres
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Load More Button (if needed) */}
+          {filtered.length > 0 && filtered.length >= 9 && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="text-center mt-16"
+            >
+              <motion.button
+                whileHover={{ 
+                  scale: 1.05, 
+                  y: -5,
+                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.2)"
+                }}
+                whileTap={{ scale: 0.95 }}
+                className="glass rounded-2xl px-10 py-4 font-bold text-lg shadow-elevation-3 border-2 border-white/30 relative overflow-hidden group"
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-hero opacity-0 group-hover:opacity-100"
+                  transition={{ duration: 0.3 }}
+                />
+                <span className="relative z-10 group-hover:text-white transition-colors">
+                  Charger Plus de Projets
+                </span>
+              </motion.button>
+            </motion.div>
           )}
         </div>
       </main>
+      
       <Footer />
+      </div>
     </div>
   );
 };

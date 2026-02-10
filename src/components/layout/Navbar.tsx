@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 
 const navLinks = [
   { label: "Accueil", path: "/" },
-  { label: "Projets", path: "/projects" },
   { label: "Freelancers", path: "/freelancers" },
+  { label: "Projets", path: "/projects" },
   { label: "À Propos", path: "/about" },
 ];
 
@@ -38,8 +38,9 @@ const Navbar = () => {
       }`}
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="text-2xl font-bold text-gradient-hero">FreeJobGN</span>
+        <Link to="/" className="flex items-center gap-3">
+          <img src="/logo.png" alt="FreeJobGN" className="h-16 w-auto" />
+          <span className="text-3xl font-bold text-gradient-hero">FreeJobGN</span>
         </Link>
 
         {/* Desktop Nav */}

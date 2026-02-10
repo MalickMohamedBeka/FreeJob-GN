@@ -47,29 +47,49 @@ const HowItWorks = () => {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 lg:perspective-container">
           {steps.map((step, index) => (
             <motion.div
               key={step.step}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.15 }}
-              className="relative text-center"
+              transition={{ duration: 0.5, delay: index * 0.15 }}
+              whileHover={{ 
+                y: -12, 
+                scale: 1.05,
+                transition: { duration: 0.3 }
+              }}
+              className="relative text-center lg:card-3d"
             >
-              {/* Connector line */}
+              {/* Connector line with 3D effect */}
               {index < steps.length - 1 && (
-                <div className="hidden lg:block absolute top-8 left-[60%] w-[80%] h-[2px] bg-gradient-hero opacity-20" />
+                <motion.div 
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  transition={{ duration: 0.8, delay: index * 0.15 + 0.3 }}
+                  className="hidden lg:block absolute top-8 left-[60%] w-[80%] h-[3px] bg-gradient-hero opacity-30 shadow-elevation-1"
+                  style={{ transformOrigin: 'left' }}
+                />
               )}
 
-              <div className="w-16 h-16 rounded-2xl bg-gradient-hero mx-auto mb-4 flex items-center justify-center shadow-elevation-2">
-                <step.icon className="text-primary-foreground" size={28} />
-              </div>
-              <span className="text-xs font-bold text-primary tracking-widest uppercase">
+              <motion.div 
+                className="w-20 h-20 rounded-3xl bg-gradient-hero mx-auto mb-6 flex items-center justify-center shadow-elevation-4 relative"
+                whileHover={{ rotate: 360, scale: 1.15 }}
+                transition={{ duration: 0.6 }}
+              >
+                <step.icon className="text-primary-foreground" size={32} />
+              </motion.div>
+              
+              <motion.span 
+                className="inline-block text-xs font-bold text-primary tracking-widest uppercase px-3 py-1 rounded-full glass shadow-elevation-1"
+                whileHover={{ scale: 1.1 }}
+              >
                 Étape {step.step}
-              </span>
-              <h3 className="text-lg font-semibold mt-2 mb-2">{step.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
+              </motion.span>
+              
+              <h3 className="text-xl font-bold mt-4 mb-3">{step.title}</h3>
+              <p className="text-muted-foreground leading-relaxed">
                 {step.description}
               </p>
             </motion.div>
