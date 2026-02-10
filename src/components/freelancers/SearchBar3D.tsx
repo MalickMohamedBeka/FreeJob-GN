@@ -104,7 +104,7 @@ const SearchBar3D = memo(({
                   onClick={() => setActiveFilter(filter)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                     isActive
-                      ? "bg-gradient-hero text-white shadow-sm"
+                      ? "bg-primary text-white shadow-sm"
                       : "bg-background border border-border text-foreground hover:border-primary/50"
                   }`}
                 >

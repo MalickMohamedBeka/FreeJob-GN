@@ -28,7 +28,7 @@ const ProjectsHero3D = () => {
                 >
                   <Zap className="text-primary" size={20} />
                 </motion.div>
-                <span className="font-bold text-gradient-hero">
+                <span className="font-bold text-primary">
                   +150 Nouveaux Projets ce Mois
                 </span>
                 <motion.div
@@ -60,7 +60,7 @@ const ProjectsHero3D = () => {
             >
               Projets
             </motion.span>{" "}
-            <span className="text-gradient-hero">Extraordinaires</span>
+            <span className="text-primary">Extraordinaires</span>
             <br />
             <motion.span
               className="text-muted-foreground text-4xl md:text-5xl"
@@ -108,14 +108,14 @@ const ProjectsHero3D = () => {
                 className="glass rounded-2xl p-6 shadow-elevation-3 border-2 border-white/30 card-3d group"
               >
                 <motion.div
-                  className={`w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-elevation-3`}
+                  className={`w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary flex items-center justify-center shadow-elevation-3`}
                   whileHover={{ rotate: 360, scale: 1.2 }}
                   transition={{ duration: 0.6 }}
                 >
                   <stat.icon className="text-white" size={28} />
                 </motion.div>
                 <motion.p 
-                  className="text-3xl font-bold text-gradient-hero mb-1"
+                  className="text-3xl font-bold text-primary mb-1"
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
                 >
@@ -130,7 +130,7 @@ const ProjectsHero3D = () => {
 
       {/* Bottom Wave Effect */}
       <motion.div
-        className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent"
+        className="absolute bottom-0 left-0 right-0 h-32 bg-background/50"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}

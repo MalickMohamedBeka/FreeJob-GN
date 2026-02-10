@@ -40,7 +40,7 @@ const FilterBar3D = ({
         >
           {/* Animated Background */}
           <motion.div
-            className="absolute inset-0 bg-gradient-hero opacity-0"
+            className="absolute inset-0 bg-primary opacity-0"
             animate={{ opacity: isFocused ? 0.1 : 0 }}
             transition={{ duration: 0.3 }}
           />
@@ -84,7 +84,7 @@ const FilterBar3D = ({
 
           {/* Bottom Glow */}
           <motion.div
-            className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-hero"
+            className="absolute bottom-0 left-0 right-0 h-1 bg-primary"
             initial={{ scaleX: 0 }}
             animate={{ scaleX: isFocused ? 1 : 0 }}
             transition={{ duration: 0.3 }}
@@ -97,7 +97,7 @@ const FilterBar3D = ({
             {[...Array(8)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute w-1.5 h-1.5 rounded-full bg-gradient-hero"
+                className="absolute w-1.5 h-1.5 rounded-full bg-primary"
                 initial={{ 
                   x: 0, 
                   y: 0,
@@ -174,11 +174,11 @@ const FilterBar3D = ({
                 <>
                   <motion.div
                     layoutId="activeFilter"
-                    className="absolute inset-0 bg-gradient-hero rounded-full"
+                    className="absolute inset-0 bg-primary rounded-full"
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                   <motion.div
-                    className="absolute inset-0 bg-gradient-hero rounded-full blur-xl opacity-50"
+                    className="absolute inset-0 bg-primary rounded-full blur-xl opacity-50"
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
@@ -215,7 +215,7 @@ const FilterBar3D = ({
             transition={{ duration: 2, repeat: Infinity }}
             className="inline-block glass rounded-full px-4 py-2 text-sm font-medium shadow-elevation-1"
           >
-            Filtré par: <span className="text-gradient-hero font-bold">{activeFilter}</span>
+            Filtré par: <span className="text-primary font-bold">{activeFilter}</span>
           </motion.span>
         </motion.div>
       )}

@@ -50,7 +50,7 @@ const Values3D = () => {
             <Sparkles className="text-primary" size={32} />
           </motion.div>
           <h2 className="text-5xl font-black mb-4">
-            Nos <span className="text-gradient-hero">Valeurs</span>
+            Nos <span className="text-primary">Valeurs</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Les principes qui guident chacune de nos actions
@@ -108,7 +108,7 @@ const Values3D = () => {
               </motion.div>
 
               {/* Content */}
-              <h3 className="text-2xl font-bold mb-3 text-center group-hover:text-gradient-hero transition-all relative">
+              <h3 className="text-2xl font-bold mb-3 text-center group-hover:text-primary transition-all relative">
                 {value.title}
               </h3>
               <p className="text-muted-foreground text-center leading-relaxed relative">

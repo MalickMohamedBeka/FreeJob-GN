@@ -13,7 +13,7 @@ const CTASection = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
           whileHover={{ scale: 1.02, rotateX: 2, y: -8 }}
-          className="relative rounded-[2rem] bg-gradient-hero p-12 md:p-16 text-center overflow-hidden shadow-elevation-5 card-3d"
+          className="relative rounded-[2rem] bg-primary p-12 md:p-16 text-center overflow-hidden shadow-elevation-5 card-3d"
         >
           <div className="relative z-10">
             <motion.h2 

@@ -40,7 +40,7 @@ const EarningsChart = () => {
                 transition={{ delay: 0.6 + index * 0.1, duration: 0.5 }}
                 className="flex-1 flex flex-col items-center"
               >
-                <div className="w-full bg-gradient-to-t from-primary to-secondary rounded-t-lg relative group">
+                <div className="w-full bg-primary rounded-t-lg relative group">
                   <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-foreground text-background text-xs px-2 py-1 rounded whitespace-nowrap">
                     {data.earnings.toLocaleString()} GNF
                   </div>

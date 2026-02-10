@@ -40,7 +40,7 @@ const HowItWorks = () => {
           className="text-center max-w-2xl mx-auto mb-16"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Comment ça <span className="text-gradient-hero">marche</span> ?
+            Comment ça <span className="text-primary">marche</span> ?
           </h2>
           <p className="text-muted-foreground text-lg">
             Un processus simple et efficace en 4 étapes.
@@ -68,13 +68,13 @@ const HowItWorks = () => {
                   initial={{ scaleX: 0 }}
                   whileInView={{ scaleX: 1 }}
                   transition={{ duration: 0.8, delay: index * 0.15 + 0.3 }}
-                  className="hidden lg:block absolute top-8 left-[60%] w-[80%] h-[3px] bg-gradient-hero opacity-30 shadow-elevation-1"
+                  className="hidden lg:block absolute top-8 left-[60%] w-[80%] h-[3px] bg-primary opacity-30 shadow-elevation-1"
                   style={{ transformOrigin: 'left' }}
                 />
               )}
 
               <motion.div 
-                className="w-20 h-20 rounded-3xl bg-gradient-hero mx-auto mb-6 flex items-center justify-center shadow-elevation-4 relative"
+                className="w-20 h-20 rounded-3xl bg-primary mx-auto mb-6 flex items-center justify-center shadow-elevation-4 relative"
                 whileHover={{ rotate: 360, scale: 1.15 }}
                 transition={{ duration: 0.6 }}
               >

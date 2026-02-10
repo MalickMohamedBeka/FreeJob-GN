@@ -13,7 +13,7 @@ interface Shape3DProps {
 const Shape3D = ({ 
   type, 
   size = "md", 
-  color = "bg-gradient-hero", 
+  color = "bg-primary", 
   className = "",
   children,
   animate = true 

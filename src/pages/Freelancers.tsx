@@ -90,15 +90,7 @@ const Freelancers = () => {
                   className="inline-block mb-8"
                 >
                   <div className="relative">
-                    <motion.div
-                      className="w-40 h-40 rounded-full bg-gradient-hero opacity-20 blur-3xl mx-auto mb-6"
-                      animate={{
-                        scale: [1, 1.3, 1],
-                        opacity: [0.2, 0.4, 0.2],
-                      }}
-                      transition={{ duration: 3, repeat: Infinity }}
-                    />
-                    <Search className="mx-auto text-muted-foreground relative -mt-32" size={80} />
+                    <Search className="mx-auto text-muted-foreground" size={80} />
                   </div>
                 </motion.div>
 
@@ -124,13 +116,9 @@ const Freelancers = () => {
                     setSearch("");
                     setActiveFilter("Tous");
                   }}
-                  className="glass rounded-2xl px-10 py-4 font-bold text-lg shadow-elevation-3 border-2 border-white/40 relative overflow-hidden group"
+                  className="glass rounded-2xl px-10 py-4 font-bold text-lg shadow-elevation-3 border-2 border-white/40 relative overflow-hidden group hover:bg-primary hover:text-white transition-colors"
                 >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-hero opacity-0 group-hover:opacity-100"
-                    transition={{ duration: 0.3 }}
-                  />
-                  <span className="relative z-10 group-hover:text-white transition-colors flex items-center gap-2">
+                  <span className="flex items-center gap-2">
                     <Target size={20} />
                     Réinitialiser les filtres
                   </span>
@@ -154,13 +142,9 @@ const Freelancers = () => {
                   boxShadow: "0 30px 60px rgba(0, 0, 0, 0.3), 0 0 60px rgba(255, 122, 61, 0.3)"
                 }}
                 whileTap={{ scale: 0.95 }}
-                className="glass rounded-3xl px-12 py-5 font-black text-xl shadow-elevation-4 border-2 border-white/40 relative overflow-hidden group"
+                className="glass rounded-3xl px-12 py-5 font-black text-xl shadow-elevation-4 border-2 border-white/40 relative overflow-hidden group hover:bg-primary hover:text-white transition-colors"
               >
-                <motion.div
-                  className="absolute inset-0 bg-gradient-hero opacity-0 group-hover:opacity-100"
-                  transition={{ duration: 0.4 }}
-                />
-                <span className="relative z-10 group-hover:text-white transition-colors flex items-center gap-3">
+                <span className="flex items-center gap-3">
                   <Users size={24} />
                   Découvrir Plus de Talents
                   <Award size={24} />
@@ -194,15 +178,7 @@ const Freelancers = () => {
                 whileHover={{ scale: 1.02, y: -5 }}
                 className="glass rounded-[2rem] p-12 shadow-elevation-5 border-2 border-white/40 text-center relative overflow-hidden"
               >
-                {/* Animated Background */}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/20 to-success/20"
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    rotate: [0, 180, 360],
-                  }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                />
+
 
                 <div className="relative z-10">
                   <motion.h2 
@@ -216,7 +192,7 @@ const Freelancers = () => {
                     }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
-                    Vous êtes un <span className="text-gradient-hero">Talent</span> ?
+                    Vous êtes un <span className="text-primary">Talent</span> ?
                   </motion.h2>
                   <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
                     Rejoignez notre communauté de freelancers d'exception et accédez à des projets extraordinaires
@@ -224,7 +200,7 @@ const Freelancers = () => {
                   <motion.button
                     whileHover={{ scale: 1.1, y: -5 }}
                     whileTap={{ scale: 0.95 }}
-                    className="bg-gradient-hero text-white px-10 py-4 rounded-2xl font-bold text-lg shadow-elevation-4 hover:shadow-elevation-5"
+                    className="bg-primary text-white px-10 py-4 rounded-2xl font-bold text-lg shadow-elevation-4 hover:shadow-elevation-5"
                   >
                     Créer Mon Profil Gratuitement
                   </motion.button>

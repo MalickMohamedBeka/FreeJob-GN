@@ -23,7 +23,7 @@ const PartnersCarousel = () => {
           scale: [1, 1.2, 1]
         }}
         transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        className="absolute top-10 right-10 w-64 h-64 rounded-full bg-gradient-hero opacity-10 blur-3xl"
+        className="absolute top-10 right-10 w-64 h-64 rounded-full bg-primary opacity-10 blur-3xl"
       />
       <motion.div
         animate={{ 
@@ -43,7 +43,7 @@ const PartnersCarousel = () => {
           className="text-center max-w-2xl mx-auto mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Nos <span className="text-gradient-hero">Partenaires</span> de Confiance
+            Nos <span className="text-primary">Partenaires</span> de Confiance
           </h2>
           <p className="text-muted-foreground text-lg">
             Ils nous font confiance pour connecter les talents africains
@@ -100,7 +100,7 @@ const PartnersCarousel = () => {
           </motion.div>
 
           {/* Gradient Overlays for fade effect */}
-          <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-muted/60 to-transparent pointer-events-none z-10" />
+          <div className="absolute left-0 top-0 bottom-0 w-20 bg-primary pointer-events-none z-10" />
           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-muted/60 to-transparent pointer-events-none z-10" />
         </div>
       </div>

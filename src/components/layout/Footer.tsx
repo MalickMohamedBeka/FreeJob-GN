@@ -26,7 +26,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-3 mb-4">
               <img src="/logo.png" alt="FreeJobGN" className="h-10 w-auto" />
-              <span className="text-2xl font-bold text-gradient-hero">FreeJobGN</span>
+              <span className="text-2xl font-bold text-primary">FreeJobGN</span>
             </div>
             <p className="mt-4 text-sm text-background/60 leading-relaxed">
               La première plateforme freelance de Guinée. Connectez les talents locaux avec des opportunités mondiales.

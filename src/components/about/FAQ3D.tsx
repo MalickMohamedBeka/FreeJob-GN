@@ -85,7 +85,7 @@ const FAQItem = ({ q, a, icon: Icon, index }: { q: string; a: string; icon: any;
         className="w-full flex items-center justify-between p-6 text-left"
       >
         <motion.div 
-          className="mr-4 p-3 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center"
+          className="mr-4 p-3 rounded-xl bg-primary items-center justify-center"
           animate={{ rotate: open ? 360 : 0 }}
           transition={{ duration: 0.5 }}
         >
@@ -141,7 +141,7 @@ const FAQ3D = () => {
             <HelpCircle className="text-primary" size={32} />
           </motion.div>
           <h2 className="text-5xl font-black mb-4">
-            Questions <span className="text-gradient-hero">Fréquentes</span>
+            Questions <span className="text-primary">Fréquentes</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
             Tout ce que vous devez savoir sur FreeJobGN
@@ -155,7 +155,7 @@ const FAQ3D = () => {
               whileTap={{ scale: 0.95 }}
               className={`px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-elevation-3 ${
                 activeTab === "clients"
-                  ? "bg-gradient-to-r from-primary to-secondary text-white"
+                  ? "bg-primary text-white"
                   : "glass border-2 border-white/40"
               }`}
             >
@@ -168,7 +168,7 @@ const FAQ3D = () => {
               whileTap={{ scale: 0.95 }}
               className={`px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-elevation-3 ${
                 activeTab === "freelancers"
-                  ? "bg-gradient-to-r from-primary to-secondary text-white"
+                  ? "bg-primary text-white"
                   : "glass border-2 border-white/40"
               }`}
             >
@@ -223,7 +223,7 @@ const FAQ3D = () => {
           <motion.button
             whileHover={{ scale: 1.05, y: -5 }}
             whileTap={{ scale: 0.95 }}
-            className="btn-3d bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-bold shadow-elevation-3 relative"
+            className="btn-3d bg-primary text-white px-8 py-4 rounded-xl font-bold shadow-elevation-3 relative"
           >
             Contactez-nous
           </motion.button>

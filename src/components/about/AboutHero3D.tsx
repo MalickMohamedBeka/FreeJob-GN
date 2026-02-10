@@ -24,7 +24,7 @@ const AboutHero3D = () => {
             >
               <div className="flex items-center gap-4">
                 <span className="font-bold text-xl">
-                  <span className="text-gradient-hero">Notre Mission</span>
+                  <span className="text-primary">Notre Mission</span>
                 </span>
                 <motion.div
                   animate={{ scale: [1, 1.4, 1] }}
@@ -56,7 +56,7 @@ const AboutHero3D = () => {
               Construire
             </motion.span>
             <br />
-            <span className="text-gradient-hero">l'Avenir</span>
+            <span className="text-primary">l'Avenir</span>
             <br />
             <motion.span
               className="text-muted-foreground text-5xl md:text-6xl"
@@ -77,7 +77,7 @@ const AboutHero3D = () => {
             FreeJobGN est né d'une vision simple : donner à chaque talent africain la possibilité
             de travailler sur des projets passionnants, localement et à l'international.
             <br />
-            <span className="text-gradient-hero font-bold mt-4 block">
+            <span className="text-primary font-bold mt-4 block">
               Innovation • Excellence • Impact
             </span>
           </motion.p>
@@ -96,7 +96,7 @@ const AboutHero3D = () => {
                 boxShadow: "0 25px 50px rgba(0, 0, 0, 0.25), 0 0 60px rgba(255, 122, 61, 0.4)"
               }}
               whileTap={{ scale: 0.95 }}
-              className="bg-gradient-hero text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-elevation-4 flex items-center gap-3"
+              className="bg-primary text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-elevation-4 flex items-center gap-3"
             >
               <Rocket size={24} />
               Rejoindre l'Aventure
@@ -137,7 +137,7 @@ const AboutHero3D = () => {
                 className="glass rounded-2xl px-8 py-4 shadow-elevation-3 border border-white/30"
               >
                 <motion.p 
-                  className="text-4xl font-black text-gradient-hero mb-1"
+                  className="text-4xl font-black text-primary mb-1"
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
                 >

@@ -36,7 +36,7 @@ const Timeline3D = () => {
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-muted/20 to-transparent" />
+      <div className="absolute inset-0 bg-primary" />
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         <motion.div
@@ -46,7 +46,7 @@ const Timeline3D = () => {
           className="text-center mb-20"
         >
           <h2 className="text-5xl font-black mb-4">
-            Notre <span className="text-gradient-hero">Parcours</span>
+            Notre <span className="text-primary">Parcours</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             De l'idée à la réalité, découvrez notre évolution
@@ -80,7 +80,7 @@ const Timeline3D = () => {
 
                 <div className="relative z-10">
                   <motion.span 
-                    className="inline-block text-6xl font-black text-gradient-hero mb-4"
+                    className="inline-block text-6xl font-black text-primary mb-4"
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >

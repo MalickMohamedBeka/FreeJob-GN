@@ -67,7 +67,7 @@ const Roadmap3D = () => {
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
+      <div className="absolute inset-0 bg-primary" />
       
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         {/* Title */}
@@ -85,7 +85,7 @@ const Roadmap3D = () => {
             <TrendingUp className="text-primary" size={40} />
           </motion.div>
           <h2 className="text-5xl md:text-6xl font-black mb-4">
-            Notre <span className="text-gradient-hero">Roadmap</span>
+            Notre <span className="text-primary">Roadmap</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Le voyage vers l'excellence continue
@@ -135,7 +135,7 @@ const Roadmap3D = () => {
                       transition={{ delay: 0.5, type: "spring" }}
                       className={`absolute -top-4 -right-4 px-4 py-2 rounded-full shadow-elevation-3 ${
                         phase.status === "completed" ? "bg-success" :
-                        phase.status === "current" ? "bg-gradient-hero" :
+                        phase.status === "current" ? "bg-primary" :
                         phase.status === "upcoming" ? "bg-secondary" :
                         "bg-muted"
                       } text-white font-bold text-sm`}
@@ -230,7 +230,7 @@ const Roadmap3D = () => {
             className="inline-block glass rounded-3xl p-8 shadow-elevation-4 border-2 border-white/40"
           >
             <h3 className="text-2xl font-bold mb-3">
-              Rejoignez l'<span className="text-gradient-hero">Aventure</span>
+              Rejoignez l'<span className="text-primary">Aventure</span>
             </h3>
             <p className="text-muted-foreground mb-6">
               Faites partie de la révolution du travail en Afrique
@@ -238,7 +238,7 @@ const Roadmap3D = () => {
             <motion.button
               whileHover={{ scale: 1.1, y: -3 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-gradient-hero text-white px-8 py-4 rounded-2xl font-bold shadow-elevation-3 hover:shadow-elevation-4"
+              className="bg-primary text-white px-8 py-4 rounded-2xl font-bold shadow-elevation-3 hover:shadow-elevation-4"
             >
               Commencer Maintenant
             </motion.button>

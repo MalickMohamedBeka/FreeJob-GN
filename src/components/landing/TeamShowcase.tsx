@@ -22,7 +22,7 @@ const TeamShowcase = () => {
           className="text-center max-w-2xl mx-auto mb-16"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Talents <span className="text-gradient-hero">Africains</span> d'Exception
+            Talents <span className="text-primary">Africains</span> d'Exception
           </h2>
           <p className="text-muted-foreground text-lg">
             Découvrez quelques-uns des professionnels qui font la différence
@@ -85,7 +85,7 @@ const TeamShowcase = () => {
             className="inline-block glass rounded-2xl px-8 py-4 shadow-elevation-3 hover:shadow-elevation-4 border border-white/30"
           >
             <p className="text-lg font-semibold mb-2">
-              Rejoignez <span className="text-gradient-hero">2,500+</span> talents africains
+              Rejoignez <span className="text-primary">2,500+</span> talents africains
             </p>
             <p className="text-sm text-muted-foreground">
               Développeurs • Designers • Marketeurs • Consultants

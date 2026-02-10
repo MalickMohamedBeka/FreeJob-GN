@@ -36,7 +36,7 @@ export const EmptyState = ({
         transition={{ duration: 4, repeat: Infinity }}
         className="inline-block mb-6"
       >
-        <div className="w-32 h-32 rounded-full bg-gradient-hero opacity-20 blur-2xl mx-auto mb-4" />
+        <div className="w-32 h-32 rounded-full bg-primary opacity-20 blur-2xl mx-auto mb-4" />
         <Icon className="mx-auto text-muted-foreground -mt-28" size={64} />
       </motion.div>
 

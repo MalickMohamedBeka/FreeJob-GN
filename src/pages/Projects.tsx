@@ -63,7 +63,7 @@ const Projects = () => {
                 <Rocket className="text-primary" size={20} />
               </motion.div>
               <span className="font-bold">
-                <span className="text-gradient-hero text-2xl">{filtered.length}</span>
+                <span className="text-primary text-2xl">{filtered.length}</span>
                 <span className="text-muted-foreground ml-2">
                   {filtered.length === 1 ? "projet trouvé" : "projets trouvés"}
                 </span>
@@ -106,7 +106,6 @@ const Projects = () => {
                   transition={{ duration: 4, repeat: Infinity }}
                   className="inline-block mb-6"
                 >
-                  <div className="w-32 h-32 rounded-full bg-gradient-hero opacity-20 blur-2xl mx-auto mb-4" />
                   <Search className="mx-auto text-muted-foreground" size={64} />
                 </motion.div>
                 <h3 className="text-2xl font-bold mb-3">Aucun projet trouvé</h3>
@@ -143,13 +142,9 @@ const Projects = () => {
                   boxShadow: "0 20px 40px rgba(0, 0, 0, 0.2)"
                 }}
                 whileTap={{ scale: 0.95 }}
-                className="glass rounded-2xl px-10 py-4 font-bold text-lg shadow-elevation-3 border-2 border-white/30 relative overflow-hidden group"
+                className="glass rounded-2xl px-10 py-4 font-bold text-lg shadow-elevation-3 border-2 border-white/30 relative overflow-hidden group hover:bg-primary hover:text-white transition-colors"
               >
-                <motion.div
-                  className="absolute inset-0 bg-gradient-hero opacity-0 group-hover:opacity-100"
-                  transition={{ duration: 0.3 }}
-                />
-                <span className="relative z-10 group-hover:text-white transition-colors">
+                <span className="transition-colors">
                   Charger Plus de Projets
                 </span>
               </motion.button>

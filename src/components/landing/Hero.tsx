@@ -37,7 +37,7 @@ const Hero = () => {
               className="text-4xl md:text-5xl lg:text-[64px] font-bold leading-[1.1] tracking-tight mb-6"
             >
               Trouvez les meilleurs{" "}
-              <span className="text-gradient-hero">talents freelance</span>{" "}
+              <span className="text-primary">talents freelance</span>{" "}
               pour vos projets
             </motion.h1>
 

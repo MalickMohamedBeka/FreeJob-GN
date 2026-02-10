@@ -27,7 +27,7 @@ const AnimatedCounter = ({ target, suffix = "" }: { target: number; suffix?: str
   }, [isInView, target]);
 
   return (
-    <div ref={ref} className="text-6xl font-black text-gradient-hero">
+    <div ref={ref} className="text-6xl font-black text-primary">
       {count.toLocaleString()}{suffix}
     </div>
   );
@@ -45,7 +45,7 @@ const Stats3D = () => {
     <section className="py-20 relative overflow-hidden">
       {/* Animated Background */}
       <motion.div
-        className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5"
+        className="absolute inset-0 bg-primary"
         animate={{
           backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
         }}

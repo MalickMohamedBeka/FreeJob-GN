@@ -85,7 +85,7 @@ const ProjectCard3D = memo(({ project, index }: ProjectCard3DProps) => {
       >
         {/* Animated Background Gradient */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-transparent opacity-0 group-hover:opacity-100 blur-2xl"
+          className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-100 blur-2xl"
           animate={{
             scale: isHovered ? 1.5 : 1,
             rotate: isHovered ? 180 : 0,
@@ -99,7 +99,7 @@ const ProjectCard3D = memo(({ project, index }: ProjectCard3DProps) => {
             {[...Array(3)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute w-2 h-2 rounded-full bg-gradient-hero"
+                className="absolute w-2 h-2 rounded-full bg-primary"
                 initial={{ 
                   x: Math.random() * 100 - 50, 
                   y: Math.random() * 100 - 50,
@@ -135,7 +135,7 @@ const ProjectCard3D = memo(({ project, index }: ProjectCard3DProps) => {
             >
               <Badge 
                 variant="secondary" 
-                className="bg-gradient-hero text-primary-foreground border-0 shadow-elevation-2 px-4 py-1.5"
+                className="bg-primary text-primary-foreground border-0 shadow-elevation-2 px-4 py-1.5"
               >
                 {project.status === "open" ? "🔥 Ouvert" : "⚡ En cours"}
               </Badge>
@@ -145,7 +145,7 @@ const ProjectCard3D = memo(({ project, index }: ProjectCard3DProps) => {
 
           {/* Title with 3D Effect */}
           <motion.h3 
-            className="text-2xl font-bold mb-3 line-clamp-2 group-hover:text-gradient-hero transition-all"
+            className="text-2xl font-bold mb-3 line-clamp-2 group-hover:text-primary transition-all"
             style={{ transform: "translateZ(30px)" }}
             animate={{ 
               y: isHovered ? -5 : 0,
@@ -188,7 +188,7 @@ const ProjectCard3D = memo(({ project, index }: ProjectCard3DProps) => {
               className="flex items-center gap-2 glass rounded-xl p-3"
               whileHover={{ scale: 1.05, x: 5 }}
             >
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-success to-primary flex items-center justify-center shadow-elevation-2">
+              <div className="w-10 h-10 rounded-lg bg-primary items-center justify-center shadow-elevation-2">
                 <Coins size={18} className="text-white" />
               </div>
               <div>
@@ -203,7 +203,7 @@ const ProjectCard3D = memo(({ project, index }: ProjectCard3DProps) => {
               className="flex items-center gap-2 glass rounded-xl p-3"
               whileHover={{ scale: 1.05, x: 5 }}
             >
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-warning to-secondary flex items-center justify-center shadow-elevation-2">
+              <div className="w-10 h-10 rounded-lg bg-primary items-center justify-center shadow-elevation-2">
                 <Clock size={18} className="text-white" />
               </div>
               <div>
@@ -243,7 +243,7 @@ const ProjectCard3D = memo(({ project, index }: ProjectCard3DProps) => {
             >
               <Button 
                 size="sm" 
-                className="bg-gradient-hero text-white shadow-elevation-3 hover:shadow-elevation-4 border-0 gap-2"
+                className="bg-primary text-white shadow-elevation-3 hover:shadow-elevation-4 border-0 gap-2"
               >
                 Postuler
                 <ArrowRight size={16} />
@@ -254,7 +254,7 @@ const ProjectCard3D = memo(({ project, index }: ProjectCard3DProps) => {
 
         {/* 3D Corner Accent */}
         <motion.div
-          className="absolute top-0 right-0 w-32 h-32 bg-gradient-hero opacity-20 blur-3xl rounded-full"
+          className="absolute top-0 right-0 w-32 h-32 bg-primary opacity-20 blur-3xl rounded-full"
           animate={{
             scale: isHovered ? 1.5 : 1,
             opacity: isHovered ? 0.3 : 0.2,
@@ -264,7 +264,7 @@ const ProjectCard3D = memo(({ project, index }: ProjectCard3DProps) => {
 
         {/* Bottom Glow */}
         <motion.div
-          className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-hero"
+          className="absolute bottom-0 left-0 right-0 h-1 bg-primary"
           initial={{ scaleX: 0 }}
           animate={{ scaleX: isHovered ? 1 : 0 }}
           transition={{ duration: 0.3 }}
@@ -273,7 +273,7 @@ const ProjectCard3D = memo(({ project, index }: ProjectCard3DProps) => {
 
       {/* 3D Shadow Layer */}
       <motion.div
-        className="absolute inset-0 bg-gradient-hero opacity-10 blur-2xl rounded-3xl -z-10"
+        className="absolute inset-0 bg-primary opacity-10 blur-2xl rounded-3xl -z-10"
         animate={{
           scale: isHovered ? 1.1 : 0.95,
           y: isHovered ? 10 : 5,

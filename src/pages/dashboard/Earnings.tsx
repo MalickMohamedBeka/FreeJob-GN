@@ -102,7 +102,7 @@ const Earnings = () => {
                   transition={{ delay: index * 0.1, duration: 0.5 }}
                   className="flex-1 flex flex-col items-center group"
                 >
-                  <div className="w-full bg-gradient-to-t from-primary to-secondary rounded-t-lg relative">
+                  <div className="w-full bg-primary rounded-t-lg relative">
                     <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-foreground text-background text-xs px-3 py-1.5 rounded whitespace-nowrap font-medium">
                       {data.amount.toLocaleString()} GNF
                     </div>

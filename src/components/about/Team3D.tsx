@@ -32,7 +32,7 @@ const Team3D = () => {
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-muted/30 to-transparent" />
+      <div className="absolute inset-0 bg-primary" />
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         <motion.div
@@ -42,7 +42,7 @@ const Team3D = () => {
           className="text-center mb-20"
         >
           <h2 className="text-5xl font-black mb-4">
-            Notre <span className="text-gradient-hero">Équipe</span>
+            Notre <span className="text-primary">Équipe</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Les visionnaires qui construisent l'avenir du freelancing en Afrique
@@ -74,7 +74,7 @@ const Team3D = () => {
               <div className="relative h-64 overflow-hidden">
                 {/* Background Gradient */}
                 <motion.div
-                  className="absolute inset-0 bg-gradient-hero opacity-30"
+                  className="absolute inset-0 bg-primary opacity-30"
                   animate={{
                     scale: [1, 1.2, 1],
                     rotate: [0, 45, 0],
@@ -91,7 +91,7 @@ const Team3D = () => {
                   <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-elevation-4">
                     {/* Glow Ring */}
                     <motion.div
-                      className="absolute inset-0 rounded-full bg-gradient-hero opacity-50 blur-xl"
+                      className="absolute inset-0 rounded-full bg-primary opacity-50 blur-xl"
                       animate={{
                         scale: [1, 1.3, 1],
                         opacity: [0.5, 0.8, 0.5],
@@ -125,7 +125,7 @@ const Team3D = () => {
 
               {/* Info Section */}
               <div className="p-6 text-center relative">
-                <h3 className="text-xl font-bold mb-1 group-hover:text-gradient-hero transition-all">
+                <h3 className="text-xl font-bold mb-1 group-hover:text-primary transition-all">
                   {member.name}
                 </h3>
                 <p className="text-primary font-semibold text-sm mb-3">
@@ -137,7 +137,7 @@ const Team3D = () => {
 
                 {/* Bottom Glow */}
                 <motion.div
-                  className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-hero"
+                  className="absolute bottom-0 left-0 right-0 h-1 bg-primary"
                   initial={{ scaleX: 0 }}
                   whileInView={{ scaleX: 1 }}
                   viewport={{ once: true }}

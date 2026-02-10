@@ -36,7 +36,7 @@ const Features = () => {
           className="text-center max-w-2xl mx-auto mb-16"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Pourquoi choisir <span className="text-gradient-hero">FreeJobGN</span> ?
+            Pourquoi choisir <span className="text-primary">FreeJobGN</span> ?
           </h2>
           <p className="text-muted-foreground text-lg">
             Une plateforme pensée pour connecter les meilleurs talents aux meilleures opportunités.
@@ -59,13 +59,13 @@ const Features = () => {
               className="lg:card-3d glass rounded-2xl p-8 shadow-elevation-3 hover:shadow-elevation-5 border border-white/30 group"
             >
               <motion.div 
-                className="w-16 h-16 rounded-2xl bg-gradient-hero flex items-center justify-center mb-6 shadow-elevation-2"
+                className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mb-6 shadow-elevation-2"
                 whileHover={{ rotate: 360, scale: 1.1 }}
                 transition={{ duration: 0.6 }}
               >
                 <feature.icon className="text-white" size={28} />
               </motion.div>
-              <h3 className="text-xl font-bold mb-3 group-hover:text-gradient-hero transition-all">
+              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-all">
                 {feature.title}
               </h3>
               <p className="text-muted-foreground leading-relaxed">
@@ -73,7 +73,7 @@ const Features = () => {
               </p>
               
               {/* 3D Accent */}
-              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-hero opacity-10 blur-2xl rounded-full" />
+              <div className="absolute top-0 right-0 w-20 h-20 bg-primary opacity-10 blur-2xl rounded-full" />
             </motion.div>
           ))}
         </div>

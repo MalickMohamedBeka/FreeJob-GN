@@ -12,7 +12,7 @@ const Testimonials = () => {
   return (
     <section className="py-20 lg:py-28 bg-muted/50 relative overflow-hidden">
       {/* 3D Background */}
-      <div className="absolute inset-0 bg-gradient-hero opacity-[0.02]" />
+      <div className="absolute inset-0 bg-primary opacity-[0.02]" />
       <motion.div 
         animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
         transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
@@ -28,7 +28,7 @@ const Testimonials = () => {
           className="text-center max-w-2xl mx-auto mb-16"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ce que disent nos <span className="text-gradient-hero">utilisateurs</span>
+            Ce que disent nos <span className="text-primary">utilisateurs</span>
           </h2>
           <p className="text-muted-foreground text-lg">
             Des milliers de professionnels nous font confiance.
@@ -94,7 +94,7 @@ const Testimonials = () => {
               <p className="text-sm text-muted-foreground font-medium">{mockTestimonials[current].role}</p>
               
               {/* 3D Glow */}
-              <div className="absolute inset-0 rounded-3xl bg-gradient-hero opacity-0 hover:opacity-5 blur-2xl transition-opacity duration-500" />
+              <div className="absolute inset-0 rounded-3xl bg-primary opacity-0 hover:opacity-5 blur-2xl transition-opacity duration-500" />
             </motion.div>
           </AnimatePresence>
 
@@ -118,7 +118,7 @@ const Testimonials = () => {
                   whileTap={{ scale: 0.9 }}
                   className={`h-3 rounded-full transition-all duration-300 ${
                     i === current 
-                      ? "bg-gradient-hero w-8 shadow-glow-orange" 
+                      ? "bg-primary w-8 shadow-glow-orange" 
                       : "bg-border w-3 hover:bg-primary/50"
                   }`}
                   aria-label={`Témoignage ${i + 1}`}

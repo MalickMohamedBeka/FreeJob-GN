@@ -47,7 +47,7 @@ const PaymentMethods = () => {
             Paiements Sécurisés
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Moyens de <span className="text-gradient-hero">Paiement</span>
+            Moyens de <span className="text-primary">Paiement</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Payez et recevez vos paiements en toute sécurité avec nos partenaires de confiance
@@ -92,7 +92,7 @@ const PaymentMethods = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="bg-gradient-to-br from-primary to-secondary rounded-3xl p-8 md:p-12"
+          className="bg-primary p-8 md:p-12"
         >
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (

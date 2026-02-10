@@ -26,7 +26,7 @@ const AnimatedCounter = ({ target, suffix }: { target: number; suffix: string })
   }, [isInView, target]);
 
   return (
-    <div ref={ref} className="text-4xl md:text-5xl font-bold text-gradient-hero">
+    <div ref={ref} className="text-4xl md:text-5xl font-bold text-primary">
       {count.toLocaleString()}{suffix}
     </div>
   );
@@ -55,7 +55,7 @@ const Stats = () => {
               <p className="text-muted-foreground mt-3 font-semibold">{stat.label}</p>
               
               {/* 3D Glow Effect */}
-              <div className="absolute inset-0 rounded-3xl bg-gradient-hero opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-300" />
+              <div className="absolute inset-0 rounded-3xl bg-primary opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-300" />
             </motion.div>
           ))}
         </div>

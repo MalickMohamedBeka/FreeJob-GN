@@ -79,7 +79,7 @@ const ClientDashboard = () => {
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Header */}
-      <div className="bg-gradient-to-r from-secondary to-primary text-white p-6 lg:p-8">
+      <div className="bg-secondary text-white p-6 lg:p-8">
         <div className="container mx-auto">
           <div className="flex items-center justify-between">
             <div>
@@ -115,7 +115,7 @@ const ClientDashboard = () => {
               >
                 <Card className="p-6 hover:shadow-lg transition-shadow">
                   <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color}`}>
+                    <div className={`p-3 rounded-xl bg-primary`}>
                       <Icon className="text-white" size={24} />
                     </div>
                   </div>

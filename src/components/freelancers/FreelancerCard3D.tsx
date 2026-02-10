@@ -54,7 +54,7 @@ const FreelancerCard3D = memo(({ freelancer, index }: FreelancerCard3DProps) => 
       >
         {/* Animated Gradient Background */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-primary/30 via-secondary/20 to-success/30 opacity-0 group-hover:opacity-100"
+          className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-100"
           animate={{
             scale: isHovered ? 1.2 : 1,
             rotate: isHovered ? 45 : 0,
@@ -100,7 +100,7 @@ const FreelancerCard3D = memo(({ freelancer, index }: FreelancerCard3DProps) => 
           <div className="relative h-64 overflow-hidden rounded-t-[1.75rem]">
             {/* Background Pattern */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-br from-primary via-secondary to-success opacity-20"
+              className="absolute inset-0 bg-primary opacity-20"
               animate={{
                 scale: isHovered ? 1.1 : 1,
                 rotate: isHovered ? 5 : 0,
@@ -120,7 +120,7 @@ const FreelancerCard3D = memo(({ freelancer, index }: FreelancerCard3DProps) => 
               >
                 {/* Glow Ring */}
                 <motion.div
-                  className="absolute inset-0 rounded-full bg-gradient-hero opacity-50 blur-xl"
+                  className="absolute inset-0 rounded-full bg-primary opacity-50 blur-xl"
                   animate={{
                     scale: [1, 1.3, 1],
                     opacity: [0.5, 0.8, 0.5],
@@ -198,7 +198,7 @@ const FreelancerCard3D = memo(({ freelancer, index }: FreelancerCard3DProps) => 
           <div className="p-6 space-y-4">
             {/* Name & Title */}
             <div>
-              <h3 className="text-2xl font-bold mb-1 group-hover:text-gradient-hero transition-all">
+              <h3 className="text-2xl font-bold mb-1 group-hover:text-primary transition-all">
                 {freelancer.name}
               </h3>
               <p className="text-muted-foreground font-medium">{freelancer.title}</p>
@@ -250,7 +250,7 @@ const FreelancerCard3D = memo(({ freelancer, index }: FreelancerCard3DProps) => 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-3">
               <div className="glass rounded-xl p-3 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-success to-primary flex items-center justify-center shadow-elevation-2">
+                <div className="w-10 h-10 rounded-lg bg-primary items-center justify-center shadow-elevation-2">
                   <Briefcase size={18} className="text-white" />
                 </div>
                 <div>
@@ -260,7 +260,7 @@ const FreelancerCard3D = memo(({ freelancer, index }: FreelancerCard3DProps) => 
               </div>
 
               <div className="glass rounded-xl p-3 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-warning to-secondary flex items-center justify-center shadow-elevation-2">
+                <div className="w-10 h-10 rounded-lg bg-primary items-center justify-center shadow-elevation-2">
                   <TrendingUp size={18} className="text-white" />
                 </div>
                 <div>
@@ -273,7 +273,7 @@ const FreelancerCard3D = memo(({ freelancer, index }: FreelancerCard3DProps) => 
             {/* CTA Buttons */}
             <div className="flex gap-3 pt-2">
               <Button 
-                className="flex-1 bg-gradient-hero text-white shadow-elevation-3 hover:shadow-elevation-4 border-0 gap-2 h-12 text-base font-bold"
+                className="flex-1 bg-primary text-white shadow-elevation-3 hover:shadow-elevation-4 border-0 gap-2 h-12 text-base font-bold"
               >
                 <MessageCircle size={18} />
                 Contacter
@@ -291,7 +291,7 @@ const FreelancerCard3D = memo(({ freelancer, index }: FreelancerCard3DProps) => 
 
         {/* Bottom Glow Line */}
         <motion.div
-          className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-hero"
+          className="absolute bottom-0 left-0 right-0 h-1 bg-primary"
           initial={{ scaleX: 0 }}
           animate={{ scaleX: isHovered ? 1 : 0 }}
           transition={{ duration: 0.4 }}

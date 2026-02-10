@@ -27,7 +27,7 @@ const FreelancersHero3D = () => {
                 <div className="flex items-center gap-4">
                   <Award className="text-primary" size={24} />
                   <span className="font-bold text-lg">
-                    <span className="text-gradient-hero">2,500+</span> Talents Vérifiés
+                    <span className="text-primary">2,500+</span> Talents Vérifiés
                   </span>
                   <Award className="text-warning" size={24} />
                 </div>
@@ -43,7 +43,7 @@ const FreelancersHero3D = () => {
             className="text-center mb-8"
           >
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-black mb-6 leading-tight">
-              <span className="text-gradient-hero">Talents</span>
+              <span className="text-primary">Talents</span>
               <br />
               <span className="text-foreground">Extraordinaires</span>
               <br />
@@ -60,7 +60,7 @@ const FreelancersHero3D = () => {
             >
               Connectez-vous avec les meilleurs freelancers africains et internationaux.
               <br />
-              <span className="text-gradient-hero font-bold">Excellence • Innovation • Passion</span>
+              <span className="text-primary font-bold">Excellence • Innovation • Passion</span>
             </motion.p>
           </motion.div>
 
@@ -158,7 +158,7 @@ const FreelancersHero3D = () => {
                   <stat.icon className="text-white" size={32} />
                 </div>
 
-                <p className="text-4xl font-black text-gradient-hero mb-2">
+                <p className="text-4xl font-black text-primary mb-2">
                   {stat.value}
                 </p>
                 <p className="text-sm text-muted-foreground font-semibold">{stat.label}</p>
