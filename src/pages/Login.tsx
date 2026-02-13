@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles, Shield, CheckCircle2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { LiquidGradientMesh } from "@/components/backgrounds/LiquidGradientMesh";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,11 +14,24 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 2000);
+    try {
+      await login({ email, password });
+      const stored = localStorage.getItem('user');
+      const user = stored ? JSON.parse(stored) : null;
+      navigate(user?.role === 'CLIENT' ? '/client/dashboard' : '/dashboard');
+    } catch (err: any) {
+      setError(err?.message || "Email ou mot de passe incorrect");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const features = [
@@ -96,6 +110,15 @@ const Login = () => {
                   <p className="text-muted-foreground">Accédez à votre espace</p>
                 </div>
               <form onSubmit={handleSubmit} className="space-y-5">
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm"
+                  >
+                    {error}
+                  </motion.div>
+                )}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}

@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { LiquidGradientMesh } from "@/components/backgrounds/LiquidGradientMesh";
+import { useAuth } from "@/contexts/AuthContext";
+import type { RegisterRequest } from "@/types";
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -12,6 +14,9 @@ const Signup = () => {
   const [role, setRole] = useState<"freelancer" | "client">("freelancer");
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const { register } = useAuth();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -23,10 +28,32 @@ const Signup = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    if (formData.password !== formData.confirmPassword) {
+      setError("Les mots de passe ne correspondent pas");
+      return;
+    }
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 2000);
+    try {
+      const payload: RegisterRequest = {
+        email: formData.email,
+        username: formData.fullName,
+        password: formData.password,
+        password_confirm: formData.confirmPassword,
+        role: role === "client" ? "CLIENT" : "PROVIDER",
+      };
+      if (role === "freelancer") {
+        payload.provider_kind = "FREELANCE";
+      }
+      await register(payload);
+      setSuccess(true);
+    } catch (err: any) {
+      setError(err?.message || "Erreur lors de l'inscription");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const features = [
@@ -122,6 +149,32 @@ const Signup = () => {
                   <h1 className="text-3xl font-bold mb-2">Inscription</h1>
                   <p className="text-muted-foreground">Créez votre compte gratuitement</p>
                 </div>
+
+                {success ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center py-8"
+                  >
+                    <CheckCircle2 className="mx-auto text-primary mb-4" size={64} />
+                    <h2 className="text-2xl font-bold mb-3">Inscription réussie !</h2>
+                    <p className="text-muted-foreground mb-6">
+                      Un email d'activation a été envoyé à <strong>{formData.email}</strong>. Veuillez vérifier votre boîte de réception pour activer votre compte.
+                    </p>
+                    <Link to="/login" className="text-primary font-bold hover:underline">
+                      Retour à la connexion
+                    </Link>
+                  </motion.div>
+                ) : (<>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm mb-4"
+                  >
+                    {error}
+                  </motion.div>
+                )}
 
                 {/* Role selector */}
                 <motion.div
@@ -453,6 +506,7 @@ const Signup = () => {
                     Se connecter
                   </Link>
                 </motion.div>
+                </>)}
               </motion.div>
             </motion.div>
           </div>

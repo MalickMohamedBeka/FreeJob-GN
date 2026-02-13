@@ -14,26 +14,14 @@ const AboutHero3D = () => {
             transition={{ duration: 0.6 }}
             className="inline-block mb-8"
           >
-            <motion.div
-              animate={{ 
-                y: [0, -15, 0],
-                rotateZ: [0, 5, -5, 0]
-              }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="glass rounded-full px-8 py-4 shadow-elevation-4 border-2 border-white/40 backdrop-blur-xl"
-            >
+            <div className="glass rounded-full px-8 py-4 shadow-elevation-4 border-2 border-white/40 backdrop-blur-xl">
               <div className="flex items-center gap-4">
                 <span className="font-bold text-xl">
                   <span className="text-primary">Notre Mission</span>
                 </span>
-                <motion.div
-                  animate={{ scale: [1, 1.4, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <Heart className="text-warning" size={28} />
-                </motion.div>
+                <Heart className="text-warning" size={28} />
               </div>
-            </motion.div>
+            </div>
           </motion.div>
 
           {/* Main Title */}
@@ -43,28 +31,13 @@ const AboutHero3D = () => {
             transition={{ duration: 0.7, delay: 0.2 }}
             className="text-6xl md:text-7xl lg:text-8xl font-black mb-8 leading-tight"
           >
-            <motion.span
-              animate={{
-                textShadow: [
-                  "0 0 30px rgba(255, 122, 61, 0.4), 0 0 60px rgba(0, 82, 204, 0.3)",
-                  "0 0 50px rgba(255, 122, 61, 0.6), 0 0 80px rgba(0, 82, 204, 0.5)",
-                  "0 0 30px rgba(255, 122, 61, 0.4), 0 0 60px rgba(0, 82, 204, 0.3)"
-                ]
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-            >
-              Construire
-            </motion.span>
+            <span>Construire</span>
             <br />
             <span className="text-primary">l'Avenir</span>
             <br />
-            <motion.span
-              className="text-muted-foreground text-5xl md:text-6xl"
-              animate={{ opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 4, repeat: Infinity }}
-            >
+            <span className="text-muted-foreground text-5xl md:text-6xl">
               du Travail en Afrique
-            </motion.span>
+            </span>
           </motion.h1>
 
           {/* Description */}
@@ -74,11 +47,11 @@ const AboutHero3D = () => {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-medium mb-12"
           >
-            FreeJobGN est né d'une vision simple : donner à chaque talent africain la possibilité
-            de travailler sur des projets passionnants, localement et à l'international.
+            FreeJobGN est n&eacute; d'une vision simple : donner &agrave; chaque talent africain la possibilit&eacute;
+            de travailler sur des projets passionnants, localement et &agrave; l'international.
             <br />
             <span className="text-primary font-bold mt-4 block">
-              Innovation • Excellence • Impact
+              Innovation &bull; Excellence &bull; Impact
             </span>
           </motion.p>
 
@@ -90,8 +63,8 @@ const AboutHero3D = () => {
             className="flex flex-wrap justify-center gap-6"
           >
             <motion.button
-              whileHover={{ 
-                scale: 1.08, 
+              whileHover={{
+                scale: 1.08,
                 y: -5,
                 boxShadow: "0 25px 50px rgba(0, 0, 0, 0.25), 0 0 60px rgba(255, 122, 61, 0.4)"
               }}
@@ -103,8 +76,8 @@ const AboutHero3D = () => {
             </motion.button>
 
             <motion.button
-              whileHover={{ 
-                scale: 1.08, 
+              whileHover={{
+                scale: 1.08,
                 y: -5,
                 boxShadow: "0 25px 50px rgba(0, 0, 0, 0.25)"
               }}
@@ -112,7 +85,7 @@ const AboutHero3D = () => {
               className="glass border-2 border-white/40 px-10 py-5 rounded-2xl font-bold text-lg shadow-elevation-3 flex items-center gap-3"
             >
               <Zap size={24} />
-              Découvrir Plus
+              D&eacute;couvrir Plus
             </motion.button>
           </motion.div>
 
@@ -124,9 +97,9 @@ const AboutHero3D = () => {
             className="mt-20 flex flex-wrap justify-center gap-8"
           >
             {[
-              { value: "2023", label: "Année de Création" },
-              { value: "50+", label: "Pays Représentés" },
-              { value: "10K+", label: "Projets Réalisés" },
+              { value: "2023", label: "Ann\u00e9e de Cr\u00e9ation" },
+              { value: "50+", label: "Pays Repr\u00e9sent\u00e9s" },
+              { value: "10K+", label: "Projets R\u00e9alis\u00e9s" },
             ].map((stat, i) => (
               <motion.div
                 key={stat.label}
@@ -136,13 +109,9 @@ const AboutHero3D = () => {
                 whileHover={{ scale: 1.1, y: -5 }}
                 className="glass rounded-2xl px-8 py-4 shadow-elevation-3 border border-white/30"
               >
-                <motion.p 
-                  className="text-4xl font-black text-primary mb-1"
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
-                >
+                <p className="text-4xl font-black text-primary mb-1">
                   {stat.value}
-                </motion.p>
+                </p>
                 <p className="text-sm text-muted-foreground font-semibold">
                   {stat.label}
                 </p>

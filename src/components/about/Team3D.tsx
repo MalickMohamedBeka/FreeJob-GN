@@ -5,25 +5,25 @@ const team = [
   {
     name: "Amadou Diallo",
     role: "CEO & Fondateur",
-    bio: "Visionnaire passionné par la tech africaine",
+    bio: "Visionnaire passionn\u00e9 par la tech africaine",
     avatar: "Amadou Diallo"
   },
   {
     name: "Fatoumata Camara",
     role: "CTO",
-    bio: "Experte en développement et architecture",
+    bio: "Experte en d\u00e9veloppement et architecture",
     avatar: "Fatoumata Camara"
   },
   {
-    name: "Ibrahim Konaté",
+    name: "Ibrahim Konat\u00e9",
     role: "Head of Product",
-    bio: "Designer UX/UI primé internationalement",
-    avatar: "Ibrahim Konaté"
+    bio: "Designer UX/UI prim\u00e9 internationalement",
+    avatar: "Ibrahim Konat\u00e9"
   },
   {
     name: "Aissatou Sow",
     role: "Head of Community",
-    bio: "Spécialiste en engagement communautaire",
+    bio: "Sp\u00e9cialiste en engagement communautaire",
     avatar: "Aissatou Sow"
   },
 ];
@@ -42,7 +42,7 @@ const Team3D = () => {
           className="text-center mb-20"
         >
           <h2 className="text-5xl font-black mb-4">
-            Notre <span className="text-primary">Équipe</span>
+            Notre <span className="text-primary">\u00c9quipe</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Les visionnaires qui construisent l'avenir du freelancing en Afrique
@@ -53,19 +53,18 @@ const Team3D = () => {
           {team.map((member, index) => (
             <motion.div
               key={member.name}
-              initial={{ opacity: 0, y: 60, rotateX: -30, scale: 0.8 }}
-              whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
+              initial={{ opacity: 0, y: 60, scale: 0.8 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ 
-                duration: 0.7, 
+              transition={{
+                duration: 0.7,
                 delay: index * 0.15,
                 type: "spring",
                 stiffness: 100
               }}
-              whileHover={{ 
-                y: -20, 
+              whileHover={{
+                y: -20,
                 scale: 1.05,
-                rotateY: 10,
                 transition: { duration: 0.3 }
               }}
               className="glass rounded-3xl overflow-hidden shadow-elevation-4 border-2 border-white/40 card-3d group relative"
@@ -73,52 +72,28 @@ const Team3D = () => {
               {/* Avatar Section */}
               <div className="relative h-64 overflow-hidden">
                 {/* Background Gradient */}
-                <motion.div
-                  className="absolute inset-0 bg-primary opacity-30"
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    rotate: [0, 45, 0],
-                  }}
-                  transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                />
+                <div className="absolute inset-0 bg-primary opacity-30" />
 
                 {/* Avatar */}
-                <motion.div
-                  className="absolute inset-0 flex items-center justify-center"
-                  whileHover={{ scale: 1.1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-elevation-4">
-                    {/* Glow Ring */}
-                    <motion.div
-                      className="absolute inset-0 rounded-full bg-primary opacity-50 blur-xl"
-                      animate={{
-                        scale: [1, 1.3, 1],
-                        opacity: [0.5, 0.8, 0.5],
-                      }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
-                    
-                    {/* Avatar Image */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-elevation-4 transition-transform duration-300 group-hover:scale-110">
                     <img
                       src={`/avatars/freelancer-${(index % 15) + 1}.jpg`}
                       alt={member.name}
                       className="relative z-10 w-full h-full object-cover"
                     />
                   </div>
-                </motion.div>
+                </div>
 
                 {/* Social Links */}
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   {[Linkedin, Twitter, Mail].map((Icon, i) => (
-                    <motion.button
+                    <button
                       key={i}
-                      whileHover={{ scale: 1.2, rotate: 360 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="w-10 h-10 rounded-full glass-dark backdrop-blur-xl flex items-center justify-center shadow-elevation-2"
+                      className="w-10 h-10 rounded-full glass-dark backdrop-blur-xl flex items-center justify-center shadow-elevation-2 hover:scale-110 transition-transform"
                     >
                       <Icon size={16} className="text-white" />
-                    </motion.button>
+                    </button>
                   ))}
                 </div>
               </div>

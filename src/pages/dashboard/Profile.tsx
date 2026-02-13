@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Camera, MapPin, Mail, Phone, Globe, Star, Briefcase } from "lucide-react";
+import { Camera, MapPin, Mail, Phone, Globe, Star, Briefcase, Loader2 } from "lucide-react";
+import { useFreelanceProfile } from "@/hooks/useProfile";
 
-const skills = ["React", "TypeScript", "Node.js", "MongoDB", "Tailwind CSS", "Figma", "Git", "REST API"];
 const languages = [
   { name: "Français", level: "Natif" },
   { name: "Anglais", level: "Courant" },
@@ -22,6 +22,18 @@ const portfolio = [
 ];
 
 const Profile = () => {
+  const { data: profile, isLoading } = useFreelanceProfile();
+
+  const profileName = profile
+    ? `${profile.freelance_details?.first_name || ''} ${profile.freelance_details?.last_name || ''}`.trim() || profile.username
+    : "Chargement...";
+  const profileTitle = profile?.speciality?.name || "Freelancer";
+  const profileLocation = profile ? [profile.city_or_region, profile.country].filter(Boolean).join(", ") : "";
+  const profileBio = profile?.bio || "";
+  const skills = profile?.skills?.map(s => s.name) || [];
+  const profileEmail = profile?.email || "";
+  const profilePhone = profile?.phone || "";
+  const profilePicture = profile?.profile_picture || "/avatars/profile-main.jpg";
   return (
     <DashboardLayout userType="freelancer">
       <div className="space-y-6">
@@ -31,12 +43,17 @@ const Profile = () => {
         </div>
 
         {/* Profile Header */}
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="animate-spin text-primary" size={40} />
+          </div>
+        ) : (
         <Card className="p-6">
           <div className="flex flex-col md:flex-row gap-6">
             <div className="relative">
-              <img 
-                src="/avatars/profile-main.jpg" 
-                alt="Malick Mohamed"
+              <img
+                src={profilePicture}
+                alt={profileName}
                 className="w-32 h-32 rounded-full object-cover"
               />
               <button className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full hover:bg-primary/90">
@@ -46,25 +63,27 @@ const Profile = () => {
             <div className="flex-1">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h2 className="text-2xl font-bold mb-1">Amadou Diallo</h2>
-                  <p className="text-muted-foreground mb-2">Développeur Full Stack</p>
+                  <h2 className="text-2xl font-bold mb-1">{profileName}</h2>
+                  <p className="text-muted-foreground mb-2">{profileTitle}</p>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <MapPin size={16} />
-                      <span>Conakry, Guinée</span>
-                    </div>
+                    {profileLocation && (
+                      <div className="flex items-center gap-1">
+                        <MapPin size={16} />
+                        <span>{profileLocation}</span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-1">
                       <Briefcase size={16} />
-                      <span>5 ans d'expérience</span>
+                      <span>Freelancer</span>
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="flex items-center gap-1 mb-1">
                     <Star className="text-primary fill-primary" size={20} />
-                    <span className="text-2xl font-bold">4.9</span>
+                    <span className="text-2xl font-bold">5.0</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">32 avis</p>
+                  <p className="text-sm text-muted-foreground">0 avis</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -74,6 +93,7 @@ const Profile = () => {
             </div>
           </div>
         </Card>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Column */}
@@ -84,7 +104,7 @@ const Profile = () => {
               <Textarea
                 placeholder="Décrivez votre expérience, vos compétences et ce qui vous rend unique..."
                 rows={6}
-                defaultValue="Développeur Full Stack passionné avec 5 ans d'expérience dans la création d'applications web et mobiles modernes. Spécialisé en React, Node.js et TypeScript. J'ai travaillé avec des entreprises de premier plan en Guinée pour développer des solutions innovantes."
+                defaultValue={profileBio}
               />
               <Button className="mt-4">Enregistrer</Button>
             </Card>
@@ -141,14 +161,14 @@ const Profile = () => {
                   <label className="text-sm text-muted-foreground mb-1 block">Email</label>
                   <div className="flex items-center gap-2">
                     <Mail size={16} className="text-muted-foreground" />
-                    <Input defaultValue="amadou.diallo@email.com" />
+                    <Input defaultValue={profileEmail} />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm text-muted-foreground mb-1 block">Téléphone</label>
                   <div className="flex items-center gap-2">
                     <Phone size={16} className="text-muted-foreground" />
-                    <Input defaultValue="+224 620 00 00 00" />
+                    <Input defaultValue={profilePhone} />
                   </div>
                 </div>
                 <div>

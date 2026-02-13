@@ -1,18 +1,18 @@
 import { motion } from "framer-motion";
-import { Rocket, Users, Globe, Award, Zap, TrendingUp } from "lucide-react";
+import { Rocket, Globe, Award, TrendingUp } from "lucide-react";
 
 const timeline = [
   {
     year: "2023",
     title: "Lancement",
-    description: "FreeJobGN voit le jour avec une vision claire : connecter les talents guinéens.",
+    description: "FreeJobGN voit le jour avec une vision claire : connecter les talents guin\u00e9ens.",
     icon: Rocket,
     color: "from-primary to-warning"
   },
   {
     year: "2024",
     title: "Croissance",
-    description: "1,000+ freelancers rejoignent la plateforme. Expansion dans toute la Guinée.",
+    description: "1,000+ freelancers rejoignent la plateforme. Expansion dans toute la Guin\u00e9e.",
     icon: TrendingUp,
     color: "from-secondary to-primary"
   },
@@ -49,7 +49,7 @@ const Timeline3D = () => {
             Notre <span className="text-primary">Parcours</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            De l'idée à la réalité, découvrez notre évolution
+            De l'id&eacute;e &agrave; la r&eacute;alit&eacute;, d&eacute;couvrez notre &eacute;volution
           </p>
         </motion.div>
 
@@ -57,8 +57,8 @@ const Timeline3D = () => {
           {timeline.map((item, index) => (
             <motion.div
               key={item.year}
-              initial={{ opacity: 0, x: index % 2 === 0 ? -100 : 100, rotateY: index % 2 === 0 ? -20 : 20 }}
-              whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
+              initial={{ opacity: 0, x: index % 2 === 0 ? -100 : 100 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: index * 0.2 }}
               className={`flex items-center gap-8 mb-16 ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}
@@ -68,24 +68,10 @@ const Timeline3D = () => {
                 whileHover={{ scale: 1.05, x: index % 2 === 0 ? 10 : -10 }}
                 className="flex-1 glass rounded-3xl p-8 shadow-elevation-4 border-2 border-white/40 card-3d group relative overflow-hidden"
               >
-                {/* Animated Background */}
-                <motion.div
-                  className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-20`}
-                  animate={{
-                    scale: [1, 1.3, 1],
-                    rotate: [0, 90, 180],
-                  }}
-                  transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                />
-
                 <div className="relative z-10">
-                  <motion.span 
-                    className="inline-block text-6xl font-black text-primary mb-4"
-                    animate={{ scale: [1, 1.05, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
+                  <span className="inline-block text-6xl font-black text-primary mb-4">
                     {item.year}
-                  </motion.span>
+                  </span>
                   <h3 className="text-3xl font-bold mb-3">{item.title}</h3>
                   <p className="text-muted-foreground text-lg leading-relaxed">
                     {item.description}
@@ -99,27 +85,11 @@ const Timeline3D = () => {
                 transition={{ duration: 0.6 }}
                 className="relative"
               >
-                <motion.div
+                <div
                   className={`w-24 h-24 rounded-full bg-gradient-to-br ${item.color} flex items-center justify-center shadow-elevation-4 relative`}
-                  animate={{
-                    boxShadow: [
-                      "0 0 0 0 rgba(255, 122, 61, 0.4)",
-                      "0 0 0 20px rgba(255, 122, 61, 0)",
-                      "0 0 0 0 rgba(255, 122, 61, 0.4)",
-                    ]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <motion.div
-                    className="absolute inset-0 rounded-full bg-white/30 blur-xl"
-                    animate={{
-                      scale: [1, 1.5, 1],
-                      opacity: [0.3, 0.6, 0.3],
-                    }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
                   <item.icon className="text-white relative z-10" size={40} />
-                </motion.div>
+                </div>
               </motion.div>
 
               {/* Spacer for alignment */}

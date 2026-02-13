@@ -46,14 +46,10 @@ const Testimonials = () => {
               whileHover={{ y: -8, scale: 1.02 }}
               className="glass rounded-3xl p-8 md:p-12 shadow-elevation-4 hover:shadow-elevation-5 border border-white/30 text-center lg:card-3d relative"
             >
-              {/* 3D Quote Icon */}
-              <motion.div
-                animate={{ rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-6 right-6 w-16 h-16 rounded-2xl glass-dark flex items-center justify-center shadow-elevation-2"
-              >
+              {/* Quote Icon */}
+              <div className="absolute top-6 right-6 w-16 h-16 rounded-2xl glass-dark flex items-center justify-center shadow-elevation-2">
                 <Quote className="text-primary" size={28} />
-              </motion.div>
+              </div>
 
               <p className="text-lg md:text-xl leading-relaxed text-foreground/90 mb-8 font-medium">
                 "{mockTestimonials[current].content}"

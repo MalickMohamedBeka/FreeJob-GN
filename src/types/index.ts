@@ -62,3 +62,5 @@ export interface ApiError {
   message: string;
   details?: Record<string, unknown>;
 }
+
+export * from './api';

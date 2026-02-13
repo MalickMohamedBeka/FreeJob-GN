@@ -16,23 +16,9 @@ const PartnersCarousel = () => {
 
   return (
     <section className="py-16 lg:py-20 relative overflow-hidden bg-gradient-to-br from-muted/30 to-muted/60">
-      {/* 3D Background Shapes */}
-      <motion.div
-        animate={{ 
-          rotate: [0, 360],
-          scale: [1, 1.2, 1]
-        }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        className="absolute top-10 right-10 w-64 h-64 rounded-full bg-primary opacity-10 blur-3xl"
-      />
-      <motion.div
-        animate={{ 
-          rotate: [360, 0],
-          scale: [1, 1.3, 1]
-        }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-        className="absolute bottom-10 left-10 w-80 h-80 rounded-full bg-secondary/10 blur-3xl"
-      />
+      {/* Background Shapes */}
+      <div className="absolute top-10 right-10 w-64 h-64 rounded-full bg-primary opacity-10 blur-3xl" />
+      <div className="absolute bottom-10 left-10 w-80 h-80 rounded-full bg-secondary/10 blur-3xl" />
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         <motion.div

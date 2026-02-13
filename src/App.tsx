@@ -4,8 +4,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
+import { MotionConfig } from "framer-motion";
 import { PageLoader } from "@/components/common";
 import { ROUTES } from "@/constants";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 // Eager load only the home page for instant first paint
 import Index from "./pages/Index";
@@ -30,6 +33,7 @@ const Earnings = lazy(() => import("./pages/dashboard/Earnings"));
 const Messages = lazy(() => import("./pages/dashboard/Messages"));
 const Profile = lazy(() => import("./pages/dashboard/Profile"));
 const Settings = lazy(() => import("./pages/dashboard/Settings"));
+const AccountActivation = lazy(() => import("./pages/AccountActivation"));
 
 const queryClient = new QueryClient();
 
@@ -39,30 +43,61 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path={ROUTES.HOME} element={<Index />} />
-            <Route path={ROUTES.PROJECTS} element={<Projects />} />
-            <Route path={ROUTES.FREELANCERS} element={<Freelancers />} />
-            <Route path={ROUTES.ABOUT} element={<About />} />
-            <Route path={ROUTES.LOGIN} element={<Login />} />
-            <Route path={ROUTES.SIGNUP} element={<Signup />} />
-            <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLogin />} />
-            <Route path={ROUTES.ADMIN.DASHBOARD} element={<AdminDashboard />} />
-            <Route path={ROUTES.FREELANCER_LOGIN} element={<FreelancerLogin />} />
-            <Route path={ROUTES.CLIENT_LOGIN} element={<ClientLogin />} />
-            <Route path={ROUTES.CLIENT.DASHBOARD} element={<ClientDashboard />} />
-            <Route path={ROUTES.DASHBOARD.ROOT} element={<FreelancerDashboard />} />
-            <Route path={ROUTES.DASHBOARD.FIND_PROJECTS} element={<FindProjects />} />
-            <Route path={ROUTES.DASHBOARD.MY_PROJECTS} element={<MyProjects />} />
-            <Route path={ROUTES.DASHBOARD.PROPOSALS} element={<Proposals />} />
-            <Route path={ROUTES.DASHBOARD.EARNINGS} element={<Earnings />} />
-            <Route path={ROUTES.DASHBOARD.MESSAGES} element={<Messages />} />
-            <Route path={ROUTES.DASHBOARD.PROFILE} element={<Profile />} />
-            <Route path={ROUTES.DASHBOARD.SETTINGS} element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
+        <AuthProvider>
+          <MotionConfig reducedMotion="user">
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              {/* Public routes */}
+              <Route path={ROUTES.HOME} element={<Index />} />
+              <Route path={ROUTES.PROJECTS} element={<Projects />} />
+              <Route path={ROUTES.FREELANCERS} element={<Freelancers />} />
+              <Route path={ROUTES.ABOUT} element={<About />} />
+              <Route path={ROUTES.LOGIN} element={<Login />} />
+              <Route path={ROUTES.SIGNUP} element={<Signup />} />
+              <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLogin />} />
+              <Route path={ROUTES.FREELANCER_LOGIN} element={<FreelancerLogin />} />
+              <Route path={ROUTES.CLIENT_LOGIN} element={<ClientLogin />} />
+              <Route path="/activate" element={<AccountActivation />} />
+
+              {/* Admin */}
+              <Route path={ROUTES.ADMIN.DASHBOARD} element={<AdminDashboard />} />
+
+              {/* Client dashboard (protected) */}
+              <Route path={ROUTES.CLIENT.DASHBOARD} element={
+                <ProtectedRoute requiredRole="CLIENT"><ClientDashboard /></ProtectedRoute>
+              } />
+
+              {/* Freelancer dashboard (protected) */}
+              <Route path={ROUTES.DASHBOARD.ROOT} element={
+                <ProtectedRoute requiredRole="PROVIDER"><FreelancerDashboard /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.DASHBOARD.FIND_PROJECTS} element={
+                <ProtectedRoute requiredRole="PROVIDER"><FindProjects /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.DASHBOARD.MY_PROJECTS} element={
+                <ProtectedRoute requiredRole="PROVIDER"><MyProjects /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.DASHBOARD.PROPOSALS} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Proposals /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.DASHBOARD.EARNINGS} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Earnings /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.DASHBOARD.MESSAGES} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Messages /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.DASHBOARD.PROFILE} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Profile /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.DASHBOARD.SETTINGS} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Settings /></ProtectedRoute>
+              } />
+
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+          </MotionConfig>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

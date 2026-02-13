@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const stats = [
   {
@@ -76,6 +77,8 @@ const recentProposals = [
 ];
 
 const ClientDashboard = () => {
+  const { user } = useAuth();
+
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Header */}
@@ -84,7 +87,7 @@ const ClientDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">Dashboard Client</h1>
-              <p className="text-white/80">Bienvenue, Orange Guinée</p>
+              <p className="text-white/80">Bienvenue, {user?.username || "Client"}</p>
             </div>
             <div className="flex gap-3">
               <Link to="/">

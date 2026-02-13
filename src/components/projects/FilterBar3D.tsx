@@ -10,18 +10,18 @@ interface FilterBar3DProps {
   filters: string[];
 }
 
-const FilterBar3D = ({ 
-  search, 
-  setSearch, 
-  activeFilter, 
-  setActiveFilter, 
-  filters 
+const FilterBar3D = ({
+  search,
+  setSearch,
+  activeFilter,
+  setActiveFilter,
+  filters
 }: FilterBar3DProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
     <div className="relative mb-12">
-      {/* Search Bar with 3D Effect */}
+      {/* Search Bar */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -31,7 +31,7 @@ const FilterBar3D = ({
         <motion.div
           animate={{
             scale: isFocused ? 1.02 : 1,
-            boxShadow: isFocused 
+            boxShadow: isFocused
               ? "0 20px 40px rgba(0, 0, 0, 0.2), 0 0 40px rgba(255, 122, 61, 0.3)"
               : "0 8px 24px rgba(0, 0, 0, 0.15)"
           }}
@@ -47,7 +47,7 @@ const FilterBar3D = ({
 
           <div className="relative flex items-center">
             <motion.div
-              animate={{ 
+              animate={{
                 rotate: isFocused ? 360 : 0,
                 scale: isFocused ? 1.2 : 1
               }}
@@ -90,41 +90,9 @@ const FilterBar3D = ({
             transition={{ duration: 0.3 }}
           />
         </motion.div>
-
-        {/* Floating Particles when focused */}
-        {isFocused && (
-          <>
-            {[...Array(8)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1.5 h-1.5 rounded-full bg-primary"
-                initial={{ 
-                  x: 0, 
-                  y: 0,
-                  opacity: 0 
-                }}
-                animate={{ 
-                  x: (Math.random() - 0.5) * 200,
-                  y: (Math.random() - 0.5) * 100,
-                  opacity: [0, 1, 0],
-                  scale: [0, 1.5, 0]
-                }}
-                transition={{ 
-                  duration: 2,
-                  repeat: Infinity,
-                  delay: i * 0.2
-                }}
-                style={{
-                  left: `${50 + (Math.random() - 0.5) * 20}%`,
-                  top: "50%",
-                }}
-              />
-            ))}
-          </>
-        )}
       </motion.div>
 
-      {/* Filter Pills with 3D Effect */}
+      {/* Filter Pills */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -140,22 +108,21 @@ const FilterBar3D = ({
 
         {filters.map((filter, index) => {
           const isActive = activeFilter === filter;
-          
+
           return (
             <motion.button
               key={filter}
-              initial={{ opacity: 0, scale: 0, rotateY: -90 }}
-              animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-              transition={{ 
-                duration: 0.4, 
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{
+                duration: 0.4,
                 delay: 0.3 + index * 0.05,
                 type: "spring",
                 stiffness: 200
               }}
-              whileHover={{ 
-                scale: 1.1, 
+              whileHover={{
+                scale: 1.1,
                 y: -5,
-                rotateZ: isActive ? 0 : 5,
                 transition: { duration: 0.2 }
               }}
               whileTap={{ scale: 0.95 }}
@@ -165,36 +132,26 @@ const FilterBar3D = ({
                   ? "text-white shadow-elevation-3"
                   : "glass text-muted-foreground hover:text-foreground shadow-elevation-1"
               }`}
-              style={{
-                transformStyle: "preserve-3d",
-              }}
             >
               {/* Active Background */}
               {isActive && (
-                <>
-                  <motion.div
-                    layoutId="activeFilter"
-                    className="absolute inset-0 bg-primary rounded-full"
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  />
-                  <motion.div
-                    className="absolute inset-0 bg-primary rounded-full blur-xl opacity-50"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                </>
+                <motion.div
+                  layoutId="activeFilter"
+                  className="absolute inset-0 bg-primary rounded-full"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
               )}
 
               <span className="relative z-10">{filter}</span>
 
-              {/* 3D Badge for active */}
+              {/* Badge for active */}
               {isActive && (
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-success border-2 border-white shadow-elevation-2 flex items-center justify-center"
                 >
-                  <span className="text-white text-xs">✓</span>
+                  <span className="text-white text-xs">&check;</span>
                 </motion.div>
               )}
             </motion.button>
@@ -210,13 +167,9 @@ const FilterBar3D = ({
           exit={{ opacity: 0, y: -10 }}
           className="text-center mt-6"
         >
-          <motion.span
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="inline-block glass rounded-full px-4 py-2 text-sm font-medium shadow-elevation-1"
-          >
-            Filtré par: <span className="text-primary font-bold">{activeFilter}</span>
-          </motion.span>
+          <span className="inline-block glass rounded-full px-4 py-2 text-sm font-medium shadow-elevation-1">
+            Filtr&eacute; par: <span className="text-primary font-bold">{activeFilter}</span>
+          </span>
         </motion.div>
       )}
     </div>

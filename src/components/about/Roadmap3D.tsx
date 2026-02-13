@@ -9,24 +9,24 @@ const roadmapData = [
     period: "Q1 2024",
     status: "completed",
     items: [
-      "Plateforme web lancée",
+      "Plateforme web lanc\u00e9e",
       "2,500+ freelancers inscrits",
-      "500+ projets complétés",
-      "Système de paiement sécurisé"
+      "500+ projets compl\u00e9t\u00e9s",
+      "Syst\u00e8me de paiement s\u00e9curis\u00e9"
     ],
     icon: Rocket,
     color: "from-success to-primary"
   },
   {
     phase: "Phase 2",
-    title: "Expansion Régionale",
+    title: "Expansion R\u00e9gionale",
     period: "Q2-Q3 2024",
     status: "current",
     items: [
       "Application mobile iOS & Android",
       "Expansion dans 10 pays africains",
       "Programme de formation freelance",
-      "Partenariats avec universités"
+      "Partenariats avec universit\u00e9s"
     ],
     icon: Globe,
     color: "from-primary to-warning"
@@ -39,7 +39,7 @@ const roadmapData = [
     items: [
       "Matching IA freelancer-projet",
       "Traduction automatique 20+ langues",
-      "Système de recommandation avancé",
+      "Syst\u00e8me de recommandation avanc\u00e9",
       "Blockchain pour certifications"
     ],
     icon: Zap,
@@ -68,7 +68,7 @@ const Roadmap3D = () => {
     <section className="py-24 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-primary" />
-      
+
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         {/* Title */}
         <motion.div
@@ -77,13 +77,9 @@ const Roadmap3D = () => {
           viewport={{ once: true }}
           className="text-center mb-20"
         >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="inline-block mb-4"
-          >
+          <div className="inline-block mb-4">
             <TrendingUp className="text-primary" size={40} />
-          </motion.div>
+          </div>
           <h2 className="text-5xl md:text-6xl font-black mb-4">
             Notre <span className="text-primary">Roadmap</span>
           </h2>
@@ -101,14 +97,13 @@ const Roadmap3D = () => {
           <div className="space-y-24">
             {roadmapData.map((phase, index) => {
               const isLeft = index % 2 === 0;
-              const isActive = activePhase === index;
               const Icon = phase.icon;
 
               return (
                 <motion.div
                   key={phase.phase}
-                  initial={{ opacity: 0, x: isLeft ? -100 : 100, rotateY: isLeft ? -20 : 20 }}
-                  whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
+                  initial={{ opacity: 0, x: isLeft ? -100 : 100 }}
+                  whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.7, delay: index * 0.2 }}
                   onViewportEnter={() => setActivePhase(index)}
@@ -118,10 +113,9 @@ const Roadmap3D = () => {
                 >
                   {/* Content Card */}
                   <motion.div
-                    whileHover={{ 
-                      scale: 1.05, 
+                    whileHover={{
+                      scale: 1.05,
                       y: -10,
-                      rotateY: isLeft ? 5 : -5,
                       transition: { duration: 0.3 }
                     }}
                     className={`glass rounded-3xl p-8 shadow-elevation-4 border-2 border-white/40 card-3d group relative ${
@@ -140,21 +134,11 @@ const Roadmap3D = () => {
                         "bg-muted"
                       } text-white font-bold text-sm`}
                     >
-                      {phase.status === "completed" ? "✓ Complété" :
-                       phase.status === "current" ? "🔥 En cours" :
-                       phase.status === "upcoming" ? "⏳ Bientôt" :
-                       "🚀 Futur"}
+                      {phase.status === "completed" ? "\u2713 Compl\u00e9t\u00e9" :
+                       phase.status === "current" ? "En cours" :
+                       phase.status === "upcoming" ? "Bient\u00f4t" :
+                       "Futur"}
                     </motion.div>
-
-                    {/* Animated Background */}
-                    <motion.div
-                      className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${phase.color} opacity-0 group-hover:opacity-20`}
-                      animate={{
-                        scale: [1, 1.2, 1],
-                        rotate: [0, 180, 360],
-                      }}
-                      transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                    />
 
                     <div className="relative z-10">
                       {/* Phase Header */}
@@ -233,7 +217,7 @@ const Roadmap3D = () => {
               Rejoignez l'<span className="text-primary">Aventure</span>
             </h3>
             <p className="text-muted-foreground mb-6">
-              Faites partie de la révolution du travail en Afrique
+              Faites partie de la r&eacute;volution du travail en Afrique
             </p>
             <motion.button
               whileHover={{ scale: 1.1, y: -3 }}

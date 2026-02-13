@@ -1,128 +1,170 @@
 /**
  * API Service
- * Centralized API communication layer
+ * Centralized API communication layer with JWT authentication
  */
 
-import type { ApiResponse, ApiError } from '@/types';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 class ApiService {
   private baseUrl: string;
+  private isRefreshing = false;
+  private refreshPromise: Promise<boolean> | null = null;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
   }
 
-  /**
-   * Generic GET request
-   */
-  async get<T>(endpoint: string, params?: Record<string, string>): Promise<ApiResponse<T>> {
-    try {
-      const url = new URL(`${this.baseUrl}${endpoint}`);
-      if (params) {
-        Object.entries(params).forEach(([key, value]) => {
-          url.searchParams.append(key, value);
-        });
+  private getHeaders(auth = true): HeadersInit {
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    if (auth) {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
       }
-
-      const response = await fetch(url.toString(), {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      return this.handleResponse<T>(response);
-    } catch (error) {
-      return this.handleError(error);
     }
+    return headers;
   }
 
-  /**
-   * Generic POST request
-   */
-  async post<T>(endpoint: string, data: unknown): Promise<ApiResponse<T>> {
+  private async handleResponse<T>(response: Response): Promise<T> {
+    if (response.status === 204) return undefined as T;
+
+    let data: unknown;
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      return this.handleResponse<T>(response);
-    } catch (error) {
-      return this.handleError(error);
+      data = await response.json();
+    } catch {
+      throw new ApiError(
+        response.status,
+        response.ok ? 'Réponse invalide du serveur' : `Erreur ${response.status}`,
+      );
     }
-  }
 
-  /**
-   * Generic PUT request
-   */
-  async put<T>(endpoint: string, data: unknown): Promise<ApiResponse<T>> {
-    try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      return this.handleResponse<T>(response);
-    } catch (error) {
-      return this.handleError(error);
-    }
-  }
-
-  /**
-   * Generic DELETE request
-   */
-  async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
-    try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      return this.handleResponse<T>(response);
-    } catch (error) {
-      return this.handleError(error);
-    }
-  }
-
-  /**
-   * Handle API response
-   */
-  private async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     if (!response.ok) {
-      const error: ApiError = await response.json();
-      return {
-        success: false,
-        error: error.message,
-      };
+      const message =
+        (data as Record<string, unknown>)?.detail as string ||
+        (data && typeof data === 'object' && !Array.isArray(data)
+          ? Object.values(data as Record<string, unknown>).flat().join(', ')
+          : 'Une erreur est survenue');
+      throw new ApiError(response.status, message, data);
     }
 
-    const data = await response.json();
-    return {
-      success: true,
-      data,
-    };
+    return data as T;
   }
 
-  /**
-   * Handle API errors
-   */
-  private handleError(error: unknown): ApiResponse<never> {
-    console.error('API Error:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Une erreur est survenue',
+  private async request<T>(
+    method: string,
+    endpoint: string,
+    body?: unknown,
+    params?: Record<string, string>,
+    retry = true,
+    auth = true,
+  ): Promise<T> {
+    let url = `${this.baseUrl}${endpoint}`;
+    if (params) {
+      const searchParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '') searchParams.append(key, value);
+      });
+      const qs = searchParams.toString();
+      if (qs) url += `?${qs}`;
+    }
+
+    const options: RequestInit = {
+      method,
+      headers: this.getHeaders(auth),
+      credentials: 'include',
     };
+
+    if (body !== undefined) {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url, options);
+
+    if (response.status === 401 && retry) {
+      const refreshed = await this.tryRefresh();
+      if (refreshed) {
+        return this.request<T>(method, endpoint, body, params, false);
+      }
+      this.clearAuth();
+      throw new ApiError(401, 'Session expirée');
+    }
+
+    return this.handleResponse<T>(response);
+  }
+
+  private async tryRefresh(): Promise<boolean> {
+    if (this.isRefreshing && this.refreshPromise) {
+      return this.refreshPromise;
+    }
+
+    this.isRefreshing = true;
+    this.refreshPromise = (async () => {
+      try {
+        const response = await fetch(`${this.baseUrl}/users/token/refresh/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        });
+
+        if (!response.ok) return false;
+
+        const data = await response.json();
+        if (data.access) {
+          localStorage.setItem('access_token', data.access);
+          return true;
+        }
+        return false;
+      } catch {
+        return false;
+      } finally {
+        this.isRefreshing = false;
+        this.refreshPromise = null;
+      }
+    })();
+
+    return this.refreshPromise;
+  }
+
+  private clearAuth() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
+  }
+
+  async get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
+    return this.request<T>('GET', endpoint, undefined, params);
+  }
+
+  async post<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.request<T>('POST', endpoint, data);
+  }
+
+  /** POST without Authorization header — for public endpoints like register/login */
+  async postPublic<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.request<T>('POST', endpoint, data, undefined, true, false);
+  }
+
+  async put<T>(endpoint: string, data: unknown): Promise<T> {
+    return this.request<T>('PUT', endpoint, data);
+  }
+
+  async patch<T>(endpoint: string, data: unknown): Promise<T> {
+    return this.request<T>('PATCH', endpoint, data);
+  }
+
+  async delete<T>(endpoint: string): Promise<T> {
+    return this.request<T>('DELETE', endpoint);
+  }
+}
+
+export class ApiError extends Error {
+  status: number;
+  data?: unknown;
+
+  constructor(status: number, message: string, data?: unknown) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
   }
 }
 
