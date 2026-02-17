@@ -219,10 +219,10 @@ const Signup = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <label htmlFor="fullName" className="block text-sm font-semibold mb-2">Nom complet</label>
+                    <label htmlFor="fullName" className="block text-sm font-semibold mb-2">Nom d'utilisateur</label>
                     <div className="relative">
                       <motion.div
-                        animate={{ 
+                        animate={{
                           scale: focusedField === 'fullName' ? 1.1 : 1,
                           color: focusedField === 'fullName' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'
                         }}
@@ -238,7 +238,7 @@ const Signup = () => {
                         onChange={handleChange}
                         onFocus={() => setFocusedField('fullName')}
                         onBlur={() => setFocusedField(null)}
-                        placeholder="Votre nom complet"
+                        placeholder="Choisissez un nom d'utilisateur"
                         required
                         className="w-full h-14 pl-11 pr-4 rounded-xl border-2 border-border bg-background/50 backdrop-blur-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                       />

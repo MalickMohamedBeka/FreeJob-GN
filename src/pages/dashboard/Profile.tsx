@@ -1,154 +1,117 @@
-import { motion } from "framer-motion";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Camera, MapPin, Mail, Phone, Globe, Star, Briefcase, Loader2 } from "lucide-react";
+import { MapPin, Mail, Phone, Briefcase, Loader2, Coins } from "lucide-react";
 import { useFreelanceProfile } from "@/hooks/useProfile";
-
-const languages = [
-  { name: "Français", level: "Natif" },
-  { name: "Anglais", level: "Courant" },
-  { name: "Arabe", level: "Intermédiaire" },
-];
-
-const portfolio = [
-  { id: 1, title: "E-commerce Platform", image: "https://images.unsplash.com/photo-1557821552-17105176677c?w=400" },
-  { id: 2, title: "Banking App", image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=400" },
-  { id: 3, title: "Dashboard Analytics", image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400" },
-  { id: 4, title: "Mobile App", image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400" },
-];
 
 const Profile = () => {
   const { data: profile, isLoading } = useFreelanceProfile();
 
-  const profileName = profile
-    ? `${profile.freelance_details?.first_name || ''} ${profile.freelance_details?.last_name || ''}`.trim() || profile.username
-    : "Chargement...";
-  const profileTitle = profile?.speciality?.name || "Freelancer";
-  const profileLocation = profile ? [profile.city_or_region, profile.country].filter(Boolean).join(", ") : "";
-  const profileBio = profile?.bio || "";
-  const skills = profile?.skills?.map(s => s.name) || [];
-  const profileEmail = profile?.email || "";
-  const profilePhone = profile?.phone || "";
-  const profilePicture = profile?.profile_picture || "/avatars/profile-main.jpg";
+  if (isLoading) {
+    return (
+      <DashboardLayout userType="freelancer">
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-primary" size={40} />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <DashboardLayout userType="freelancer">
+        <div className="text-center py-20">
+          <p className="text-muted-foreground">Impossible de charger le profil.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const profileName =
+    `${profile.freelance_details?.first_name || ""} ${profile.freelance_details?.last_name || ""}`.trim() ||
+    profile.username;
+  const profileTitle = profile.speciality?.name || "Freelancer";
+  const profileLocation = [profile.city_or_region, profile.country]
+    .filter(Boolean)
+    .join(", ");
+
   return (
     <DashboardLayout userType="freelancer">
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold mb-2">Mon Profil</h1>
-          <p className="text-muted-foreground">Gérez vos informations professionnelles</p>
+          <p className="text-muted-foreground">Vos informations professionnelles</p>
         </div>
 
         {/* Profile Header */}
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="animate-spin text-primary" size={40} />
-          </div>
-        ) : (
         <Card className="p-6">
           <div className="flex flex-col md:flex-row gap-6">
-            <div className="relative">
+            {profile.profile_picture && (
               <img
-                src={profilePicture}
+                src={profile.profile_picture}
                 alt={profileName}
                 className="w-32 h-32 rounded-full object-cover"
               />
-              <button className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full hover:bg-primary/90">
-                <Camera size={18} />
-              </button>
-            </div>
+            )}
+            {!profile.profile_picture && (
+              <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center text-3xl font-bold text-muted-foreground">
+                {profileName.charAt(0).toUpperCase()}
+              </div>
+            )}
             <div className="flex-1">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h2 className="text-2xl font-bold mb-1">{profileName}</h2>
-                  <p className="text-muted-foreground mb-2">{profileTitle}</p>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    {profileLocation && (
-                      <div className="flex items-center gap-1">
-                        <MapPin size={16} />
-                        <span>{profileLocation}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1">
-                      <Briefcase size={16} />
-                      <span>Freelancer</span>
-                    </div>
+              <h2 className="text-2xl font-bold mb-1">{profileName}</h2>
+              <p className="text-muted-foreground mb-2">{profileTitle}</p>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                {profileLocation && (
+                  <div className="flex items-center gap-1">
+                    <MapPin size={16} />
+                    <span>{profileLocation}</span>
                   </div>
+                )}
+                <div className="flex items-center gap-1">
+                  <Briefcase size={16} />
+                  <span>Freelancer</span>
                 </div>
-                <div className="text-right">
-                  <div className="flex items-center gap-1 mb-1">
-                    <Star className="text-primary fill-primary" size={20} />
-                    <span className="text-2xl font-bold">5.0</span>
+                {profile.hourly_rate && (
+                  <div className="flex items-center gap-1">
+                    <Coins size={16} />
+                    <span>{parseFloat(profile.hourly_rate).toLocaleString("fr-FR")} GNF/h</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">0 avis</p>
-                </div>
+                )}
               </div>
-              <div className="flex gap-2">
-                <Button>Modifier le profil</Button>
-                <Button variant="outline">Aperçu public</Button>
-              </div>
+              {profile.freelance_details?.business_name && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Entreprise : {profile.freelance_details.business_name}
+                </p>
+              )}
             </div>
           </div>
         </Card>
-        )}
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* About */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">À propos</h3>
-              <Textarea
-                placeholder="Décrivez votre expérience, vos compétences et ce qui vous rend unique..."
-                rows={6}
-                defaultValue={profileBio}
-              />
-              <Button className="mt-4">Enregistrer</Button>
-            </Card>
+            {profile.bio && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">À propos</h3>
+                <p className="text-muted-foreground whitespace-pre-line">{profile.bio}</p>
+              </Card>
+            )}
 
             {/* Skills */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Compétences</h3>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {skills.map((skill) => (
-                  <Badge key={skill} variant="secondary" className="text-sm py-1.5 px-3">
-                    {skill}
-                  </Badge>
-                ))}
-              </div>
-              <Button variant="outline" size="sm">Ajouter une compétence</Button>
-            </Card>
-
-            {/* Portfolio */}
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Portfolio</h3>
-                <Button variant="outline" size="sm">Ajouter un projet</Button>
-              </div>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {portfolio.map((item, index) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="group relative aspect-video rounded-lg overflow-hidden cursor-pointer"
-                  >
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-black/70 flex items-end p-4">
-                      <h4 className="text-white font-semibold">{item.title}</h4>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </Card>
+            {profile.skills.length > 0 && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Compétences</h3>
+                <div className="flex flex-wrap gap-2">
+                  {profile.skills.map((skill) => (
+                    <Badge key={skill.id} variant="secondary" className="text-sm py-1.5 px-3">
+                      {skill.name}
+                    </Badge>
+                  ))}
+                </div>
+              </Card>
+            )}
           </div>
 
           {/* Right Column */}
@@ -157,66 +120,47 @@ const Profile = () => {
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4">Informations de contact</h3>
               <div className="space-y-3">
-                <div>
-                  <label className="text-sm text-muted-foreground mb-1 block">Email</label>
-                  <div className="flex items-center gap-2">
-                    <Mail size={16} className="text-muted-foreground" />
-                    <Input defaultValue={profileEmail} />
-                  </div>
+                <div className="flex items-center gap-3">
+                  <Mail size={16} className="text-muted-foreground flex-shrink-0" />
+                  <span className="text-sm">{profile.email}</span>
                 </div>
-                <div>
-                  <label className="text-sm text-muted-foreground mb-1 block">Téléphone</label>
-                  <div className="flex items-center gap-2">
-                    <Phone size={16} className="text-muted-foreground" />
-                    <Input defaultValue={profilePhone} />
+                {profile.phone && (
+                  <div className="flex items-center gap-3">
+                    <Phone size={16} className="text-muted-foreground flex-shrink-0" />
+                    <span className="text-sm">{profile.phone}</span>
                   </div>
-                </div>
-                <div>
-                  <label className="text-sm text-muted-foreground mb-1 block">Site web</label>
-                  <div className="flex items-center gap-2">
-                    <Globe size={16} className="text-muted-foreground" />
-                    <Input defaultValue="amadoudiallo.dev" />
+                )}
+                {profile.postal_code && (
+                  <div className="flex items-center gap-3">
+                    <MapPin size={16} className="text-muted-foreground flex-shrink-0" />
+                    <span className="text-sm">Code postal : {profile.postal_code}</span>
                   </div>
-                </div>
+                )}
               </div>
-              <Button className="w-full mt-4">Enregistrer</Button>
             </Card>
 
-            {/* Languages */}
+            {/* Account Info */}
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Langues</h3>
-              <div className="space-y-3">
-                {languages.map((lang) => (
-                  <div key={lang.name} className="flex items-center justify-between">
-                    <span className="font-medium">{lang.name}</span>
-                    <Badge variant="secondary">{lang.level}</Badge>
-                  </div>
-                ))}
-              </div>
-              <Button variant="outline" size="sm" className="w-full mt-4">
-                Ajouter une langue
-              </Button>
-            </Card>
-
-            {/* Stats */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Statistiques</h3>
-              <div className="space-y-3">
+              <h3 className="text-lg font-semibold mb-4">Compte</h3>
+              <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Projets terminés</span>
-                  <span className="font-bold">24</span>
+                  <span className="text-muted-foreground">Nom d'utilisateur</span>
+                  <span className="font-medium">{profile.username}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Taux de réussite</span>
-                  <span className="font-bold text-primary">98%</span>
+                  <span className="text-muted-foreground">Membre depuis</span>
+                  <span className="font-medium">
+                    {new Date(profile.created_at).toLocaleDateString("fr-FR", {
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Clients satisfaits</span>
-                  <span className="font-bold">22</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Temps de réponse</span>
-                  <span className="font-bold">2h</span>
+                  <span className="text-muted-foreground">Dernière mise à jour</span>
+                  <span className="font-medium">
+                    {new Date(profile.updated_at).toLocaleDateString("fr-FR")}
+                  </span>
                 </div>
               </div>
             </Card>

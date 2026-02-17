@@ -34,8 +34,16 @@ const Messages = lazy(() => import("./pages/dashboard/Messages"));
 const Profile = lazy(() => import("./pages/dashboard/Profile"));
 const Settings = lazy(() => import("./pages/dashboard/Settings"));
 const AccountActivation = lazy(() => import("./pages/AccountActivation"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -58,6 +66,7 @@ const App = () => (
               <Route path={ROUTES.FREELANCER_LOGIN} element={<FreelancerLogin />} />
               <Route path={ROUTES.CLIENT_LOGIN} element={<ClientLogin />} />
               <Route path="/activate" element={<AccountActivation />} />
+              <Route path={ROUTES.ONBOARDING} element={<Onboarding />} />
 
               {/* Admin */}
               <Route path={ROUTES.ADMIN.DASHBOARD} element={<AdminDashboard />} />

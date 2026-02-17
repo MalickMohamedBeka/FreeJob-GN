@@ -16,6 +16,7 @@ export const ROUTES = {
   FREELANCER_LOGIN: '/freelancer/login',
   CLIENT_LOGIN: '/client/login',
   ADMIN_LOGIN: '/admin',
+  ONBOARDING: '/onboarding',
   
   // Dashboard routes
   DASHBOARD: {

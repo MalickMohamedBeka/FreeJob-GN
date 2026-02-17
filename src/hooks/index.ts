@@ -13,3 +13,4 @@ export { useFreelancers, useFreelancer } from './useFreelancers';
 export { useProposals, useCreateProposal, useWithdrawProposal } from './useProposals';
 export { useContracts, useContractDetail } from './useContracts';
 export { useFreelanceProfile, useUpdateFreelanceProfile, useClientProfile } from './useProfile';
+export { useProfileInit } from './useProfileInit';

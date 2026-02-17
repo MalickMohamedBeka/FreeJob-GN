@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user, profileInitialized } = useAuth();
 
   if (isLoading) return <PageLoader />;
 
@@ -17,6 +17,12 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
   if (requiredRole && user?.role !== requiredRole) {
     const redirect = user?.role === 'CLIENT' ? '/client/dashboard' : '/dashboard';
     return <Navigate to={redirect} replace />;
+  }
+
+  // Freelancer profile check
+  if (user?.role === 'PROVIDER' && user?.provider_kind === 'FREELANCE') {
+    if (profileInitialized === null) return <PageLoader />;
+    if (profileInitialized === false) return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;

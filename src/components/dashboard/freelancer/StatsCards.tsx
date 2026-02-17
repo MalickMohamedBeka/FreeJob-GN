@@ -1,43 +1,49 @@
 import { motion } from "framer-motion";
-import { Briefcase, Coins, FileText, TrendingUp } from "lucide-react";
+import { Briefcase, Construction, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
-
-const stats = [
-  {
-    icon: Briefcase,
-    label: "Projets Actifs",
-    value: "8",
-    change: "+2 ce mois",
-    changeType: "positive" as const,
-    color: "from-blue-500 to-blue-600",
-  },
-  {
-    icon: FileText,
-    label: "Propositions Envoyées",
-    value: "24",
-    change: "+6 cette semaine",
-    changeType: "positive" as const,
-    color: "from-purple-500 to-purple-600",
-  },
-  {
-    icon: Coins,
-    label: "Revenus ce Mois",
-    value: "12,450 GNF",
-    change: "+18% vs mois dernier",
-    changeType: "positive" as const,
-    color: "from-green-500 to-green-600",
-  },
-  {
-    icon: TrendingUp,
-    label: "Taux de Réussite",
-    value: "68%",
-    change: "+5% ce mois",
-    changeType: "positive" as const,
-    color: "from-orange-500 to-orange-600",
-  },
-];
+import { useContracts } from "@/hooks/useContracts";
+import { useProposals } from "@/hooks/useProposals";
 
 const StatsCards = () => {
+  const { data: contractsData } = useContracts();
+  const { data: proposalsData } = useProposals();
+
+  const activeProjects = (contractsData?.results ?? []).filter(
+    (c) => c.status === "IN_PROGRESS"
+  ).length;
+  const proposalsSent = proposalsData?.count ?? 0;
+
+  const stats = [
+    {
+      icon: Briefcase,
+      label: "Projets Actifs",
+      value: String(activeProjects),
+      change: "",
+      color: "from-blue-500 to-blue-600",
+    },
+    {
+      icon: FileText,
+      label: "Propositions Envoyées",
+      value: String(proposalsSent),
+      change: "",
+      color: "from-purple-500 to-purple-600",
+    },
+    {
+      icon: Construction,
+      label: "Revenus ce Mois",
+      value: "—",
+      change: "Bientôt disponible",
+      color: "from-green-500 to-green-600",
+    },
+    {
+      icon: Construction,
+      label: "Taux de Réussite",
+      value: "—",
+      change: "Bientôt disponible",
+      color: "from-orange-500 to-orange-600",
+    },
+  ];
+
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat, index) => {
@@ -58,7 +64,9 @@ const StatsCards = () => {
               <div>
                 <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
                 <p className="text-2xl font-bold mb-2">{stat.value}</p>
-                <p className="text-xs text-green-600 font-medium">{stat.change}</p>
+                {stat.change && (
+                  <p className="text-xs text-muted-foreground font-medium">{stat.change}</p>
+                )}
               </div>
             </Card>
           </motion.div>

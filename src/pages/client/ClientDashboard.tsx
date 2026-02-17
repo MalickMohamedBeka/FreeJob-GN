@@ -1,83 +1,49 @@
 import { motion } from "framer-motion";
-import { Plus, Briefcase, Users, Clock, CheckCircle, Eye } from "lucide-react";
+import { Plus, Briefcase, Users, Clock, CheckCircle, Eye, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-
-const stats = [
-  {
-    icon: Briefcase,
-    label: "Projets Publiés",
-    value: "12",
-    change: "+3 ce mois",
-    color: "from-secondary to-secondary/80",
-  },
-  {
-    icon: Users,
-    label: "Propositions Reçues",
-    value: "48",
-    change: "+12 cette semaine",
-    color: "from-primary to-primary/80",
-  },
-  {
-    icon: CheckCircle,
-    label: "Projets Terminés",
-    value: "8",
-    change: "100% satisfaction",
-    color: "from-primary to-secondary",
-  },
-  {
-    icon: Clock,
-    label: "Projets En Cours",
-    value: "4",
-    change: "Dans les délais",
-    color: "from-secondary to-primary",
-  },
-];
-
-const myProjects = [
-  {
-    id: 1,
-    title: "Développement Application Mobile E-commerce",
-    budget: "25,000 GNF",
-    proposals: 12,
-    status: "En cours",
-    freelancer: "Amadou Diallo",
-    progress: 75,
-    deadline: "15 Mars 2026",
-  },
-  {
-    id: 2,
-    title: "Refonte Site Web Corporate",
-    budget: "15,000 GNF",
-    proposals: 8,
-    status: "En attente",
-    freelancer: null,
-    progress: 0,
-    deadline: "28 Mars 2026",
-  },
-  {
-    id: 3,
-    title: "Dashboard Analytics Temps Réel",
-    budget: "30,000 GNF",
-    proposals: 15,
-    status: "Terminé",
-    freelancer: "Ibrahim Konaté",
-    progress: 100,
-    deadline: "5 Février 2026",
-  },
-];
-
-const recentProposals = [
-  { id: 1, freelancer: "Fatoumata Camara", project: "Site Web Corporate", budget: "14,500 GNF", rating: 4.9, date: "Il y a 2h", avatar: "/avatars/freelancer-8.jpg" },
-  { id: 2, freelancer: "Mamadou Bah", project: "Application Mobile", budget: "24,000 GNF", rating: 4.8, date: "Il y a 5h", avatar: "/avatars/freelancer-12.jpg" },
-  { id: 3, freelancer: "Mariama Diaby", project: "Dashboard Analytics", budget: "28,500 GNF", rating: 5.0, date: "Hier", avatar: "/avatars/freelancer-14.jpg" },
-];
+import { useMyProjects } from "@/hooks/useProjects";
+import { useContracts } from "@/hooks/useContracts";
 
 const ClientDashboard = () => {
   const { user } = useAuth();
+  const { data: projectsData, isLoading: loadingProjects } = useMyProjects();
+  const { data: contractsData, isLoading: loadingContracts } = useContracts();
+
+  const projects = projectsData?.results ?? [];
+  const contracts = contractsData?.results ?? [];
+
+  const publishedCount = projects.length;
+  const inProgressCount = contracts.filter((c) => c.status === "IN_PROGRESS").length;
+  const completedCount = contracts.filter((c) => c.status === "COMPLETED").length;
+
+  const stats = [
+    {
+      icon: Briefcase,
+      label: "Projets Publiés",
+      value: String(publishedCount),
+    },
+    {
+      icon: Users,
+      label: "Propositions Reçues",
+      value: "—",
+    },
+    {
+      icon: CheckCircle,
+      label: "Projets Terminés",
+      value: String(completedCount),
+    },
+    {
+      icon: Clock,
+      label: "Projets En Cours",
+      value: String(inProgressCount),
+    },
+  ];
+
+  const isLoading = loadingProjects || loadingContracts;
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -118,14 +84,15 @@ const ClientDashboard = () => {
               >
                 <Card className="p-6 hover:shadow-lg transition-shadow">
                   <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 rounded-xl bg-primary`}>
+                    <div className="p-3 rounded-xl bg-primary">
                       <Icon className="text-white" size={24} />
                     </div>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
-                    <p className="text-2xl font-bold mb-2">{stat.value}</p>
-                    <p className="text-xs text-primary font-medium">{stat.change}</p>
+                    <p className="text-2xl font-bold mb-2">
+                      {isLoading ? "..." : stat.value}
+                    </p>
                   </div>
                 </Card>
               </motion.div>
@@ -150,60 +117,72 @@ const ClientDashboard = () => {
                 <Button variant="ghost" size="sm">Voir tout</Button>
               </div>
 
-              <div className="space-y-4">
-                {myProjects.map((project) => (
-                  <div key={project.id} className="p-4 rounded-lg border border-border hover:border-secondary/50 transition-colors">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h4 className="font-semibold mb-1">{project.title}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {project.freelancer ? `Freelancer: ${project.freelancer}` : `${project.proposals} propositions reçues`}
-                        </p>
-                      </div>
-                      <Badge 
-                        className={
-                          project.status === "En cours" ? "bg-secondary text-white" :
-                          project.status === "Terminé" ? "bg-primary text-white" :
-                          "bg-muted text-foreground"
-                        }
-                      >
-                        {project.status}
-                      </Badge>
-                    </div>
+              {loadingProjects ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="animate-spin text-muted-foreground" size={24} />
+                </div>
+              ) : projects.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  Aucun projet publié.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {projects.slice(0, 3).map((project) => {
+                    const statusLabel =
+                      project.status === "IN_PROGRESS" ? "En cours" :
+                      project.status === "COMPLETED" || project.status === "CLOSED" ? "Terminé" :
+                      project.status_display;
+                    const statusClass =
+                      project.status === "IN_PROGRESS" ? "bg-secondary text-white" :
+                      project.status === "COMPLETED" || project.status === "CLOSED" ? "bg-primary text-white" :
+                      "bg-muted text-foreground";
 
-                    <div className="grid grid-cols-3 gap-4 mb-3 text-sm">
-                      <div>
-                        <p className="text-muted-foreground">Budget</p>
-                        <p className="font-semibold text-primary">{project.budget}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Échéance</p>
-                        <p className="font-medium">{project.deadline}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Progression</p>
-                        <p className="font-medium">{project.progress}%</p>
-                      </div>
-                    </div>
+                    return (
+                      <div key={project.id} className="p-4 rounded-lg border border-border hover:border-secondary/50 transition-colors">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <h4 className="font-semibold mb-1">{project.title}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {project.category.name}
+                            </p>
+                          </div>
+                          <Badge className={statusClass}>
+                            {statusLabel}
+                          </Badge>
+                        </div>
 
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="flex-1">
-                        <Eye size={14} className="mr-1" />
-                        Voir détails
-                      </Button>
-                      {project.status === "En attente" && (
-                        <Button size="sm" className="flex-1">
-                          Voir propositions ({project.proposals})
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                        <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Budget</p>
+                            <p className="font-semibold text-primary">{project.budget_band_display}</p>
+                          </div>
+                          {project.deadline && (
+                            <div>
+                              <p className="text-muted-foreground">Échéance</p>
+                              <p className="font-medium">
+                                {new Date(project.deadline).toLocaleDateString("fr-FR")}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Link to={`/projects/${project.id}`} className="flex-1">
+                            <Button size="sm" variant="outline" className="w-full">
+                              <Eye size={14} className="mr-1" />
+                              Voir détails
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </Card>
           </motion.div>
 
-          {/* Recent Proposals */}
+          {/* Active Contracts */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -213,36 +192,43 @@ const ClientDashboard = () => {
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
                   <Users size={20} className="text-primary" />
-                  Propositions Récentes
+                  Contrats En Cours
                 </h3>
               </div>
 
-              <div className="space-y-4">
-                {recentProposals.map((proposal) => (
-                  <div key={proposal.id} className="p-4 rounded-lg border border-border hover:border-primary/50 transition-colors">
-                    <div className="flex items-center gap-3 mb-3">
-                      <img 
-                        src={proposal.avatar}
-                        alt={proposal.freelancer}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                      <div className="flex-1">
-                        <p className="font-semibold text-sm">{proposal.freelancer}</p>
-                        <div className="flex items-center gap-1">
-                          <span className="text-primary">★</span>
-                          <span className="text-xs font-medium">{proposal.rating}</span>
+              {loadingContracts ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="animate-spin text-muted-foreground" size={24} />
+                </div>
+              ) : contracts.filter((c) => c.status === "IN_PROGRESS").length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  Aucun contrat en cours.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {contracts
+                    .filter((c) => c.status === "IN_PROGRESS")
+                    .slice(0, 3)
+                    .map((contract) => (
+                      <div key={contract.id} className="p-4 rounded-lg border border-border hover:border-primary/50 transition-colors">
+                        <h4 className="font-semibold text-sm mb-1">
+                          {contract.project.title}
+                        </h4>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Prestataire: {contract.provider.username}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-primary">
+                            {parseFloat(contract.total_amount).toLocaleString("fr-FR")} GNF
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            Depuis le {new Date(contract.start_at).toLocaleDateString("fr-FR")}
+                          </span>
                         </div>
                       </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">{proposal.project}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-primary">{proposal.budget}</span>
-                      <span className="text-xs text-muted-foreground">{proposal.date}</span>
-                    </div>
-                    <Button size="sm" className="w-full mt-3">Voir la proposition</Button>
-                  </div>
-                ))}
-              </div>
+                    ))}
+                </div>
+              )}
             </Card>
           </motion.div>
         </div>
@@ -261,10 +247,12 @@ const ClientDashboard = () => {
                 <Plus size={24} />
                 <span>Publier un Projet</span>
               </Button>
-              <Button variant="outline" className="h-auto py-4 flex-col gap-2">
-                <Users size={24} />
-                <span>Trouver des Freelancers</span>
-              </Button>
+              <Link to="/freelancers">
+                <Button variant="outline" className="h-auto py-4 flex-col gap-2 w-full">
+                  <Users size={24} />
+                  <span>Trouver des Freelancers</span>
+                </Button>
+              </Link>
               <Button variant="outline" className="h-auto py-4 flex-col gap-2">
                 <Briefcase size={24} />
                 <span>Gérer mes Projets</span>
