@@ -154,6 +154,52 @@ class ApiService {
   async delete<T>(endpoint: string): Promise<T> {
     return this.request<T>('DELETE', endpoint);
   }
+
+  /** PATCH with multipart/form-data — for file uploads (profile picture, documents) */
+  async patchFormData<T>(endpoint: string, formData: FormData): Promise<T> {
+    const token = localStorage.getItem('access_token');
+    const headers: HeadersInit = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: 'PATCH',
+      headers,
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (response.status === 401) {
+      const refreshed = await this.tryRefresh();
+      if (refreshed) return this.patchFormData<T>(endpoint, formData);
+      this.clearAuth();
+      throw new ApiError(401, 'Session expirée');
+    }
+
+    return this.handleResponse<T>(response);
+  }
+
+  /** POST with multipart/form-data — for file uploads (documents) */
+  async postFormData<T>(endpoint: string, formData: FormData): Promise<T> {
+    const token = localStorage.getItem('access_token');
+    const headers: HeadersInit = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: 'POST',
+      headers,
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (response.status === 401) {
+      const refreshed = await this.tryRefresh();
+      if (refreshed) return this.postFormData<T>(endpoint, formData);
+      this.clearAuth();
+      throw new ApiError(401, 'Session expirée');
+    }
+
+    return this.handleResponse<T>(response);
+  }
 }
 
 export class ApiError extends Error {

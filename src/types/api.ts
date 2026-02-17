@@ -261,6 +261,47 @@ export interface RegistrationOptions {
   };
 }
 
+// ── Freelance Profile Update ──
+
+export interface FreelanceProfilePatchRequest {
+  bio?: string;
+  hourly_rate?: string | null;
+  city_or_region?: string;
+  country?: string;
+  postal_code?: string;
+  phone?: string;
+  skill_ids?: number[];
+  speciality_id?: number | null;
+  freelance?: {
+    first_name?: string;
+    last_name?: string;
+    business_name?: string;
+  };
+}
+
+// ── Freelance Documents ──
+
+export type FreelanceDocTypeEnum =
+  | 'CV'
+  | 'CERTIFICATION'
+  | 'PORTFOLIO'
+  | 'IDENTITY'
+  | 'OTHER'
+  | 'RCCM'
+  | 'STATUTES'
+  | 'TAX';
+
+export interface ApiFreelanceDocument {
+  id: number;
+  doc_type: FreelanceDocTypeEnum;
+  file: string;
+  title: string;
+  reference_number: string;
+  issued_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // ── Error ──
 
 export interface ApiErrorResponse {
