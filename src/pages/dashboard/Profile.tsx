@@ -58,6 +58,7 @@ import {
 } from "@/hooks/useProfile";
 import type { FreelanceProfilePatchRequest, FreelanceDocTypeEnum } from "@/types";
 import { ApiError } from "@/services/api.service";
+import { toast } from "@/hooks";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -516,7 +517,31 @@ const Profile = () => {
             <ProfileAvatar
               src={profile.profile_picture}
               name={profileName}
-              onChangePicture={(file) => updatePicture.mutate(file)}
+              onChangePicture={(file) =>
+                updatePicture.mutate(
+                  {
+                    file,
+                    freelance: {
+                      first_name: profile.freelance_details?.first_name ?? "",
+                      last_name: profile.freelance_details?.last_name ?? "",
+                      business_name: profile.freelance_details?.business_name,
+                    },
+                  },
+                  {
+                    onSuccess: () =>
+                      toast({ title: "Photo mise à jour avec succès." }),
+                    onError: (err) =>
+                      toast({
+                        title: "Échec du téléchargement",
+                        description:
+                          err instanceof ApiError
+                            ? err.message
+                            : "Une erreur est survenue. Veuillez réessayer.",
+                        variant: "destructive",
+                      }),
+                  },
+                )
+              }
               isUploading={updatePicture.isPending}
             />
             <div className="flex-1 min-w-0">

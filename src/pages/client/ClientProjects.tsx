@@ -46,6 +46,7 @@ import {
   useDeleteProject,
   useSubmitProjectForReview,
 } from "@/hooks/useProjects";
+import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/services/api.service";
 import type { ApiProjectList, ApiProjectCreateRequest, BudgetBandEnum } from "@/types";
 
@@ -207,10 +208,13 @@ const ClientProjects = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data, isLoading } = useMyProjects();
+  const { user } = useAuth();
   const deleteProject = useDeleteProject();
   const submitForReview = useSubmitProjectForReview();
 
-  const projects = data?.results ?? [];
+  // The API returns both published projects from everyone AND the client's own projects.
+  // Filter to only show the current user's own projects.
+  const projects = (data?.results ?? []).filter((p) => p.client.id === user?.id);
 
   return (
     <DashboardLayout userType="client">

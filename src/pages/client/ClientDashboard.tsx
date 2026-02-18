@@ -15,7 +15,8 @@ const ClientDashboard = () => {
   const { data: projectsData, isLoading: loadingProjects } = useMyProjects();
   const { data: contractsData, isLoading: loadingContracts } = useContracts();
 
-  const projects = projectsData?.results ?? [];
+  // Filter to only the current user's own projects (API returns public + client's own)
+  const projects = (projectsData?.results ?? []).filter((p) => p.client.id === user?.id);
   const contracts = contractsData?.results ?? [];
 
   const publishedCount = projects.length;
