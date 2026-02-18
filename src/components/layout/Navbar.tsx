@@ -43,7 +43,7 @@ const Navbar = () => {
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
         <Link to="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="FreeJobGN" className="h-10 w-auto" />
+          <img src="/logo.png" alt="FreeJobGN" className="h-14 w-auto" />
         </Link>
 
         {/* Desktop Nav */}

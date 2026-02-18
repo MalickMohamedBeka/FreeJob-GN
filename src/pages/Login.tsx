@@ -45,7 +45,7 @@ const Login = () => {
           <div className="grid lg:grid-cols-2 gap-12 max-w-5xl mx-auto items-center">
             {/* Left — Branding */}
             <div className="hidden lg:block">
-              <img src="/logo.png" alt="FreeJobGN" className="h-16 w-auto mb-8" />
+
               <h2 className="text-3xl font-bold mb-3">
                 Bienvenue sur <span className="text-secondary">FreeJobGN</span>
               </h2>

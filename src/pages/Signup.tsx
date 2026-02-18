@@ -67,7 +67,7 @@ const Signup = () => {
           <div className="grid lg:grid-cols-2 gap-12 max-w-5xl mx-auto items-center">
             {/* Left — Branding */}
             <div className="hidden lg:block">
-              <img src="/logo.png" alt="FreeJobGN" className="h-16 w-auto mb-8" />
+
               <h2 className="text-3xl font-bold mb-3">
                 Rejoignez <span className="text-secondary">FreeJobGN</span>
               </h2>
@@ -100,9 +100,6 @@ const Signup = () => {
 
             {/* Right — Form */}
             <div className="w-full">
-              <div className="lg:hidden text-center mb-8">
-                <img src="/logo.png" alt="FreeJobGN" className="h-14 w-auto mx-auto mb-4" />
-              </div>
 
               <div className="bg-white rounded-2xl border border-border p-8 shadow-sm">
                 <div className="mb-6">
