@@ -9,6 +9,7 @@ import { PageLoader } from "@/components/common";
 import { ROUTES } from "@/constants";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import PublicRoute from "@/components/auth/PublicRoute";
 
 // Eager load only the home page for instant first paint
 import Index from "./pages/Index";
@@ -60,16 +61,18 @@ const App = () => (
           <MotionConfig reducedMotion="user">
           <Suspense fallback={<PageLoader />}>
             <Routes>
-              {/* Public routes */}
-              <Route path={ROUTES.HOME} element={<Index />} />
+              {/* Public routes — redirect to dashboard when already logged in */}
+              <Route path={ROUTES.HOME} element={<PublicRoute><Index /></PublicRoute>} />
+              <Route path={ROUTES.LOGIN} element={<PublicRoute><Login /></PublicRoute>} />
+              <Route path={ROUTES.SIGNUP} element={<PublicRoute><Signup /></PublicRoute>} />
+              <Route path={ROUTES.FREELANCER_LOGIN} element={<PublicRoute><FreelancerLogin /></PublicRoute>} />
+              <Route path={ROUTES.CLIENT_LOGIN} element={<PublicRoute><ClientLogin /></PublicRoute>} />
+
+              {/* Browsable public pages — accessible regardless of auth state */}
               <Route path={ROUTES.PROJECTS} element={<Projects />} />
               <Route path={ROUTES.FREELANCERS} element={<Freelancers />} />
               <Route path={ROUTES.ABOUT} element={<About />} />
-              <Route path={ROUTES.LOGIN} element={<Login />} />
-              <Route path={ROUTES.SIGNUP} element={<Signup />} />
               <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLogin />} />
-              <Route path={ROUTES.FREELANCER_LOGIN} element={<FreelancerLogin />} />
-              <Route path={ROUTES.CLIENT_LOGIN} element={<ClientLogin />} />
               <Route path="/activate" element={<AccountActivation />} />
               <Route path={ROUTES.ONBOARDING} element={<Onboarding />} />
 

@@ -10,7 +10,7 @@ import {
   User,
   LogOut,
   Search,
-  Bell
+  FileCheck,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -29,24 +29,73 @@ const freelancerMenuItems = [
   { icon: Settings, label: "Paramètres", path: "/dashboard/settings" },
 ];
 
+// Mobile shows: Dashboard, Find, My Projects, Proposals, Messages
+const freelancerMobileItems = [0, 1, 2, 3, 5];
+
 const clientMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/client/dashboard" },
   { icon: Briefcase, label: "Mes Projets", path: "/client/projects" },
   { icon: FileText, label: "Propositions", path: "/client/proposals" },
-  { icon: Bell, label: "Contrats", path: "/client/contracts" },
+  { icon: FileCheck, label: "Contrats", path: "/client/contracts" },
   { icon: MessageSquare, label: "Messages", path: "/client/messages" },
   { icon: User, label: "Mon Profil", path: "/client/profile" },
 ];
+
+// Mobile shows all 6 client items
+const clientMobileItems = [0, 1, 2, 3, 4, 5];
+
+// ── Avatar with initials fallback ─────────────────────────────────────────────
+
+function SidebarAvatar({ username }: { username: string }) {
+  const initials = username
+    .split(/[\s._-]+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+
+  return (
+    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0">
+      <span className="text-white text-sm font-bold">{initials || "?"}</span>
+    </div>
+  );
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 const DashboardSidebar = ({ userType }: DashboardSidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+
   const menuItems = userType === "freelancer" ? freelancerMenuItems : clientMenuItems;
+  const mobileIndices = userType === "freelancer" ? freelancerMobileItems : clientMobileItems;
+  const mobileItems = mobileIndices.map((i) => menuItems[i]);
+
+  const username = user?.username || "Utilisateur";
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate("/login");
+  };
+
+  const NavItem = ({ item }: { item: typeof menuItems[number] }) => {
+    const isActive = location.pathname === item.path;
+    const Icon = item.icon;
+    return (
+      <Link key={item.path} to={item.path}>
+        <motion.div
+          whileHover={{ x: 4 }}
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+            isActive
+              ? "bg-primary text-white"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          }`}
+        >
+          <Icon size={20} />
+          <span className="font-medium">{item.label}</span>
+        </motion.div>
+      </Link>
+    );
   };
 
   return (
@@ -64,44 +113,20 @@ const DashboardSidebar = ({ userType }: DashboardSidebarProps) => {
 
           {/* Navigation */}
           <nav className="flex-1 px-3 py-4 space-y-1">
-            {menuItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              const Icon = item.icon;
-
-              return (
-                <Link key={item.path} to={item.path}>
-                  <motion.div
-                    whileHover={{ x: 4 }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors relative ${
-                      isActive
-                        ? "bg-primary text-white"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    }`}
-                  >
-                    <Icon size={20} />
-                    <span className="font-medium">{item.label}</span>
-                    {item.badge && (
-                      <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                        {item.badge}
-                      </span>
-                    )}
-                  </motion.div>
-                </Link>
-              );
-            })}
+            {menuItems.map((item) => (
+              <NavItem key={item.path} item={item} />
+            ))}
           </nav>
 
           {/* User Section */}
           <div className="p-4 border-t border-border">
             <div className="flex items-center gap-3 mb-3">
-              <img 
-                src="/avatars/profile-main.jpg" 
-                alt="Malick Mohamed"
-                className="w-10 h-10 rounded-full object-cover"
-              />
+              <SidebarAvatar username={username} />
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate">{user?.username || "Utilisateur"}</p>
-                <p className="text-xs text-muted-foreground truncate">{userType === "freelancer" ? "Freelancer" : "Client"}</p>
+                <p className="font-semibold text-sm truncate">{username}</p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {userType === "freelancer" ? "Freelancer" : "Client"}
+                </p>
               </div>
             </div>
             <motion.button
@@ -118,11 +143,10 @@ const DashboardSidebar = ({ userType }: DashboardSidebarProps) => {
 
       {/* Mobile Bottom Navigation */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-border z-50">
-        <div className="flex items-center justify-around px-2 py-2">
-          {menuItems.slice(0, 5).map((item) => {
+        <div className="flex items-center justify-around px-1 py-2">
+          {mobileItems.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
-
             return (
               <Link key={item.path} to={item.path} className="flex-1">
                 <div

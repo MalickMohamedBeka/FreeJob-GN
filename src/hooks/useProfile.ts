@@ -31,9 +31,18 @@ export function useUpdateFreelanceProfile() {
 export function useUpdateProfilePicture() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (file: File) => {
+    mutationFn: ({
+      file,
+      freelance,
+    }: {
+      file: File;
+      freelance: { first_name: string; last_name: string; business_name?: string };
+    }) => {
       const formData = new FormData();
       formData.append('profile_picture', file);
+      // Include freelance nested data so the backend serializer doesn't crash
+      // on a partial update that contains only a file field.
+      formData.append('freelance', JSON.stringify(freelance));
       return apiService.patchFormData<ApiFreelancerProfile>('/users/freelance/profile/', formData);
     },
     onSuccess: () => {
