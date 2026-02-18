@@ -2,8 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
 import { MotionConfig } from "framer-motion";
 import { PageLoader } from "@/components/common";
 import { ROUTES } from "@/constants";
@@ -42,6 +42,24 @@ const Settings = lazy(() => import("./pages/dashboard/Settings"));
 const AccountActivation = lazy(() => import("./pages/AccountActivation"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 
+/**
+ * Normalises URLs with consecutive slashes (e.g. //activate → /activate).
+ * The backend email template appends the path to a base URL that already
+ * ends with "/", producing links like https://host//activate?uid=…&token=…
+ * React Router won't match those against a single-slash route, so users
+ * land on the 404 page instead of the activation screen.
+ */
+function NormalizeSlashes() {
+  const { pathname, search } = useLocation();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (pathname.match(/\/{2,}/)) {
+      navigate(pathname.replace(/\/{2,}/g, '/') + search, { replace: true });
+    }
+  }, [pathname, search, navigate]);
+  return null;
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -57,6 +75,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <NormalizeSlashes />
         <AuthProvider>
           <MotionConfig reducedMotion="user">
           <Suspense fallback={<PageLoader />}>
