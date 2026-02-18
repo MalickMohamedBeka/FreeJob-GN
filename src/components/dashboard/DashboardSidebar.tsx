@@ -24,16 +24,25 @@ const freelancerMenuItems = [
   { icon: Briefcase, label: "Mes Projets", path: "/dashboard/projects" },
   { icon: FileText, label: "Propositions", path: "/dashboard/proposals" },
   { icon: Coins, label: "Revenus", path: "/dashboard/earnings" },
-  { icon: MessageSquare, label: "Messages", path: "/dashboard/messages", badge: 3 },
+  { icon: MessageSquare, label: "Messages", path: "/dashboard/messages" },
   { icon: User, label: "Mon Profil", path: "/dashboard/profile" },
   { icon: Settings, label: "Paramètres", path: "/dashboard/settings" },
+];
+
+const clientMenuItems = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/client/dashboard" },
+  { icon: Briefcase, label: "Mes Projets", path: "/client/projects" },
+  { icon: FileText, label: "Propositions", path: "/client/proposals" },
+  { icon: Bell, label: "Contrats", path: "/client/contracts" },
+  { icon: MessageSquare, label: "Messages", path: "/client/messages" },
+  { icon: User, label: "Mon Profil", path: "/client/profile" },
 ];
 
 const DashboardSidebar = ({ userType }: DashboardSidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const menuItems = userType === "freelancer" ? freelancerMenuItems : [];
+  const menuItems = userType === "freelancer" ? freelancerMenuItems : clientMenuItems;
 
   const handleLogout = async () => {
     await logout();

@@ -61,15 +61,13 @@ function ConversationPanel({ proposal }: { proposal: ApiProposalList }) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="p-4 border-b border-border shrink-0">
         <p className="font-semibold">{proposal.project.title}</p>
         <p className="text-sm text-muted-foreground">
-          {convData.client.username} · {convData.provider.username}
+          {convData.provider.username} · {convData.client.username}
         </p>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {loadingMessages ? (
           <div className="flex justify-center pt-8">
@@ -109,7 +107,6 @@ function ConversationPanel({ proposal }: { proposal: ApiProposalList }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       <div className="p-4 border-t border-border shrink-0">
         <div className="flex gap-2">
           <Input
@@ -139,22 +136,22 @@ function ConversationPanel({ proposal }: { proposal: ApiProposalList }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-const Messages = () => {
+const ClientMessages = () => {
   const [selectedProposal, setSelectedProposal] = useState<ApiProposalList | null>(null);
   const { data, isLoading } = useProposals();
 
-  // Only proposals that have or can have a conversation (CONFIRMED or later)
+  // Client sees proposals for their projects — filter for active ones
   const conversableStatuses = ["CONFIRMED", "SELECTED", "SHORTLISTED", "PENDING"];
   const proposals = (data?.results ?? []).filter(
     (p) => conversableStatuses.includes(p.status)
   );
 
   return (
-    <DashboardLayout userType="freelancer">
+    <DashboardLayout userType="client">
       <div className="space-y-4">
         <div>
           <h1 className="text-3xl font-bold mb-2">Messages</h1>
-          <p className="text-muted-foreground">Communiquez avec vos clients</p>
+          <p className="text-muted-foreground">Communiquez avec vos prestataires</p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-4" style={{ height: "calc(100vh - 200px)" }}>
@@ -168,9 +165,6 @@ const Messages = () => {
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 text-center">
                 <MessageSquare size={40} className="mb-3" />
                 <p className="text-sm">Aucune conversation disponible.</p>
-                <p className="text-xs mt-1">
-                  Les conversations apparaissent une fois vos propositions examinées.
-                </p>
               </div>
             ) : (
               <div className="divide-y divide-border">
@@ -190,10 +184,10 @@ const Messages = () => {
                         {proposal.status_display}
                       </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {proposal.message}
+                    <p className="text-xs text-muted-foreground">
+                      Prestataire: {proposal.provider.username}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {new Date(proposal.updated_at).toLocaleDateString("fr-FR")}
                     </p>
                   </button>
@@ -219,4 +213,4 @@ const Messages = () => {
   );
 };
 
-export default Messages;
+export default ClientMessages;

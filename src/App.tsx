@@ -25,6 +25,11 @@ const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const FreelancerLogin = lazy(() => import("./pages/FreelancerLogin"));
 const ClientLogin = lazy(() => import("./pages/ClientLogin"));
 const ClientDashboard = lazy(() => import("./pages/client/ClientDashboard"));
+const ClientProjects = lazy(() => import("./pages/client/ClientProjects"));
+const ClientProposals = lazy(() => import("./pages/client/ClientProposals"));
+const ClientContracts = lazy(() => import("./pages/client/ClientContracts"));
+const ClientProfile = lazy(() => import("./pages/client/ClientProfile"));
+const ClientMessages = lazy(() => import("./pages/client/ClientMessages"));
 const FreelancerDashboard = lazy(() => import("./pages/dashboard/FreelancerDashboard"));
 const FindProjects = lazy(() => import("./pages/dashboard/FindProjects"));
 const MyProjects = lazy(() => import("./pages/dashboard/MyProjects"));
@@ -74,6 +79,21 @@ const App = () => (
               {/* Client dashboard (protected) */}
               <Route path={ROUTES.CLIENT.DASHBOARD} element={
                 <ProtectedRoute requiredRole="CLIENT"><ClientDashboard /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.CLIENT.PROJECTS} element={
+                <ProtectedRoute requiredRole="CLIENT"><ClientProjects /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.CLIENT.PROPOSALS} element={
+                <ProtectedRoute requiredRole="CLIENT"><ClientProposals /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.CLIENT.CONTRACTS} element={
+                <ProtectedRoute requiredRole="CLIENT"><ClientContracts /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.CLIENT.MESSAGES} element={
+                <ProtectedRoute requiredRole="CLIENT"><ClientMessages /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.CLIENT.PROFILE} element={
+                <ProtectedRoute requiredRole="CLIENT"><ClientProfile /></ProtectedRoute>
               } />
 
               {/* Freelancer dashboard (protected) */}

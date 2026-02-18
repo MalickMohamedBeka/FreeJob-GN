@@ -40,6 +40,11 @@ export const ROUTES = {
   CLIENT: {
     ROOT: '/client',
     DASHBOARD: '/client/dashboard',
+    PROJECTS: '/client/projects',
+    PROPOSALS: '/client/proposals',
+    CONTRACTS: '/client/contracts',
+    MESSAGES: '/client/messages',
+    PROFILE: '/client/profile',
   },
 } as const;
 

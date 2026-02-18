@@ -1,5 +1,3 @@
-// API types matching Django REST API schemas
-
 // ── Auth ──
 
 export interface LoginRequest {
@@ -259,6 +257,137 @@ export interface RegistrationOptions {
     provider_kind_required_if_role: string;
     provider_kind_forbidden_if_role: string;
   };
+}
+
+// ── Client Profile ──
+
+export interface ApiClientProfileData {
+  id: number;
+  client_type: 'INDIVIDUAL' | 'COMPANY';
+  city_or_region: string;
+  country: string;
+  postal_code: string;
+  phone: string;
+  profile_picture: string | null;
+  details: {
+    first_name?: string;
+    last_name?: string;
+    company_name?: string;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiClientProfile {
+  user: {
+    id: number;
+    email: string;
+    username: string;
+    role: 'CLIENT' | 'PROVIDER';
+  };
+  client_profile: ApiClientProfileData | null;
+}
+
+export interface ClientProfileIndividualCreateRequest {
+  client_type: 'INDIVIDUAL';
+  city_or_region: string;
+  country: string;
+  first_name: string;
+  last_name: string;
+  postal_code?: string;
+  phone?: string;
+}
+
+export interface ClientProfileCompanyCreateRequest {
+  client_type: 'COMPANY';
+  city_or_region: string;
+  country: string;
+  company_name: string;
+  postal_code?: string;
+  phone?: string;
+}
+
+export type ClientProfileCreateRequest =
+  | ClientProfileIndividualCreateRequest
+  | ClientProfileCompanyCreateRequest;
+
+export interface PatchedClientProfileUpdateRequest {
+  city_or_region?: string;
+  country?: string;
+  postal_code?: string;
+  phone?: string;
+  first_name?: string;
+  last_name?: string;
+  company_name?: string;
+}
+
+// ── Contract Summary ──
+
+export interface ContractSummary {
+  total_amount: string;
+  total_funded: string;
+  total_released: string;
+  total_refunded: string;
+  remaining_to_fund: string;
+  remaining_in_escrow: string;
+  milestones_count: number;
+  milestones_by_status: Record<string, number>;
+}
+
+// ── Milestones ──
+
+export type MilestoneStatusEnum =
+  | 'PENDING'
+  | 'FUNDED'
+  | 'DELIVERED'
+  | 'RELEASED'
+  | 'REFUNDED'
+  | 'CANCELLED';
+
+export interface ApiMilestone {
+  id: string;
+  order: number;
+  title: string;
+  description: string;
+  amount: string;
+  due_date: string | null;
+  status: MilestoneStatusEnum;
+  status_display: string;
+  funded_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MilestoneCreateRequest {
+  title: string;
+  amount: string;
+  description?: string;
+  due_date?: string | null;
+  order?: number;
+}
+
+// ── Project Write ──
+
+export interface ApiProjectCreateRequest {
+  title: string;
+  description: string;
+  category_id: string;
+  budget_band: BudgetBandEnum;
+  budget_amount: string;
+  skill_ids?: number[];
+  speciality_id?: number | null;
+  deadline?: string | null;
+}
+
+export interface ApiProjectPatchRequest {
+  title?: string;
+  description?: string;
+  category_id?: string;
+  budget_band?: BudgetBandEnum;
+  budget_amount?: string;
+  skill_ids?: number[];
+  speciality_id?: number | null;
+  deadline?: string | null;
 }
 
 // ── Freelance Profile Update ──

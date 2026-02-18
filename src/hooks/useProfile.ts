@@ -5,6 +5,9 @@ import type {
   ApiFreelanceDocument,
   FreelanceProfilePatchRequest,
   DjangoPaginatedResponse,
+  ApiClientProfile,
+  ClientProfileCreateRequest,
+  PatchedClientProfileUpdateRequest,
 } from '@/types';
 
 export function useFreelanceProfile() {
@@ -71,6 +74,28 @@ export function useDeleteDocument() {
 export function useClientProfile() {
   return useQuery({
     queryKey: ['client-profile'],
-    queryFn: () => apiService.get('/users/client/profile/'),
+    queryFn: () => apiService.get<ApiClientProfile>('/users/client/profile/'),
+  });
+}
+
+export function useCreateClientProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: ClientProfileCreateRequest) =>
+      apiService.post<ApiClientProfile>('/users/client/profile/', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-profile'] });
+    },
+  });
+}
+
+export function useUpdateClientProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: PatchedClientProfileUpdateRequest) =>
+      apiService.patch<ApiClientProfile>('/users/client/profile/', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-profile'] });
+    },
   });
 }

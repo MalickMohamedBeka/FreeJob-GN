@@ -8,10 +8,36 @@ export { useMediaQuery, useIsMobile, useIsTablet, useIsDesktop } from './useMedi
 export { useIntersectionObserver } from './useIntersectionObserver';
 import { useIsMobile } from './use-mobile';
 export { useToast, toast } from './use-toast';
-export { useProjects, useProject, useMyProjects } from './useProjects';
+export {
+  useProjects,
+  useProject,
+  useMyProjects,
+  useCreateProject,
+  useUpdateProject,
+  useDeleteProject,
+  useSubmitProjectForReview,
+} from './useProjects';
 export { useFreelancers, useFreelancer } from './useFreelancers';
-export { useProposals, useCreateProposal, useWithdrawProposal } from './useProposals';
-export { useContracts, useContractDetail } from './useContracts';
+export {
+  useProposals,
+  useProposalsByProject,
+  useCreateProposal,
+  useWithdrawProposal,
+  useConfirmProposal,
+  useShortlistProposal,
+  useUnshortlistProposal,
+  useSelectProposal,
+  useRefuseProposal,
+} from './useProposals';
+export {
+  useContracts,
+  useContractDetail,
+  useContractSummary,
+  useContractMilestones,
+  useCreateMilestone,
+  useDeliverMilestone,
+  useReleaseMilestone,
+} from './useContracts';
 export {
   useFreelanceProfile,
   useUpdateFreelanceProfile,
@@ -20,5 +46,8 @@ export {
   useUploadDocument,
   useDeleteDocument,
   useClientProfile,
+  useCreateClientProfile,
+  useUpdateClientProfile,
 } from './useProfile';
 export { useProfileInit } from './useProfileInit';
+export { useConversation, useMessages, useSendMessage } from './useMessages';
