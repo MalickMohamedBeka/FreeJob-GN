@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StatsCards from "@/components/dashboard/freelancer/StatsCards";
 import ActiveProjects from "@/components/dashboard/freelancer/ActiveProjects";
@@ -7,18 +6,11 @@ import RecentProposals from "@/components/dashboard/freelancer/RecentProposals";
 import EarningsChart from "@/components/dashboard/freelancer/EarningsChart";
 import ProfileCompletion from "@/components/dashboard/freelancer/ProfileCompletion";
 import AvailableJobs from "@/components/dashboard/freelancer/AvailableJobs";
+import { useAuth } from "@/contexts/AuthContext";
 
 const FreelancerDashboard = () => {
-  const [userName, setUserName] = useState("Freelancer");
-
-  useEffect(() => {
-    // Récupérer le nom de l'utilisateur depuis localStorage
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      setUserName(user.name || "Freelancer");
-    }
-  }, []);
+  const { user } = useAuth();
+  const userName = user?.username || "Freelancer";
 
   return (
     <DashboardLayout userType="freelancer">

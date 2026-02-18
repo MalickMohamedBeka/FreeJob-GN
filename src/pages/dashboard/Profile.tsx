@@ -1,208 +1,785 @@
-import { motion } from "framer-motion";
+import { useState, useRef } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Camera, MapPin, Mail, Phone, Globe, Star, Briefcase } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  MapPin,
+  Mail,
+  Phone,
+  Briefcase,
+  Loader2,
+  Coins,
+  Pencil,
+  Camera,
+  FileText,
+  Trash2,
+  Upload,
+  ExternalLink,
+  CalendarDays,
+  User,
+} from "lucide-react";
+import {
+  useFreelanceProfile,
+  useUpdateFreelanceProfile,
+  useUpdateProfilePicture,
+  useFreelanceDocuments,
+  useUploadDocument,
+  useDeleteDocument,
+} from "@/hooks/useProfile";
+import type { FreelanceProfilePatchRequest, FreelanceDocTypeEnum } from "@/types";
+import { ApiError } from "@/services/api.service";
 
-const skills = ["React", "TypeScript", "Node.js", "MongoDB", "Tailwind CSS", "Figma", "Git", "REST API"];
-const languages = [
-  { name: "Français", level: "Natif" },
-  { name: "Anglais", level: "Courant" },
-  { name: "Arabe", level: "Intermédiaire" },
-];
+// ── Constants ──────────────────────────────────────────────────────────────────
 
-const portfolio = [
-  { id: 1, title: "E-commerce Platform", image: "https://images.unsplash.com/photo-1557821552-17105176677c?w=400" },
-  { id: 2, title: "Banking App", image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=400" },
-  { id: 3, title: "Dashboard Analytics", image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400" },
-  { id: 4, title: "Mobile App", image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400" },
-];
+const DOC_TYPE_LABELS: Record<FreelanceDocTypeEnum, string> = {
+  CV: "CV",
+  CERTIFICATION: "Certification",
+  PORTFOLIO: "Portfolio",
+  IDENTITY: "Pièce d'identité",
+  OTHER: "Autre",
+  RCCM: "RCCM",
+  STATUTES: "Statuts",
+  TAX: "Attestation fiscale",
+};
+
+const DOC_TYPES = Object.entries(DOC_TYPE_LABELS) as [FreelanceDocTypeEnum, string][];
+
+// ── Subcomponents ──────────────────────────────────────────────────────────────
+
+function ProfileAvatar({
+  src,
+  name,
+  onChangePicture,
+  isUploading,
+}: {
+  src: string | null;
+  name: string;
+  onChangePicture: (file: File) => void;
+  isUploading: boolean;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) onChangePicture(file);
+    e.target.value = "";
+  };
+
+  return (
+    <div className="relative w-28 h-28 flex-shrink-0">
+      {src ? (
+        <img
+          src={src}
+          alt={name}
+          className="w-28 h-28 rounded-full object-cover border-4 border-background shadow"
+        />
+      ) : (
+        <div className="w-28 h-28 rounded-full bg-primary/10 border-4 border-background shadow flex items-center justify-center text-3xl font-bold text-primary">
+          {name.charAt(0).toUpperCase()}
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={isUploading}
+        className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow hover:bg-primary/90 transition-colors disabled:opacity-60"
+        title="Changer la photo"
+      >
+        {isUploading ? (
+          <Loader2 size={14} className="animate-spin" />
+        ) : (
+          <Camera size={14} />
+        )}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+    </div>
+  );
+}
+
+// ── Edit Profile Dialog ────────────────────────────────────────────────────────
+
+interface EditProfileDialogProps {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  initialValues: {
+    first_name: string;
+    last_name: string;
+    business_name: string;
+    bio: string;
+    hourly_rate: string;
+    country: string;
+    city_or_region: string;
+    postal_code: string;
+    phone: string;
+  };
+}
+
+function EditProfileDialog({ open, onOpenChange, initialValues }: EditProfileDialogProps) {
+  const [form, setForm] = useState(initialValues);
+  const [error, setError] = useState("");
+  const update = useUpdateFreelanceProfile();
+
+  // Reset form when dialog opens with fresh values
+  const handleOpenChange = (v: boolean) => {
+    if (v) setForm(initialValues);
+    setError("");
+    onOpenChange(v);
+  };
+
+  const set = (field: keyof typeof form, value: string) =>
+    setForm((prev) => ({ ...prev, [field]: value }));
+
+  const handleSave = async () => {
+    setError("");
+    const payload: FreelanceProfilePatchRequest = {
+      bio: form.bio || undefined,
+      hourly_rate: form.hourly_rate || null,
+      country: form.country || undefined,
+      city_or_region: form.city_or_region || undefined,
+      postal_code: form.postal_code || undefined,
+      phone: form.phone || undefined,
+      freelance: {
+        first_name: form.first_name,
+        last_name: form.last_name,
+        business_name: form.business_name || undefined,
+      },
+    };
+
+    try {
+      await update.mutateAsync(payload);
+      onOpenChange(false);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Une erreur est survenue.");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Modifier le profil</DialogTitle>
+        </DialogHeader>
+
+        <Tabs defaultValue="identity" className="mt-2">
+          <TabsList className="w-full">
+            <TabsTrigger value="identity" className="flex-1">Identité</TabsTrigger>
+            <TabsTrigger value="professional" className="flex-1">Professionnel</TabsTrigger>
+            <TabsTrigger value="location" className="flex-1">Localisation</TabsTrigger>
+          </TabsList>
+
+          {/* ── Identity ── */}
+          <TabsContent value="identity" className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="first_name">Prénom *</Label>
+                <Input
+                  id="first_name"
+                  value={form.first_name}
+                  onChange={(e) => set("first_name", e.target.value)}
+                  maxLength={80}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="last_name">Nom *</Label>
+                <Input
+                  id="last_name"
+                  value={form.last_name}
+                  onChange={(e) => set("last_name", e.target.value)}
+                  maxLength={80}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="business_name">Nom commercial <span className="text-muted-foreground text-xs">(optionnel)</span></Label>
+              <Input
+                id="business_name"
+                value={form.business_name}
+                onChange={(e) => set("business_name", e.target.value)}
+                maxLength={120}
+                placeholder="Nom de votre entreprise ou activité"
+              />
+            </div>
+          </TabsContent>
+
+          {/* ── Professional ── */}
+          <TabsContent value="professional" className="space-y-4 mt-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea
+                id="bio"
+                value={form.bio}
+                onChange={(e) => set("bio", e.target.value)}
+                rows={5}
+                placeholder="Décrivez votre expertise et votre expérience…"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="hourly_rate">Taux horaire (GNF) <span className="text-muted-foreground text-xs">(optionnel)</span></Label>
+              <Input
+                id="hourly_rate"
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.hourly_rate}
+                onChange={(e) => set("hourly_rate", e.target.value)}
+                placeholder="Ex: 15000"
+              />
+            </div>
+          </TabsContent>
+
+          {/* ── Location ── */}
+          <TabsContent value="location" className="space-y-4 mt-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="country">Pays *</Label>
+              <Input
+                id="country"
+                value={form.country}
+                onChange={(e) => set("country", e.target.value)}
+                maxLength={120}
+                placeholder="Ex: Guinée"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="city_or_region">Ville ou région *</Label>
+              <Input
+                id="city_or_region"
+                value={form.city_or_region}
+                onChange={(e) => set("city_or_region", e.target.value)}
+                maxLength={120}
+                placeholder="Ex: Conakry"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="postal_code">Code postal <span className="text-muted-foreground text-xs">(optionnel)</span></Label>
+                <Input
+                  id="postal_code"
+                  value={form.postal_code}
+                  onChange={(e) => set("postal_code", e.target.value)}
+                  maxLength={20}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="phone">Téléphone <span className="text-muted-foreground text-xs">(optionnel)</span></Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => set("phone", e.target.value)}
+                  maxLength={30}
+                  placeholder="+224 XXX XXX XXX"
+                />
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {error && (
+          <p className="text-sm text-destructive mt-2">{error}</p>
+        )}
+
+        <DialogFooter className="mt-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Annuler
+          </Button>
+          <Button onClick={handleSave} disabled={update.isPending}>
+            {update.isPending && <Loader2 size={16} className="animate-spin mr-2" />}
+            Enregistrer
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ── Upload Document Dialog ─────────────────────────────────────────────────────
+
+function UploadDocumentDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const [docType, setDocType] = useState<FreelanceDocTypeEnum | "">("");
+  const [file, setFile] = useState<File | null>(null);
+  const [title, setTitle] = useState("");
+  const [error, setError] = useState("");
+  const upload = useUploadDocument();
+
+  const reset = () => {
+    setDocType("");
+    setFile(null);
+    setTitle("");
+    setError("");
+  };
+
+  const handleOpenChange = (v: boolean) => {
+    if (!v) reset();
+    onOpenChange(v);
+  };
+
+  const handleSubmit = async () => {
+    if (!docType || !file) {
+      setError("Le type et le fichier sont obligatoires.");
+      return;
+    }
+    setError("");
+    const formData = new FormData();
+    formData.append("doc_type", docType);
+    formData.append("file", file);
+    if (title.trim()) formData.append("title", title.trim());
+
+    try {
+      await upload.mutateAsync(formData);
+      handleOpenChange(false);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Erreur lors de l'envoi.");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Ajouter un document</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 mt-2">
+          <div className="space-y-1.5">
+            <Label>Type de document *</Label>
+            <Select value={docType} onValueChange={(v) => setDocType(v as FreelanceDocTypeEnum)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un type" />
+              </SelectTrigger>
+              <SelectContent>
+                {DOC_TYPES.map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Fichier *</Label>
+            <div className="flex items-center gap-3">
+              <label className="flex-1 flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background cursor-pointer hover:bg-muted/50 transition-colors text-sm text-muted-foreground">
+                <Upload size={16} className="flex-shrink-0" />
+                <span className="truncate">{file ? file.name : "Choisir un fichier…"}</span>
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="doc_title">Titre <span className="text-muted-foreground text-xs">(optionnel)</span></Label>
+            <Input
+              id="doc_title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={120}
+              placeholder="Ex: CV 2024"
+            />
+          </div>
+
+          {error && <p className="text-sm text-destructive">{error}</p>}
+        </div>
+
+        <DialogFooter className="mt-4">
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
+            Annuler
+          </Button>
+          <Button onClick={handleSubmit} disabled={upload.isPending}>
+            {upload.isPending && <Loader2 size={16} className="animate-spin mr-2" />}
+            Envoyer
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ── Main Page ──────────────────────────────────────────────────────────────────
 
 const Profile = () => {
+  const { data: profile, isLoading } = useFreelanceProfile();
+  const { data: docsData, isLoading: docsLoading } = useFreelanceDocuments();
+  const updatePicture = useUpdateProfilePicture();
+  const deleteDoc = useDeleteDocument();
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [uploadDocOpen, setUploadDocOpen] = useState(false);
+  const [deleteDocId, setDeleteDocId] = useState<number | null>(null);
+
+  // ── Loading state ──
+  if (isLoading) {
+    return (
+      <DashboardLayout userType="freelancer">
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-primary" size={40} />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <DashboardLayout userType="freelancer">
+        <div className="text-center py-20">
+          <p className="text-muted-foreground">Impossible de charger le profil.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // ── Derived values ──
+  const profileName =
+    `${profile.freelance_details?.first_name || ""} ${profile.freelance_details?.last_name || ""}`.trim() ||
+    profile.username;
+  const profileLocation = [profile.city_or_region, profile.country].filter(Boolean).join(", ");
+  const documents = docsData?.results ?? [];
+
+  // ── Edit initial values ──
+  const editInitialValues = {
+    first_name: profile.freelance_details?.first_name ?? "",
+    last_name: profile.freelance_details?.last_name ?? "",
+    business_name: profile.freelance_details?.business_name ?? "",
+    bio: profile.bio ?? "",
+    hourly_rate: profile.hourly_rate ?? "",
+    country: profile.country ?? "",
+    city_or_region: profile.city_or_region ?? "",
+    postal_code: profile.postal_code ?? "",
+    phone: profile.phone ?? "",
+  };
+
   return (
     <DashboardLayout userType="freelancer">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Mon Profil</h1>
-          <p className="text-muted-foreground">Gérez vos informations professionnelles</p>
+
+        {/* ── Page header ── */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Mon Profil</h1>
+            <p className="text-muted-foreground text-sm mt-0.5">Vos informations professionnelles</p>
+          </div>
+          <Button onClick={() => setEditOpen(true)} className="gap-2">
+            <Pencil size={16} />
+            Modifier
+          </Button>
         </div>
 
-        {/* Profile Header */}
+        {/* ── Profile header card ── */}
         <Card className="p-6">
-          <div className="flex flex-col md:flex-row gap-6">
-            <div className="relative">
-              <img 
-                src="/avatars/profile-main.jpg" 
-                alt="Malick Mohamed"
-                className="w-32 h-32 rounded-full object-cover"
-              />
-              <button className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full hover:bg-primary/90">
-                <Camera size={18} />
-              </button>
-            </div>
-            <div className="flex-1">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h2 className="text-2xl font-bold mb-1">Amadou Diallo</h2>
-                  <p className="text-muted-foreground mb-2">Développeur Full Stack</p>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <MapPin size={16} />
-                      <span>Conakry, Guinée</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Briefcase size={16} />
-                      <span>5 ans d'expérience</span>
-                    </div>
+          <div className="flex flex-col sm:flex-row gap-5 items-start">
+            <ProfileAvatar
+              src={profile.profile_picture}
+              name={profileName}
+              onChangePicture={(file) => updatePicture.mutate(file)}
+              isUploading={updatePicture.isPending}
+            />
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl font-bold truncate">{profileName}</h2>
+              <p className="text-muted-foreground text-sm mb-3">
+                {profile.speciality?.name ?? "Freelancer"}
+              </p>
+              <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                {profileLocation && (
+                  <div className="flex items-center gap-1.5">
+                    <MapPin size={14} />
+                    <span>{profileLocation}</span>
                   </div>
+                )}
+                <div className="flex items-center gap-1.5">
+                  <Briefcase size={14} />
+                  <span>Freelancer</span>
                 </div>
-                <div className="text-right">
-                  <div className="flex items-center gap-1 mb-1">
-                    <Star className="text-primary fill-primary" size={20} />
-                    <span className="text-2xl font-bold">4.9</span>
+                {profile.hourly_rate && (
+                  <div className="flex items-center gap-1.5">
+                    <Coins size={14} />
+                    <span>
+                      {parseFloat(profile.hourly_rate).toLocaleString("fr-FR")} GNF/h
+                    </span>
                   </div>
-                  <p className="text-sm text-muted-foreground">32 avis</p>
-                </div>
+                )}
               </div>
-              <div className="flex gap-2">
-                <Button>Modifier le profil</Button>
-                <Button variant="outline">Aperçu public</Button>
-              </div>
+              {profile.freelance_details?.business_name && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Entreprise : {profile.freelance_details.business_name}
+                </p>
+              )}
             </div>
           </div>
         </Card>
 
+        {/* ── Body grid ── */}
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left Column */}
+
+          {/* ── Left column ── */}
           <div className="lg:col-span-2 space-y-6">
-            {/* About */}
+
+            {/* Bio */}
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">À propos</h3>
-              <Textarea
-                placeholder="Décrivez votre expérience, vos compétences et ce qui vous rend unique..."
-                rows={6}
-                defaultValue="Développeur Full Stack passionné avec 5 ans d'expérience dans la création d'applications web et mobiles modernes. Spécialisé en React, Node.js et TypeScript. J'ai travaillé avec des entreprises de premier plan en Guinée pour développer des solutions innovantes."
-              />
-              <Button className="mt-4">Enregistrer</Button>
+              <h3 className="text-base font-semibold mb-3">À propos</h3>
+              {profile.bio ? (
+                <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+                  {profile.bio}
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">
+                  Aucune biographie renseignée.{" "}
+                  <button
+                    type="button"
+                    onClick={() => setEditOpen(true)}
+                    className="text-primary underline-offset-2 hover:underline"
+                  >
+                    Ajouter
+                  </button>
+                </p>
+              )}
             </Card>
 
             {/* Skills */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Compétences</h3>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {skills.map((skill) => (
-                  <Badge key={skill} variant="secondary" className="text-sm py-1.5 px-3">
-                    {skill}
-                  </Badge>
-                ))}
-              </div>
-              <Button variant="outline" size="sm">Ajouter une compétence</Button>
-            </Card>
+            {profile.skills.length > 0 && (
+              <Card className="p-6">
+                <h3 className="text-base font-semibold mb-3">Compétences</h3>
+                <div className="flex flex-wrap gap-2">
+                  {profile.skills.map((skill) => (
+                    <Badge key={skill.id} variant="secondary" className="text-xs py-1 px-2.5">
+                      {skill.name}
+                    </Badge>
+                  ))}
+                </div>
+              </Card>
+            )}
 
-            {/* Portfolio */}
+            {/* Documents */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Portfolio</h3>
-                <Button variant="outline" size="sm">Ajouter un projet</Button>
+                <h3 className="text-base font-semibold">Documents</h3>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => setUploadDocOpen(true)}
+                >
+                  <Upload size={14} />
+                  Ajouter
+                </Button>
               </div>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {portfolio.map((item, index) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="group relative aspect-video rounded-lg overflow-hidden cursor-pointer"
-                  >
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-black/70 flex items-end p-4">
-                      <h4 className="text-white font-semibold">{item.title}</h4>
+
+              {docsLoading ? (
+                <div className="flex justify-center py-6">
+                  <Loader2 className="animate-spin text-muted-foreground" size={24} />
+                </div>
+              ) : documents.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  <FileText size={32} className="mx-auto mb-2 opacity-30" />
+                  <p>Aucun document déposé.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {documents.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors"
+                    >
+                      <FileText size={18} className="text-muted-foreground flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {doc.title || DOC_TYPE_LABELS[doc.doc_type]}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {DOC_TYPE_LABELS[doc.doc_type]}
+                          {doc.issued_at && (
+                            <> · {new Date(doc.issued_at).toLocaleDateString("fr-FR")}</>
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <a
+                          href={doc.file}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                          title="Ouvrir"
+                        >
+                          <ExternalLink size={14} />
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteDocId(doc.id)}
+                          className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </Card>
           </div>
 
-          {/* Right Column */}
+          {/* ── Right column ── */}
           <div className="space-y-6">
-            {/* Contact Info */}
+
+            {/* Personal info */}
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Informations de contact</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm text-muted-foreground mb-1 block">Email</label>
-                  <div className="flex items-center gap-2">
-                    <Mail size={16} className="text-muted-foreground" />
-                    <Input defaultValue="amadou.diallo@email.com" />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm text-muted-foreground mb-1 block">Téléphone</label>
-                  <div className="flex items-center gap-2">
-                    <Phone size={16} className="text-muted-foreground" />
-                    <Input defaultValue="+224 620 00 00 00" />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm text-muted-foreground mb-1 block">Site web</label>
-                  <div className="flex items-center gap-2">
-                    <Globe size={16} className="text-muted-foreground" />
-                    <Input defaultValue="amadoudiallo.dev" />
-                  </div>
-                </div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-semibold">Informations personnelles</h3>
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(true)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  title="Modifier"
+                >
+                  <Pencil size={14} />
+                </button>
               </div>
-              <Button className="w-full mt-4">Enregistrer</Button>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-start gap-2">
+                  <User size={14} className="text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">{profileName}</p>
+                    {profile.freelance_details?.business_name && (
+                      <p className="text-muted-foreground text-xs">
+                        {profile.freelance_details.business_name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <Separator />
+                <div className="flex items-center gap-2">
+                  <Mail size={14} className="text-muted-foreground flex-shrink-0" />
+                  <span className="truncate">{profile.email}</span>
+                </div>
+                {profile.phone && (
+                  <div className="flex items-center gap-2">
+                    <Phone size={14} className="text-muted-foreground flex-shrink-0" />
+                    <span>{profile.phone}</span>
+                  </div>
+                )}
+                {profileLocation && (
+                  <div className="flex items-start gap-2">
+                    <MapPin size={14} className="text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <span>{profileLocation}</span>
+                  </div>
+                )}
+                {profile.postal_code && (
+                  <p className="text-xs text-muted-foreground pl-5">
+                    CP : {profile.postal_code}
+                  </p>
+                )}
+              </div>
             </Card>
 
-            {/* Languages */}
+            {/* Account info */}
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Langues</h3>
-              <div className="space-y-3">
-                {languages.map((lang) => (
-                  <div key={lang.name} className="flex items-center justify-between">
-                    <span className="font-medium">{lang.name}</span>
-                    <Badge variant="secondary">{lang.level}</Badge>
-                  </div>
-                ))}
-              </div>
-              <Button variant="outline" size="sm" className="w-full mt-4">
-                Ajouter une langue
-              </Button>
-            </Card>
-
-            {/* Stats */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Statistiques</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Projets terminés</span>
-                  <span className="font-bold">24</span>
+              <h3 className="text-base font-semibold mb-4">Compte</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <User size={14} className="flex-shrink-0" />
+                  <span className="font-mono text-foreground">@{profile.username}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Taux de réussite</span>
-                  <span className="font-bold text-primary">98%</span>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <CalendarDays size={14} className="flex-shrink-0" />
+                  <span>
+                    Membre depuis{" "}
+                    {new Date(profile.created_at).toLocaleDateString("fr-FR", {
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Clients satisfaits</span>
-                  <span className="font-bold">22</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Temps de réponse</span>
-                  <span className="font-bold">2h</span>
+                <div className="text-xs text-muted-foreground pl-5">
+                  Mis à jour le{" "}
+                  {new Date(profile.updated_at).toLocaleDateString("fr-FR")}
                 </div>
               </div>
             </Card>
           </div>
         </div>
       </div>
+
+      {/* ── Dialogs ── */}
+      <EditProfileDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        initialValues={editInitialValues}
+      />
+
+      <UploadDocumentDialog
+        open={uploadDocOpen}
+        onOpenChange={setUploadDocOpen}
+      />
+
+      <AlertDialog open={deleteDocId !== null} onOpenChange={(v) => !v && setDeleteDocId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer le document ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Le document sera définitivement supprimé.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteDocId !== null) {
+                  deleteDoc.mutate(deleteDocId);
+                  setDeleteDocId(null);
+                }
+              }}
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 };

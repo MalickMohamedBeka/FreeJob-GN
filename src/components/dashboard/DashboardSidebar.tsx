@@ -1,17 +1,18 @@
 import { motion } from "framer-motion";
-import { Link, useLocation } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  Briefcase, 
-  FileText, 
-  Coins, 
-  MessageSquare, 
-  Settings, 
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Briefcase,
+  FileText,
+  Coins,
+  MessageSquare,
+  Settings,
   User,
   LogOut,
   Search,
   Bell
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardSidebarProps {
   userType: "freelancer" | "client";
@@ -23,14 +24,30 @@ const freelancerMenuItems = [
   { icon: Briefcase, label: "Mes Projets", path: "/dashboard/projects" },
   { icon: FileText, label: "Propositions", path: "/dashboard/proposals" },
   { icon: Coins, label: "Revenus", path: "/dashboard/earnings" },
-  { icon: MessageSquare, label: "Messages", path: "/dashboard/messages", badge: 3 },
+  { icon: MessageSquare, label: "Messages", path: "/dashboard/messages" },
   { icon: User, label: "Mon Profil", path: "/dashboard/profile" },
   { icon: Settings, label: "Paramètres", path: "/dashboard/settings" },
 ];
 
+const clientMenuItems = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/client/dashboard" },
+  { icon: Briefcase, label: "Mes Projets", path: "/client/projects" },
+  { icon: FileText, label: "Propositions", path: "/client/proposals" },
+  { icon: Bell, label: "Contrats", path: "/client/contracts" },
+  { icon: MessageSquare, label: "Messages", path: "/client/messages" },
+  { icon: User, label: "Mon Profil", path: "/client/profile" },
+];
+
 const DashboardSidebar = ({ userType }: DashboardSidebarProps) => {
   const location = useLocation();
-  const menuItems = userType === "freelancer" ? freelancerMenuItems : [];
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const menuItems = userType === "freelancer" ? freelancerMenuItems : clientMenuItems;
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
     <>
@@ -83,12 +100,13 @@ const DashboardSidebar = ({ userType }: DashboardSidebarProps) => {
                 className="w-10 h-10 rounded-full object-cover"
               />
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate">Malick Mohamed</p>
-                <p className="text-xs text-muted-foreground truncate">Freelancer</p>
+                <p className="font-semibold text-sm truncate">{user?.username || "Utilisateur"}</p>
+                <p className="text-xs text-muted-foreground truncate">{userType === "freelancer" ? "Freelancer" : "Client"}</p>
               </div>
             </div>
             <motion.button
               whileHover={{ x: 4 }}
+              onClick={handleLogout}
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground w-full px-3 py-2 rounded-lg hover:bg-muted transition-colors"
             >
               <LogOut size={18} />

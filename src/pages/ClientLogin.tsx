@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, Building2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ClientLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -11,28 +12,19 @@ const ClientLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-
-    // Vérification des identifiants client
-    if (email === "mohamedbekamalick21@gmail.com" && password === "mohamedbekamalick21@gmail.com") {
-      setTimeout(() => {
-        setIsLoading(false);
-        localStorage.setItem("user", JSON.stringify({
-          name: "Orange Guinée",
-          email: email,
-          role: "client"
-        }));
-        navigate("/client/dashboard");
-      }, 1500);
-    } else {
-      setTimeout(() => {
-        setIsLoading(false);
-        setError("Email ou mot de passe incorrect");
-      }, 1500);
+    try {
+      await login({ email, password });
+      navigate("/client/dashboard");
+    } catch (err: any) {
+      setError(err?.message || "Email ou mot de passe incorrect");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -142,12 +134,6 @@ const ClientLogin = () => {
           </div>
         </div>
 
-        {/* Test Credentials */}
-        <div className="mt-6 p-4 bg-white/10 backdrop-blur-sm rounded-xl text-white text-sm">
-          <p className="font-semibold mb-2">🔑 Identifiants de test:</p>
-          <p className="text-white/80">Email: mohamedbekamalick21@gmail.com</p>
-          <p className="text-white/80">Mot de passe: mohamedbekamalick21@gmail.com</p>
-        </div>
       </motion.div>
     </div>
   );

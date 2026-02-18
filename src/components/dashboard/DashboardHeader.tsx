@@ -1,12 +1,14 @@
 import { motion } from "framer-motion";
 import { Bell, Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardHeaderProps {
   userType: "freelancer" | "client";
 }
 
 const DashboardHeader = ({ userType }: DashboardHeaderProps) => {
+  const { user } = useAuth();
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-border">
       <div className="flex items-center justify-between h-16 px-6">
@@ -42,14 +44,14 @@ const DashboardHeader = ({ userType }: DashboardHeaderProps) => {
           {/* Profile (Desktop) */}
           <div className="hidden lg:flex items-center gap-3 pl-3 border-l border-border">
             <div className="text-right">
-              <p className="text-sm font-semibold">Malick Mohamed</p>
+              <p className="text-sm font-semibold">{user?.username || "Utilisateur"}</p>
               <p className="text-xs text-muted-foreground">
                 {userType === "freelancer" ? "Freelancer" : "Client"}
               </p>
             </div>
             <img 
               src="/avatars/profile-main.jpg" 
-              alt="Malick Mohamed"
+              alt={user?.username || "Avatar"}
               className="w-10 h-10 rounded-full object-cover"
             />
           </div>

@@ -4,22 +4,14 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-  PackageCheck,
-  Coins,
-} from "lucide-react";
-import { useContracts, useContractMilestones, useDeliverMilestone } from "@/hooks/useContracts";
+import { Loader2, Clock, CheckCircle2, Coins, PackageCheck } from "lucide-react";
+import { useContracts, useContractMilestones, useReleaseMilestone } from "@/hooks/useContracts";
 import type { ApiContractList, ApiMilestone } from "@/types";
 
 // ── Milestone status styling ──────────────────────────────────────────────────
@@ -45,7 +37,7 @@ function ContractDetailSheet({
   onClose: () => void;
 }) {
   const { data: milestonesData, isLoading } = useContractMilestones(contract?.id ?? "");
-  const deliver = useDeliverMilestone();
+  const release = useReleaseMilestone();
 
   const milestones: ApiMilestone[] = milestonesData?.results ?? [];
 
@@ -55,11 +47,11 @@ function ContractDetailSheet({
         <SheetHeader className="mb-6">
           <SheetTitle>{contract?.project.title}</SheetTitle>
           <p className="text-sm text-muted-foreground">
-            Client: {contract?.client.username}
+            Prestataire: {contract?.provider.username}
           </p>
         </SheetHeader>
 
-        {/* Contract Summary */}
+        {/* Summary */}
         {contract && (
           <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg mb-6 text-sm">
             <div>
@@ -69,27 +61,22 @@ function ContractDetailSheet({
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground mb-0.5">Plan de financement</p>
+              <p className="text-muted-foreground mb-0.5">Plan</p>
               <p className="font-semibold">{contract.funding_plan_display}</p>
             </div>
             <div>
               <p className="text-muted-foreground mb-0.5">Début</p>
-              <p className="font-medium">
-                {new Date(contract.start_at).toLocaleDateString("fr-FR")}
-              </p>
+              <p className="font-medium">{new Date(contract.start_at).toLocaleDateString("fr-FR")}</p>
             </div>
             <div>
               <p className="text-muted-foreground mb-0.5">Fin</p>
               <p className="font-medium">
-                {contract.end_at
-                  ? new Date(contract.end_at).toLocaleDateString("fr-FR")
-                  : "—"}
+                {contract.end_at ? new Date(contract.end_at).toLocaleDateString("fr-FR") : "—"}
               </p>
             </div>
           </div>
         )}
 
-        {/* Milestones */}
         <h4 className="font-semibold mb-3">Jalons</h4>
 
         {isLoading ? (
@@ -98,7 +85,7 @@ function ContractDetailSheet({
           </div>
         ) : milestones.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">
-            Aucun jalon défini pour ce contrat.
+            Aucun jalon défini.
           </p>
         ) : (
           <div className="space-y-3">
@@ -107,6 +94,7 @@ function ContractDetailSheet({
                 label: m.status_display,
                 class: "bg-muted",
               };
+
               return (
                 <div key={m.id} className="p-4 border border-border rounded-lg">
                   <div className="flex items-start justify-between mb-2">
@@ -133,20 +121,20 @@ function ContractDetailSheet({
                     )}
                   </div>
 
-                  {/* Deliver action — only when FUNDED */}
-                  {m.status === "FUNDED" && (
+                  {/* Release — client can release payment when milestone is DELIVERED */}
+                  {m.status === "DELIVERED" && (
                     <Button
                       size="sm"
                       className="mt-3 w-full gap-2"
-                      disabled={deliver.isPending}
-                      onClick={() => deliver.mutate(m.id)}
+                      disabled={release.isPending}
+                      onClick={() => release.mutate(m.id)}
                     >
-                      {deliver.isPending ? (
+                      {release.isPending ? (
                         <Loader2 size={14} className="animate-spin" />
                       ) : (
                         <PackageCheck size={14} />
                       )}
-                      Marquer comme livré
+                      Valider et libérer le paiement
                     </Button>
                   )}
                 </div>
@@ -161,99 +149,37 @@ function ContractDetailSheet({
 
 // ── Contract status styling ───────────────────────────────────────────────────
 
-const statusConfig: Record<string, { label: string; badgeClass: string }> = {
-  IN_PROGRESS: { label: "En cours", badgeClass: "bg-secondary text-white" },
-  COMPLETED: { label: "Terminé", badgeClass: "bg-primary text-white" },
-  ON_HOLD: { label: "En attente", badgeClass: "bg-yellow-500 text-white" },
-  CANCELLED: { label: "Annulé", badgeClass: "bg-red-500 text-white" },
+const statusConfig: Record<string, { label: string; class: string }> = {
+  IN_PROGRESS: { label: "En cours", class: "bg-secondary text-white" },
+  COMPLETED: { label: "Terminé", class: "bg-primary text-white" },
+  ON_HOLD: { label: "En attente", class: "bg-yellow-500 text-white" },
+  CANCELLED: { label: "Annulé", class: "bg-destructive text-white" },
 };
-
-// ── Contract Card ─────────────────────────────────────────────────────────────
-
-function ContractCard({
-  contract,
-  index,
-  onViewDetails,
-}: {
-  contract: ApiContractList;
-  index: number;
-  onViewDetails: (c: ApiContractList) => void;
-}) {
-  const config = statusConfig[contract.status] ?? {
-    label: contract.status_display,
-    badgeClass: "bg-muted text-foreground",
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-    >
-      <Card className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <h3 className="text-xl font-semibold mb-1">{contract.project.title}</h3>
-            <p className="text-muted-foreground">Client: {contract.client.username}</p>
-          </div>
-          <Badge className={config.badgeClass}>{config.label}</Badge>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-4 mb-4 p-4 bg-muted/50 rounded-lg">
-          <div>
-            <p className="text-sm text-muted-foreground mb-1">Montant Total</p>
-            <p className="font-semibold">
-              {parseFloat(contract.total_amount).toLocaleString("fr-FR")} GNF
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground mb-1">Date de début</p>
-            <p className="font-medium">
-              {new Date(contract.start_at).toLocaleDateString("fr-FR")}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground mb-1">Plan de financement</p>
-            <p className="font-medium">{contract.funding_plan_display}</p>
-          </div>
-        </div>
-
-        <Button size="sm" className="w-full" onClick={() => onViewDetails(contract)}>
-          Voir les jalons
-        </Button>
-      </Card>
-    </motion.div>
-  );
-}
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-const MyProjects = () => {
-  const [activeTab, setActiveTab] = useState("active");
+const ClientContracts = () => {
   const [selectedContract, setSelectedContract] = useState<ApiContractList | null>(null);
-
   const { data, isLoading } = useContracts();
   const contracts = data?.results ?? [];
 
-  const activeContracts = contracts.filter((c) => c.status === "IN_PROGRESS");
-  const completedContracts = contracts.filter((c) => c.status === "COMPLETED");
-  const pendingContracts = contracts.filter((c) => c.status === "ON_HOLD");
-
   return (
-    <DashboardLayout userType="freelancer">
+    <DashboardLayout userType="client">
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Mes Projets</h1>
-          <p className="text-muted-foreground">Gérez tous vos contrats en un seul endroit</p>
+          <h1 className="text-3xl font-bold mb-2">Mes Contrats</h1>
+          <p className="text-muted-foreground">Suivez vos contrats et jalons de paiement</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Stats */}
+        <div className="grid sm:grid-cols-3 gap-4">
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Projets Actifs</p>
-                <p className="text-2xl font-bold">{activeContracts.length}</p>
+                <p className="text-sm text-muted-foreground mb-1">En Cours</p>
+                <p className="text-2xl font-bold">
+                  {contracts.filter((c) => c.status === "IN_PROGRESS").length}
+                </p>
               </div>
               <div className="p-3 rounded-lg bg-secondary/10">
                 <Clock className="text-secondary" size={24} />
@@ -264,7 +190,9 @@ const MyProjects = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Terminés</p>
-                <p className="text-2xl font-bold">{completedContracts.length}</p>
+                <p className="text-2xl font-bold">
+                  {contracts.filter((c) => c.status === "COMPLETED").length}
+                </p>
               </div>
               <div className="p-3 rounded-lg bg-primary/10">
                 <CheckCircle2 className="text-primary" size={24} />
@@ -274,54 +202,82 @@ const MyProjects = () => {
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">En attente</p>
-                <p className="text-2xl font-bold">{pendingContracts.length}</p>
+                <p className="text-sm text-muted-foreground mb-1">Total</p>
+                <p className="text-2xl font-bold">{contracts.length}</p>
               </div>
-              <div className="p-3 rounded-lg bg-yellow-500/10">
-                <AlertCircle className="text-yellow-500" size={24} />
+              <div className="p-3 rounded-lg bg-muted">
+                <Coins className="text-muted-foreground" size={24} />
               </div>
             </div>
           </Card>
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="animate-spin text-muted-foreground" size={32} />
+          <div className="flex justify-center py-12">
+            <Loader2 className="animate-spin text-primary" size={40} />
+          </div>
+        ) : contracts.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <CheckCircle2 className="mx-auto mb-4" size={48} />
+            <p className="text-lg font-medium">Aucun contrat pour le moment</p>
           </div>
         ) : (
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="active">Actifs ({activeContracts.length})</TabsTrigger>
-              <TabsTrigger value="completed">Terminés ({completedContracts.length})</TabsTrigger>
-              <TabsTrigger value="pending">En attente ({pendingContracts.length})</TabsTrigger>
-            </TabsList>
-
-            {(["active", "completed", "pending"] as const).map((tab) => {
-              const list =
-                tab === "active" ? activeContracts
-                : tab === "completed" ? completedContracts
-                : pendingContracts;
+          <div className="space-y-4">
+            {contracts.map((contract, index) => {
+              const sc = statusConfig[contract.status] ?? {
+                label: contract.status_display,
+                class: "bg-muted text-foreground",
+              };
 
               return (
-                <TabsContent key={tab} value={tab} className="space-y-4 mt-6">
-                  {list.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      Aucun contrat dans cette catégorie.
-                    </p>
-                  ) : (
-                    list.map((contract, i) => (
-                      <ContractCard
-                        key={contract.id}
-                        contract={contract}
-                        index={i}
-                        onViewDetails={setSelectedContract}
-                      />
-                    ))
-                  )}
-                </TabsContent>
+                <motion.div
+                  key={contract.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Card className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-xl font-semibold mb-1">{contract.project.title}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Prestataire: {contract.provider.username}
+                        </p>
+                      </div>
+                      <Badge className={sc.class}>{sc.label}</Badge>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-4 mb-4 p-4 bg-muted/50 rounded-lg text-sm">
+                      <div>
+                        <p className="text-muted-foreground mb-0.5">Montant Total</p>
+                        <p className="font-semibold">
+                          {parseFloat(contract.total_amount).toLocaleString("fr-FR")} GNF
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground mb-0.5">Plan</p>
+                        <p className="font-medium">{contract.funding_plan_display}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground mb-0.5">Début</p>
+                        <p className="font-medium">
+                          {new Date(contract.start_at).toLocaleDateString("fr-FR")}
+                        </p>
+                      </div>
+                    </div>
+
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setSelectedContract(contract)}
+                    >
+                      Voir les jalons
+                    </Button>
+                  </Card>
+                </motion.div>
               );
             })}
-          </Tabs>
+          </div>
         )}
       </div>
 
@@ -334,4 +290,4 @@ const MyProjects = () => {
   );
 };
 
-export default MyProjects;
+export default ClientContracts;
