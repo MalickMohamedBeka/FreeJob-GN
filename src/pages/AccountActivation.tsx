@@ -23,7 +23,7 @@ const AccountActivation = () => {
     }
 
     apiService
-      .post<ActivationResponse>("/users/activate/", { uid, token })
+      .postPublic<ActivationResponse>("/users/activate/", { uid, token })
       .then((res) => {
         setStatus("success");
         setMessage(res.message || "Votre compte a été activé avec succès !");
