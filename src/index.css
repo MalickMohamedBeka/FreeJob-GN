@@ -15,11 +15,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 18 99% 59%;
+    /* Navy — primary brand color */
+    --primary: 231 68% 32%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 202 37% 22%;
+    /* Teal — secondary brand color */
+    --secondary: 180 54% 49%;
     --secondary-foreground: 0 0% 100%;
+
+    /* Orange — CTA accent */
+    --cta: 32 91% 54%;
+    --cta-foreground: 0 0% 100%;
 
     --muted: 220 14% 96%;
     --muted-foreground: 220 9% 46%;
@@ -38,7 +44,7 @@
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 216 100% 40%;
+    --ring: 231 68% 32%;
 
     --radius: 0.5rem;
 
@@ -49,22 +55,7 @@
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-
-    /* Extended palette */
-    --primary-dark: 21 100% 45%;
-    --primary-darker: 20 100% 40%;
-    --secondary-dark: 220 100% 30%;
-    --secondary-darker: 225 100% 20%;
-
-    /* Shadows */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.12);
-    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
-    --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.18);
-    --shadow-2xl: 0 20px 40px rgba(0, 0, 0, 0.25);
-    --shadow-orange: 0 0 30px rgba(255, 122, 61, 0.4);
-    --shadow-blue: 0 0 30px rgba(0, 82, 204, 0.3);
+    --sidebar-ring: 231 68% 32%;
   }
 }
 
@@ -74,8 +65,7 @@
   }
 
   body {
-    @apply text-foreground font-sans antialiased;
-    background: transparent;
+    @apply bg-background text-foreground font-sans antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -83,148 +73,31 @@
   }
 }
 
-@layer utilities {
-  /* 3D Shadows & Depth */
-  .shadow-elevation-1 { 
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
-  }
-  .shadow-elevation-2 { 
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1);
-  }
-  .shadow-elevation-3 { 
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  .shadow-elevation-4 { 
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25), 0 6px 16px rgba(0, 0, 0, 0.18);
-  }
-  .shadow-elevation-5 { 
-    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.3), 0 10px 24px rgba(0, 0, 0, 0.22);
-  }
-  .shadow-glow-orange { 
-    box-shadow: 0 0 40px rgba(255, 122, 61, 0.5), 0 8px 24px rgba(255, 122, 61, 0.3);
-  }
-  .shadow-glow-blue { 
-    box-shadow: 0 0 40px rgba(0, 82, 204, 0.4), 0 8px 24px rgba(0, 82, 204, 0.25);
-  }
+@theme inline {
+  --animate-cell-ripple: cell-ripple var(--duration, 200ms) ease-out none 1
+    var(--delay, 0ms);
 
-  /* 3D Card Effects */
-  .card-3d {
-    transform-style: preserve-3d;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .card-3d:hover {
-    transform: translateY(-12px) rotateX(5deg) scale(1.02);
-  }
-
-  /* Glassmorphism */
-  .glass {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-  }
-
-  .glass-dark {
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  /* 3D Button */
-  .btn-3d {
-    transform: translateZ(0);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1);
-  }
-
-  .btn-3d:hover {
-    transform: translateY(-4px) scale(1.05);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25), 0 6px 14px rgba(0, 0, 0, 0.18);
-  }
-
-  .btn-3d:active {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2), 0 3px 8px rgba(0, 0, 0, 0.15);
-  }
-
-  /* Floating Animation */
-  @keyframes float-3d {
-    0%, 100% {
-      transform: translateY(0) rotateX(0deg) rotateY(0deg);
-    }
-    25% {
-      transform: translateY(-15px) rotateX(2deg) rotateY(-2deg);
+  @keyframes cell-ripple {
+    0% {
+      opacity: 0.4;
     }
     50% {
-      transform: translateY(-20px) rotateX(0deg) rotateY(0deg);
+      opacity: 0.8;
     }
-    75% {
-      transform: translateY(-15px) rotateX(-2deg) rotateY(2deg);
-    }
-  }
-
-  .float-3d {
-    animation: float-3d 6s ease-in-out infinite;
-    transform-style: preserve-3d;
-  }
-
-  /* Perspective Container */
-  .perspective-container {
-    perspective: 1500px;
-    transform-style: preserve-3d;
-  }
-
-  /* Mobile Optimizations - Disable 3D effects on small screens */
-  @media (max-width: 1024px) {
-    .card-3d {
-      transform-style: flat;
-    }
-
-    .card-3d:hover {
-      transform: translateY(-8px) scale(1.02);
-    }
-
-    .perspective-container {
-      perspective: none;
-      transform-style: flat;
-    }
-
-    .float-3d {
-      animation: float-simple 4s ease-in-out infinite;
-    }
-
-    @keyframes float-simple {
-      0%, 100% {
-        transform: translateY(0);
-      }
-      50% {
-        transform: translateY(-10px);
-      }
+    100% {
+      opacity: 0.4;
     }
   }
+}
 
-  /* Reduce motion for accessibility */
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
 
-    .card-3d,
-    .float-3d,
-    .btn-3d {
-      animation: none;
-      transition: none;
-    }
-
-    .card-3d:hover,
-    .btn-3d:hover {
-      transform: none;
-    }
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

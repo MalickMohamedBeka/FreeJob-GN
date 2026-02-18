@@ -5,99 +5,68 @@ const values = [
   {
     icon: Target,
     title: "Excellence",
-    description: "Nous visons la qualit\u00e9 maximale dans chaque interaction sur notre plateforme.",
-    color: "from-primary via-warning to-secondary"
+    description: "Nous visons la qualité maximale dans chaque interaction sur notre plateforme.",
   },
   {
     icon: Heart,
-    title: "Communaut\u00e9",
-    description: "Nous croyons au pouvoir de la communaut\u00e9 et au soutien mutuel entre professionnels.",
-    color: "from-secondary via-primary to-success"
+    title: "Communauté",
+    description: "Nous croyons au pouvoir de la communauté et au soutien mutuel entre professionnels.",
   },
   {
     icon: Globe,
-    title: "Accessibilit\u00e9",
-    description: "Rendre le freelancing accessible \u00e0 tous les talents guin\u00e9ens, partout dans le pays.",
-    color: "from-success via-secondary to-primary"
+    title: "Accessibilité",
+    description: "Rendre le freelancing accessible à tous les talents guinéens, partout dans le pays.",
   },
   {
     icon: Shield,
     title: "Confiance",
-    description: "Transparence et s\u00e9curit\u00e9 sont au c\u0153ur de chaque transaction sur FreeJobGN.",
-    color: "from-warning via-primary to-secondary"
+    description: "Transparence et sécurité sont au cœur de chaque transaction sur FreeJobGN.",
   },
 ];
 
 const Values3D = () => {
   return (
-    <section className="py-24 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-muted/30 to-transparent" />
-
-      <div className="container mx-auto px-4 lg:px-8 relative z-10">
+    <section className="py-24 bg-muted/40">
+      <div className="container mx-auto px-4 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
           className="text-center mb-16"
         >
-          <div className="inline-block mb-4">
-            <Globe className="text-primary" size={32} />
-          </div>
-          <h2 className="text-5xl font-black mb-4">
-            Nos <span className="text-primary">Valeurs</span>
+          <h2 className="text-4xl md:text-5xl font-black mb-4">
+            Nos <span className="text-secondary">Valeurs</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Les principes qui guident chacune de nos actions
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 perspective-container">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {values.map((value, index) => (
             <motion.div
               key={value.title}
-              initial={{ opacity: 0, y: 50, scale: 0.8 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{
-                duration: 0.7,
-                delay: index * 0.15,
-                type: "spring",
-                stiffness: 100
-              }}
-              whileHover={{
-                y: -20,
-                scale: 1.08,
-                transition: { duration: 0.3 }
-              }}
-              className="glass rounded-3xl p-8 shadow-elevation-4 border-2 border-white/40 card-3d group relative overflow-hidden"
+              initial={{ opacity: 0, y: 28 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.45, ease: "easeOut", delay: index * 0.1 }}
+              whileHover={{ y: -6, transition: { duration: 0.2 } }}
+              className="group bg-white rounded-2xl p-8 border border-border hover:shadow-md transition-shadow text-center"
             >
-              {/* Icon Container */}
               <motion.div
-                className={`w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${value.color} flex items-center justify-center shadow-elevation-3 relative`}
-                whileHover={{ rotate: 360, scale: 1.2 }}
-                transition={{ duration: 0.6 }}
+                whileHover={{ rotate: 10, scale: 1.1 }}
+                transition={{ duration: 0.25 }}
+                className="w-16 h-16 mx-auto mb-5 rounded-xl bg-primary flex items-center justify-center"
               >
-                <value.icon className="text-white relative z-10" size={36} />
+                <value.icon className="text-white" size={28} />
               </motion.div>
-
-              {/* Content */}
-              <h3 className="text-2xl font-bold mb-3 text-center group-hover:text-primary transition-all relative">
+              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors duration-200">
                 {value.title}
               </h3>
-              <p className="text-muted-foreground text-center leading-relaxed relative">
+              <p className="text-muted-foreground text-sm leading-relaxed">
                 {value.description}
               </p>
-
-              {/* Bottom Glow */}
-              <motion.div
-                className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${value.color}`}
-                initial={{ scaleX: 0 }}
-                whileInView={{ scaleX: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.15 + 0.5, duration: 0.6 }}
-              />
             </motion.div>
           ))}
         </div>

@@ -1,7 +1,6 @@
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { Users, Briefcase, Star, TrendingUp } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
-import { useInView } from "framer-motion";
 
 const AnimatedCounter = ({ target, suffix = "" }: { target: number; suffix?: string }) => {
   const [count, setCount] = useState(0);
@@ -10,8 +9,8 @@ const AnimatedCounter = ({ target, suffix = "" }: { target: number; suffix?: str
 
   useEffect(() => {
     if (!isInView) return;
-    const duration = 2500;
-    const steps = 60;
+    const duration = 1800;
+    const steps = 50;
     const increment = target / steps;
     let current = 0;
     const timer = setInterval(() => {
@@ -27,61 +26,38 @@ const AnimatedCounter = ({ target, suffix = "" }: { target: number; suffix?: str
   }, [isInView, target]);
 
   return (
-    <div ref={ref} className="text-6xl font-black text-primary">
+    <div ref={ref} className="text-4xl md:text-5xl font-black text-white">
       {count.toLocaleString()}{suffix}
     </div>
   );
 };
 
 const stats = [
-  { icon: Users, value: 2500, suffix: "+", label: "Freelancers Actifs", color: "from-primary to-warning" },
-  { icon: Briefcase, value: 5000, suffix: "+", label: "Projets R\u00e9alis\u00e9s", color: "from-secondary to-primary" },
-  { icon: Star, value: 98, suffix: "%", label: "Satisfaction Client", color: "from-warning to-secondary" },
-  { icon: TrendingUp, value: 150, suffix: "+", label: "Nouveaux Projets/Mois", color: "from-success to-primary" },
+  { icon: Users, value: 2500, suffix: "+", label: "Freelancers Actifs" },
+  { icon: Briefcase, value: 5000, suffix: "+", label: "Projets Réalisés" },
+  { icon: Star, value: 98, suffix: "%", label: "Satisfaction Client" },
+  { icon: TrendingUp, value: 150, suffix: "+", label: "Nouveaux Projets/Mois" },
 ];
 
 const Stats3D = () => {
   return (
-    <section className="py-20 relative overflow-hidden">
-      <div className="absolute inset-0 bg-primary" />
-
-      <div className="container mx-auto px-4 lg:px-8 relative z-10">
+    <section className="py-20 bg-primary">
+      <div className="container mx-auto px-4 lg:px-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
           {stats.map((stat, index) => (
             <motion.div
               key={stat.label}
-              initial={{ opacity: 0, y: 60, scale: 0.8 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{
-                duration: 0.7,
-                delay: index * 0.12,
-                type: "spring",
-                stiffness: 100
-              }}
-              whileHover={{
-                y: -15,
-                scale: 1.1,
-                transition: { duration: 0.3 }
-              }}
-              className="glass rounded-3xl p-8 shadow-elevation-4 border-2 border-white/40 card-3d group relative overflow-hidden text-center"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.45, ease: "easeOut", delay: index * 0.1 }}
+              className="text-center"
             >
-              {/* Icon */}
-              <motion.div
-                className={`w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-elevation-3 relative`}
-                whileHover={{ rotate: 360, scale: 1.2 }}
-                transition={{ duration: 0.6 }}
-              >
-                <stat.icon className="text-white relative z-10" size={32} />
-              </motion.div>
-
-              {/* Counter */}
+              <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mx-auto mb-4">
+                <stat.icon className="text-white/80" size={22} />
+              </div>
               <AnimatedCounter target={stat.value} suffix={stat.suffix} />
-
-              {/* Label */}
-              <p className="text-sm text-muted-foreground font-semibold mt-3 relative">
-                {stat.label}
-              </p>
+              <p className="text-white/60 mt-2 text-sm font-medium">{stat.label}</p>
             </motion.div>
           ))}
         </div>

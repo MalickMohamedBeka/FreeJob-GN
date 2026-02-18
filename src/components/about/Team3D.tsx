@@ -5,119 +5,87 @@ const team = [
   {
     name: "Amadou Diallo",
     role: "CEO & Fondateur",
-    bio: "Visionnaire passionn\u00e9 par la tech africaine",
-    avatar: "Amadou Diallo"
+    bio: "Visionnaire passionné par la tech africaine",
   },
   {
     name: "Fatoumata Camara",
     role: "CTO",
-    bio: "Experte en d\u00e9veloppement et architecture",
-    avatar: "Fatoumata Camara"
+    bio: "Experte en développement et architecture",
   },
   {
-    name: "Ibrahim Konat\u00e9",
+    name: "Ibrahim Konaté",
     role: "Head of Product",
-    bio: "Designer UX/UI prim\u00e9 internationalement",
-    avatar: "Ibrahim Konat\u00e9"
+    bio: "Designer UX/UI primé internationalement",
   },
   {
     name: "Aissatou Sow",
     role: "Head of Community",
-    bio: "Sp\u00e9cialiste en engagement communautaire",
-    avatar: "Aissatou Sow"
+    bio: "Spécialiste en engagement communautaire",
   },
 ];
 
+function getInitials(name: string) {
+  return name.split(" ").slice(0, 2).map((w) => w[0]).join("");
+}
+
 const Team3D = () => {
   return (
-    <section className="py-24 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-primary" />
-
-      <div className="container mx-auto px-4 lg:px-8 relative z-10">
+    <section className="py-24 bg-muted/40">
+      <div className="container mx-auto px-4 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-20"
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.5, ease: "easeOut" as const }}
+          className="text-center mb-16"
         >
-          <h2 className="text-5xl font-black mb-4">
-            Notre <span className="text-primary">\u00c9quipe</span>
+          <h2 className="text-4xl md:text-5xl font-black mb-4">
+            Notre <span className="text-secondary">Équipe</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Les visionnaires qui construisent l'avenir du freelancing en Afrique
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 perspective-container">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {team.map((member, index) => (
             <motion.div
               key={member.name}
-              initial={{ opacity: 0, y: 60, scale: 0.8 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{
-                duration: 0.7,
-                delay: index * 0.15,
-                type: "spring",
-                stiffness: 100
-              }}
-              whileHover={{
-                y: -20,
-                scale: 1.05,
-                transition: { duration: 0.3 }
-              }}
-              className="glass rounded-3xl overflow-hidden shadow-elevation-4 border-2 border-white/40 card-3d group relative"
+              initial={{ opacity: 0, y: 28 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.45, ease: "easeOut" as const, delay: index * 0.1 }}
+              whileHover={{ y: -6, transition: { duration: 0.2 } }}
+              className="group bg-white rounded-2xl overflow-hidden border border-border hover:shadow-md transition-shadow"
             >
-              {/* Avatar Section */}
-              <div className="relative h-64 overflow-hidden">
-                {/* Background Gradient */}
-                <div className="absolute inset-0 bg-primary opacity-30" />
-
-                {/* Avatar */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-elevation-4 transition-transform duration-300 group-hover:scale-110">
-                    <img
-                      src={`/avatars/freelancer-${(index % 15) + 1}.jpg`}
-                      alt={member.name}
-                      className="relative z-10 w-full h-full object-cover"
-                    />
+              {/* Avatar section */}
+              <div className="relative bg-primary/5 pt-10 pb-14">
+                <div className="flex justify-center">
+                  <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl border-4 border-white shadow-sm group-hover:scale-105 transition-transform duration-300">
+                    {getInitials(member.name)}
                   </div>
                 </div>
 
-                {/* Social Links */}
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                {/* Social links on hover */}
+                <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   {[Linkedin, Twitter, Mail].map((Icon, i) => (
                     <button
                       key={i}
-                      className="w-10 h-10 rounded-full glass-dark backdrop-blur-xl flex items-center justify-center shadow-elevation-2 hover:scale-110 transition-transform"
+                      className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"
                     >
-                      <Icon size={16} className="text-white" />
+                      <Icon size={13} />
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Info Section */}
-              <div className="p-6 text-center relative">
-                <h3 className="text-xl font-bold mb-1 group-hover:text-primary transition-all">
+              {/* Info */}
+              <div className="p-5 text-center">
+                <h3 className="text-lg font-bold mb-1 group-hover:text-primary transition-colors duration-200">
                   {member.name}
                 </h3>
-                <p className="text-primary font-semibold text-sm mb-3">
-                  {member.role}
-                </p>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {member.bio}
-                </p>
-
-                {/* Bottom Glow */}
-                <motion.div
-                  className="absolute bottom-0 left-0 right-0 h-1 bg-primary"
-                  initial={{ scaleX: 0 }}
-                  whileInView={{ scaleX: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.15 + 0.5, duration: 0.6 }}
-                />
+                <p className="text-secondary font-semibold text-sm mb-2">{member.role}</p>
+                <p className="text-muted-foreground text-sm leading-relaxed">{member.bio}</p>
               </div>
             </motion.div>
           ))}

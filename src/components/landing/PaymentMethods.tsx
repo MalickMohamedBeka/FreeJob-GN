@@ -33,98 +33,82 @@ const features = [
 
 const PaymentMethods = () => {
   return (
-    <section className="py-20 bg-muted/30">
+    <section className="py-20 bg-muted/40">
       <div className="container mx-auto px-4 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
           className="text-center mb-12"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-semibold text-sm mb-4">
-            <Shield size={16} />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-semibold text-sm mb-4 border border-primary/20">
+            <Shield size={14} />
             Paiements Sécurisés
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Moyens de <span className="text-primary">Paiement</span>
+            Moyens de <span className="text-secondary">Paiement</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Payez et recevez vos paiements en toute sécurité avec nos partenaires de confiance
           </p>
         </motion.div>
 
-        {/* Payment Methods Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
           {paymentMethods.map((method, index) => (
             <motion.div
               key={method.name}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ y: -5 }}
-              className="bg-white rounded-2xl p-6 shadow-elevation-1 hover:shadow-elevation-3 transition-all border border-border/50"
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.4, ease: "easeOut", delay: index * 0.09 }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="bg-white rounded-xl p-6 border border-border hover:shadow-md transition-shadow cursor-default"
             >
               <div className="flex flex-col items-center text-center">
-                <div className="w-full h-20 flex items-center justify-center mb-4 bg-muted/30 rounded-xl p-4">
+                <div className="w-full h-16 flex items-center justify-center mb-4 bg-muted/30 rounded-lg p-3">
                   <img
                     src={method.logo}
                     alt={method.name}
                     className="max-w-full max-h-full object-contain"
                     onError={(e) => {
-                      // Fallback si l'image ne charge pas
-                      e.currentTarget.style.display = 'none';
-                      e.currentTarget.parentElement!.innerHTML = `<span class="text-2xl font-bold text-primary">${method.name}</span>`;
+                      e.currentTarget.style.display = "none";
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        parent.innerHTML = `<span class="text-base font-bold text-primary">${method.name}</span>`;
+                      }
                     }}
                   />
                 </div>
-                <h3 className="font-semibold text-lg mb-1">{method.name}</h3>
+                <h3 className="font-semibold mb-1">{method.name}</h3>
                 <p className="text-sm text-muted-foreground">{method.description}</p>
               </div>
             </motion.div>
           ))}
         </div>
 
-        {/* Features */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="bg-primary p-8 md:p-12"
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.45, ease: "easeOut", delay: 0.2 }}
+          className="bg-primary rounded-xl p-8 md:p-10"
         >
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
-                className="flex items-center gap-3 text-white"
-              >
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                  <CheckCircle size={18} />
+            {features.map((feature) => (
+              <div key={feature} className="flex items-center gap-3 text-white">
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <CheckCircle size={16} />
                 </div>
-                <span className="font-medium">{feature}</span>
-              </motion.div>
+                <span className="font-medium text-sm">{feature}</span>
+              </div>
             ))}
           </div>
         </motion.div>
 
-        {/* Trust Badge */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.8 }}
-          className="text-center mt-8"
-        >
-          <p className="text-sm text-muted-foreground">
-            🔒 Toutes les transactions sont cryptées et sécurisées selon les normes internationales
-          </p>
-        </motion.div>
+        <p className="text-center text-sm text-muted-foreground mt-6">
+          Toutes les transactions sont cryptées selon les normes internationales
+        </p>
       </div>
     </section>
   );
