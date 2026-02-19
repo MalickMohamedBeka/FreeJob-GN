@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { CheckCircle2, Circle, Rocket, Target, Zap, Globe, TrendingUp } from "lucide-react";
-import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const roadmapData = [
   {
@@ -9,27 +9,25 @@ const roadmapData = [
     period: "Q1 2024",
     status: "completed",
     items: [
-      "Plateforme web lanc\u00e9e",
-      "2,500+ freelancers inscrits",
-      "500+ projets compl\u00e9t\u00e9s",
-      "Syst\u00e8me de paiement s\u00e9curis\u00e9"
+      "Plateforme web lancée",
+      "2 500+ freelancers inscrits",
+      "500+ projets complétés",
+      "Système de paiement sécurisé",
     ],
     icon: Rocket,
-    color: "from-success to-primary"
   },
   {
     phase: "Phase 2",
-    title: "Expansion R\u00e9gionale",
+    title: "Expansion Régionale",
     period: "Q2-Q3 2024",
     status: "current",
     items: [
       "Application mobile iOS & Android",
       "Expansion dans 10 pays africains",
       "Programme de formation freelance",
-      "Partenariats avec universit\u00e9s"
+      "Partenariats avec universités",
     ],
     icon: Globe,
-    color: "from-primary to-warning"
   },
   {
     phase: "Phase 3",
@@ -39,11 +37,10 @@ const roadmapData = [
     items: [
       "Matching IA freelancer-projet",
       "Traduction automatique 20+ langues",
-      "Syst\u00e8me de recommandation avanc\u00e9",
-      "Blockchain pour certifications"
+      "Système de recommandation avancé",
+      "Blockchain pour certifications",
     ],
     icon: Zap,
-    color: "from-secondary to-primary"
   },
   {
     phase: "Phase 4",
@@ -52,181 +49,103 @@ const roadmapData = [
     status: "future",
     items: [
       "Expansion globale 100+ pays",
-      "10,000+ freelancers actifs",
+      "10 000+ freelancers actifs",
       "Marketplace de services premium",
-      "FreeJobGN Academy"
+      "FreeJobGN Academy",
     ],
     icon: Target,
-    color: "from-warning to-secondary"
-  }
+  },
 ];
 
+const statusConfig = {
+  completed: { label: "✓ Complété", className: "bg-success text-white" },
+  current: { label: "En cours", className: "bg-primary text-white" },
+  upcoming: { label: "Bientôt", className: "bg-secondary text-white" },
+  future: { label: "Futur", className: "bg-muted text-muted-foreground" },
+};
+
 const Roadmap3D = () => {
-  const [activePhase, setActivePhase] = useState(1);
-
   return (
-    <section className="py-24 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-primary" />
-
-      <div className="container mx-auto px-4 lg:px-8 relative z-10">
-        {/* Title */}
+    <section className="py-24 bg-white">
+      <div className="container mx-auto px-4 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.5, ease: "easeOut" as const }}
           className="text-center mb-20"
         >
-          <div className="inline-block mb-4">
-            <TrendingUp className="text-primary" size={40} />
+          <div className="inline-flex items-center gap-2 text-primary mb-4">
+            <TrendingUp size={28} />
           </div>
-          <h2 className="text-5xl md:text-6xl font-black mb-4">
-            Notre <span className="text-primary">Roadmap</span>
+          <h2 className="text-4xl md:text-5xl font-black mb-4">
+            Notre <span className="text-secondary">Roadmap</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Le voyage vers l'excellence continue
           </p>
         </motion.div>
 
-        {/* Timeline */}
-        <div className="relative max-w-6xl mx-auto">
-          {/* Vertical Line */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-primary via-secondary to-success hidden lg:block" />
-
-          {/* Phases */}
-          <div className="space-y-24">
-            {roadmapData.map((phase, index) => {
-              const isLeft = index % 2 === 0;
-              const Icon = phase.icon;
-
-              return (
-                <motion.div
-                  key={phase.phase}
-                  initial={{ opacity: 0, x: isLeft ? -100 : 100 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.7, delay: index * 0.2 }}
-                  onViewportEnter={() => setActivePhase(index)}
-                  className={`relative lg:grid lg:grid-cols-2 gap-8 items-center ${
-                    isLeft ? "" : "lg:grid-flow-dense"
-                  }`}
-                >
-                  {/* Content Card */}
-                  <motion.div
-                    whileHover={{
-                      scale: 1.05,
-                      y: -10,
-                      transition: { duration: 0.3 }
-                    }}
-                    className={`glass rounded-3xl p-8 shadow-elevation-4 border-2 border-white/40 card-3d group relative ${
-                      isLeft ? "lg:col-start-1" : "lg:col-start-2"
-                    }`}
-                  >
-                    {/* Status Badge */}
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      whileInView={{ scale: 1 }}
-                      transition={{ delay: 0.5, type: "spring" }}
-                      className={`absolute -top-4 -right-4 px-4 py-2 rounded-full shadow-elevation-3 ${
-                        phase.status === "completed" ? "bg-success" :
-                        phase.status === "current" ? "bg-primary" :
-                        phase.status === "upcoming" ? "bg-secondary" :
-                        "bg-muted"
-                      } text-white font-bold text-sm`}
-                    >
-                      {phase.status === "completed" ? "\u2713 Compl\u00e9t\u00e9" :
-                       phase.status === "current" ? "En cours" :
-                       phase.status === "upcoming" ? "Bient\u00f4t" :
-                       "Futur"}
-                    </motion.div>
-
-                    <div className="relative z-10">
-                      {/* Phase Header */}
-                      <div className="flex items-center gap-4 mb-6">
-                        <motion.div
-                          className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${phase.color} flex items-center justify-center shadow-elevation-3`}
-                          whileHover={{ rotate: 360, scale: 1.2 }}
-                          transition={{ duration: 0.6 }}
-                        >
-                          <Icon className="text-white" size={32} />
-                        </motion.div>
-                        <div>
-                          <p className="text-sm font-bold text-primary">{phase.phase}</p>
-                          <h3 className="text-2xl font-black">{phase.title}</h3>
-                          <p className="text-sm text-muted-foreground font-semibold">{phase.period}</p>
-                        </div>
-                      </div>
-
-                      {/* Items */}
-                      <div className="space-y-3">
-                        {phase.items.map((item, i) => (
-                          <motion.div
-                            key={item}
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.6 + i * 0.1 }}
-                            whileHover={{ x: 10, scale: 1.05 }}
-                            className="flex items-center gap-3 glass rounded-xl p-3"
-                          >
-                            {phase.status === "completed" ? (
-                              <CheckCircle2 className="text-success shrink-0" size={20} />
-                            ) : (
-                              <Circle className="text-muted-foreground shrink-0" size={20} />
-                            )}
-                            <span className="font-medium">{item}</span>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Center Icon (Desktop) */}
-                  <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-                    <motion.div
-                      initial={{ scale: 0, rotate: -180 }}
-                      whileInView={{ scale: 1, rotate: 0 }}
-                      transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-                      whileHover={{ scale: 1.3, rotate: 360 }}
-                      className={`w-20 h-20 rounded-full bg-gradient-to-br ${phase.color} flex items-center justify-center shadow-elevation-5 border-4 border-background`}
-                    >
-                      <Icon className="text-white" size={36} />
-                    </motion.div>
+        <div className="max-w-4xl mx-auto space-y-6">
+          {roadmapData.map((phase, index) => {
+            const Icon = phase.icon;
+            const config = statusConfig[phase.status as keyof typeof statusConfig];
+            return (
+              <motion.div
+                key={phase.phase}
+                initial={{ opacity: 0, x: index % 2 === 0 ? -32 : 32 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.45, ease: "easeOut" as const, delay: index * 0.1 }}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                className="bg-white rounded-2xl border border-border p-6 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shrink-0">
+                    <Icon className="text-white" size={22} />
                   </div>
-
-                  {/* Spacer for alternating layout */}
-                  <div className={`hidden lg:block ${isLeft ? "lg:col-start-2" : "lg:col-start-1"}`} />
-                </motion.div>
-              );
-            })}
-          </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                        {phase.phase} · {phase.period}
+                      </span>
+                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${config.className}`}>
+                        {config.label}
+                      </span>
+                    </div>
+                    <h3 className="text-xl font-bold mb-3">{phase.title}</h3>
+                    <div className="grid sm:grid-cols-2 gap-2">
+                      {phase.items.map((item) => (
+                        <div key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
+                          {phase.status === "completed" ? (
+                            <CheckCircle2 className="text-success shrink-0" size={15} />
+                          ) : (
+                            <Circle className="text-border shrink-0" size={15} />
+                          )}
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
 
-        {/* Bottom CTA */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.5 }}
-          className="text-center mt-20"
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.45, ease: "easeOut" as const, delay: 0.3 }}
+          className="text-center mt-14"
         >
-          <motion.div
-            whileHover={{ scale: 1.05, y: -5 }}
-            className="inline-block glass rounded-3xl p-8 shadow-elevation-4 border-2 border-white/40"
+          <Link
+            to="/signup"
+            className="inline-flex items-center gap-2 bg-primary text-white px-8 py-3 rounded-xl font-semibold hover:bg-primary/90 transition-colors"
           >
-            <h3 className="text-2xl font-bold mb-3">
-              Rejoignez l'<span className="text-primary">Aventure</span>
-            </h3>
-            <p className="text-muted-foreground mb-6">
-              Faites partie de la r&eacute;volution du travail en Afrique
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.1, y: -3 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-primary text-white px-8 py-4 rounded-2xl font-bold shadow-elevation-3 hover:shadow-elevation-4"
-            >
-              Commencer Maintenant
-            </motion.button>
-          </motion.div>
+            Rejoindre l'Aventure
+          </Link>
         </motion.div>
       </div>
     </section>

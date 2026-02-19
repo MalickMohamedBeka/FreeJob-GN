@@ -1,95 +1,78 @@
 import { motion } from "framer-motion";
-import AfricanAvatar from "@/components/ui/AfricanAvatar";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const teamMembers = [
-  { name: "Amadou Diallo", role: "Développeur Full-Stack", country: "🇬🇳" },
-  { name: "Fatoumata Camara", role: "Designer UI/UX", country: "🇬🇳" },
-  { name: "Mamadou Bah", role: "Expert Marketing", country: "🇬🇳" },
-  { name: "Aissatou Sow", role: "Chef de Projet", country: "🇬🇳" },
-  { name: "Ibrahim Konaté", role: "Développeur Mobile", country: "🇬🇳" },
-  { name: "Mariama Diaby", role: "Data Scientist", country: "🇬🇳" },
+  { name: "Amadou Diallo", role: "Développeur Full-Stack" },
+  { name: "Fatoumata Camara", role: "Designer UI/UX" },
+  { name: "Mamadou Bah", role: "Expert Marketing" },
+  { name: "Aissatou Sow", role: "Chef de Projet" },
+  { name: "Ibrahim Konaté", role: "Développeur Mobile" },
+  { name: "Mariama Diaby", role: "Data Scientist" },
 ];
+
+function getInitials(name: string) {
+  return name.split(" ").slice(0, 2).map((w) => w[0]).join("");
+}
 
 const TeamShowcase = () => {
   return (
-    <section className="py-20 lg:py-28 relative overflow-hidden">
-      <div className="container mx-auto px-4 lg:px-8 relative z-10">
+    <section className="py-20 lg:py-28 bg-white">
+      <div className="container mx-auto px-4 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
           className="text-center max-w-2xl mx-auto mb-16"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Talents <span className="text-primary">Africains</span> d'Exception
+            Talents <span className="text-secondary">Africains</span> d'Exception
           </h2>
           <p className="text-muted-foreground text-lg">
             Découvrez quelques-uns des professionnels qui font la différence
           </p>
         </motion.div>
 
-        {/* 3D Grid of Avatars */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 perspective-container max-w-5xl mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 max-w-5xl mx-auto">
           {teamMembers.map((member, index) => (
             <motion.div
               key={member.name}
-              initial={{ opacity: 0, y: 50, rotateX: -30 }}
-              whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ 
-                y: -20, 
-                scale: 1.15,
-                rotateY: 10,
-                transition: { duration: 0.3 }
-              }}
-              className="flex flex-col items-center card-3d"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.4, ease: "easeOut", delay: index * 0.08 }}
+              className="flex flex-col items-center text-center group"
             >
               <motion.div
-                className="glass rounded-3xl p-6 shadow-elevation-3 hover:shadow-elevation-5 border border-white/30 relative"
-                whileHover={{ rotateZ: 5 }}
+                whileHover={{ scale: 1.1 }}
+                transition={{ duration: 0.2 }}
+                className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg mb-3 border-2 border-primary/20 cursor-default"
               >
-                <AfricanAvatar 
-                  name={member.name} 
-                  role={member.role}
-                  size="lg"
-                  showBadge
-                  animate
-                />
+                {getInitials(member.name)}
               </motion.div>
-
-              <motion.div 
-                className="mt-4 text-center"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ delay: index * 0.1 + 0.3 }}
-              >
-                <h3 className="font-bold text-sm">{member.name}</h3>
-                <p className="text-xs text-muted-foreground">{member.role}</p>
-              </motion.div>
+              <h3 className="font-semibold text-sm group-hover:text-primary transition-colors duration-200">
+                {member.name}
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">{member.role}</p>
             </motion.div>
           ))}
         </div>
 
-        {/* Call to Action */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="text-center mt-16"
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.45, ease: "easeOut", delay: 0.3 }}
+          className="text-center mt-14"
         >
-          <motion.div
-            whileHover={{ scale: 1.05, y: -5 }}
-            className="inline-block glass rounded-2xl px-8 py-4 shadow-elevation-3 hover:shadow-elevation-4 border border-white/30"
-          >
-            <p className="text-lg font-semibold mb-2">
-              Rejoignez <span className="text-primary">2,500+</span> talents africains
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Développeurs • Designers • Marketeurs • Consultants
-            </p>
+          <p className="text-muted-foreground mb-4">
+            Rejoignez <strong className="text-foreground">2 500+</strong> talents africains
+          </p>
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+            <Button variant="default" asChild>
+              <Link to="/signup">Créer un profil freelance</Link>
+            </Button>
           </motion.div>
         </motion.div>
       </div>

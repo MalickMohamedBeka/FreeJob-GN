@@ -57,7 +57,7 @@ const Values3D = () => {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 perspective-container">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 ">
           {values.map((value, index) => (
             <motion.div
               key={value.title}
@@ -77,7 +77,7 @@ const Values3D = () => {
                 rotateX: 5,
                 transition: { duration: 0.3 }
               }}
-              className="glass rounded-3xl p-8 shadow-elevation-4 border-2 border-white/40 card-3d group relative overflow-hidden"
+              className="bg-white/90 border border-border rounded-3xl p-8 shadow-sm border-2 border-white/40  group relative overflow-hidden"
             >
               {/* Animated Background */}
               <motion.div
@@ -91,7 +91,7 @@ const Values3D = () => {
 
               {/* Icon Container */}
               <motion.div
-                className={`w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${value.color} flex items-center justify-center shadow-elevation-3 relative`}
+                className={`w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${value.color} flex items-center justify-center shadow-sm relative`}
                 whileHover={{ rotate: 360, scale: 1.2 }}
                 transition={{ duration: 0.6 }}
               >

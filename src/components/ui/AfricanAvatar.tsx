@@ -38,7 +38,7 @@ const AfricanAvatar = ({
       transition={{ duration: 0.3 }}
     >
       <motion.div
-        className={`${sizeClasses[size]} rounded-full flex items-center justify-center shadow-elevation-3 border-4 border-white/30 relative overflow-hidden`}
+        className={`${sizeClasses[size]} rounded-full flex items-center justify-center shadow-sm border-4 border-white/30 relative overflow-hidden`}
         whileHover={animate ? { rotate: 5 } : {}}
         transition={{ duration: 0.6 }}
       >
@@ -56,7 +56,7 @@ const AfricanAvatar = ({
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.2, type: "spring" }}
-          className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-success border-2 border-white shadow-elevation-2 flex items-center justify-center"
+          className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-success border-2 border-white shadow-sm flex items-center justify-center"
         >
           <span className="text-white text-xs">✓</span>
         </motion.div>
@@ -67,7 +67,7 @@ const AfricanAvatar = ({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileHover={{ opacity: 1, y: 0 }}
-          className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-2 rounded-lg glass shadow-elevation-2 whitespace-nowrap pointer-events-none z-20"
+          className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-2 rounded-lg bg-white/90 border border-border shadow-sm whitespace-nowrap pointer-events-none z-20"
         >
           <p className="text-sm font-semibold">{name}</p>
           {role && <p className="text-xs text-muted-foreground">{role}</p>}

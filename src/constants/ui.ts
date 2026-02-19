@@ -1,8 +1,3 @@
-/**
- * UI Constants
- * Design system values and configurations
- */
-
 export const BREAKPOINTS = {
   SM: 640,
   MD: 768,
@@ -20,25 +15,9 @@ export const AVATAR_SIZES = {
 } as const;
 
 export const CARD_VARIANTS = {
-  DEFAULT: 'glass rounded-3xl shadow-elevation-3',
-  ELEVATED: 'glass rounded-3xl shadow-elevation-4 hover:shadow-elevation-5',
-  FLAT: 'bg-background rounded-2xl border border-border',
-} as const;
-
-export const GRADIENT_CLASSES = {
-  HERO: 'bg-gradient-hero',
-  TEXT: 'text-gradient-hero',
-  SUBTLE: 'bg-gradient-hero-subtle',
-} as const;
-
-export const SHADOW_CLASSES = {
-  SM: 'shadow-elevation-1',
-  MD: 'shadow-elevation-2',
-  LG: 'shadow-elevation-3',
-  XL: 'shadow-elevation-4',
-  '2XL': 'shadow-elevation-5',
-  GLOW_ORANGE: 'shadow-glow-orange',
-  GLOW_BLUE: 'shadow-glow-blue',
+  DEFAULT: 'bg-white rounded-xl border border-border shadow-sm',
+  ELEVATED: 'bg-white rounded-xl border border-border shadow-md',
+  FLAT: 'bg-white rounded-xl border border-border',
 } as const;
 
 export const SKILL_FILTERS = [
