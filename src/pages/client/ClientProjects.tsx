@@ -40,6 +40,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import {
+  useProjects,
   useMyProjects,
   useCreateProject,
   useUpdateProject,
@@ -71,6 +72,7 @@ const statusConfig: Record<string, { label: string; class: string }> = {
 interface ProjectFormValues {
   title: string;
   description: string;
+  category_id: string;
   budget_band: BudgetBandEnum | "";
   budget_amount: string;
   deadline: string;
@@ -90,10 +92,19 @@ function ProjectFormDialog({
   const isEdit = !!projectId;
   const createProject = useCreateProject();
   const updateProject = useUpdateProject();
+  const { data: allProjects } = useProjects();
+
+  // Derive unique categories from published projects (no dedicated categories endpoint)
+  const categories = Array.from(
+    new Map(
+      (allProjects?.results ?? []).map((p) => [p.category.id, p.category])
+    ).values()
+  );
 
   const [form, setForm] = useState<ProjectFormValues>({
     title: initial?.title ?? "",
     description: initial?.description ?? "",
+    category_id: initial?.category.id ?? "",
     budget_band: (initial?.budget_band as BudgetBandEnum) ?? "",
     budget_amount: initial?.budget_amount ?? "",
     deadline: initial?.deadline ?? "",
@@ -108,8 +119,8 @@ function ProjectFormDialog({
   };
 
   const handleSubmit = async () => {
-    if (!form.title || !form.description || !form.budget_band || !form.budget_amount) {
-      setError("Titre, description, tranche budgétaire et montant sont obligatoires.");
+    if (!form.title || !form.description || !form.category_id || !form.budget_band || !form.budget_amount) {
+      setError("Titre, description, catégorie, tranche budgétaire et montant sont obligatoires.");
       return;
     }
     setError("");
@@ -117,7 +128,7 @@ function ProjectFormDialog({
       const payload: ApiProjectCreateRequest = {
         title: form.title,
         description: form.description,
-        category_id: "1", // placeholder — categories endpoint not available
+        category_id: form.category_id,
         budget_band: form.budget_band as BudgetBandEnum,
         budget_amount: form.budget_amount,
         deadline: form.deadline || null,
@@ -154,6 +165,24 @@ function ProjectFormDialog({
           <div className="space-y-1.5">
             <Label htmlFor="proj-desc">Description *</Label>
             <Textarea id="proj-desc" rows={4} value={form.description} onChange={set("description")} placeholder="Décrivez votre projet en détail…" />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Catégorie *</Label>
+            <Select
+              value={form.category_id}
+              onValueChange={(v) => setForm((f) => ({ ...f, category_id: v }))}
+              disabled={categories.length === 0}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={categories.length === 0 ? "Aucune catégorie disponible" : "Sélectionner une catégorie"} />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
