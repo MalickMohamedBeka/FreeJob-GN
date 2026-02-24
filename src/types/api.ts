@@ -167,7 +167,7 @@ export interface ApiProposalCreateRequest {
 
 // ── Contracts ──
 
-export type ContractStatusEnum = 'IN_PROGRESS' | 'ON_HOLD' | 'COMPLETED' | 'CANCELLED';
+export type ContractStatusEnum = 'PENDING_PAYMENT' | 'IN_PROGRESS' | 'ON_HOLD' | 'COMPLETED' | 'CANCELLED';
 
 export interface ApiContractList {
   id: string;
@@ -325,11 +325,28 @@ export interface PatchedClientProfileUpdateRequest {
 
 export interface ContractSummary {
   total_amount: string;
-  total_funded: string;
-  total_released: string;
-  total_refunded: string;
-  remaining_to_fund: string;
-  remaining_in_escrow: string;
+  status: string;
+  is_paid: boolean;
+  amount_paid: string;
+  amount_remaining: string;
+  next_action: 'PAY_FULL' | 'NONE';
+}
+
+export interface DjomyGatewayPaymentRequest {
+  amount: string;
+  country_code: string;
+  payer_number: string;
+  return_url: string;
+  cancel_url?: string;
+  description?: string;
+  allowed_payment_methods?: string[];
+  contract_id?: string;
+}
+
+export interface DjomyGatewayPaymentResponse {
+  transactionId?: string;
+  redirectUrl: string;
+  status: string;
 }
 
 // ── Project Write ──

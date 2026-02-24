@@ -3,24 +3,74 @@ import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Clock,
   CheckCircle2,
   AlertCircle,
   Loader2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
-import { useContracts } from "@/hooks/useContracts";
+import { useContracts, useContractSummary } from "@/hooks/useContracts";
 import type { ApiContractList } from "@/types";
 
 // ── Contract status styling ───────────────────────────────────────────────────
 
 const statusConfig: Record<string, { label: string; badgeClass: string }> = {
+  PENDING_PAYMENT: { label: "En attente de paiement", badgeClass: "bg-orange-500 text-white" },
   IN_PROGRESS: { label: "En cours", badgeClass: "bg-secondary text-white" },
   COMPLETED: { label: "Terminé", badgeClass: "bg-primary text-white" },
-  ON_HOLD: { label: "En attente", badgeClass: "bg-yellow-500 text-white" },
+  ON_HOLD: { label: "En pause", badgeClass: "bg-yellow-500 text-white" },
   CANCELLED: { label: "Annulé", badgeClass: "bg-red-500 text-white" },
 };
+
+// ── Contract Summary (lazy-fetched on expand) ─────────────────────────────────
+
+function ContractSummarySection({ contractId }: { contractId: string }) {
+  const { data, isLoading } = useContractSummary(contractId);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 py-3 text-sm text-muted-foreground">
+        <Loader2 size={14} className="animate-spin" />
+        Chargement du résumé…
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  return (
+    <div className="grid grid-cols-2 gap-3 pt-3 text-sm">
+      <div>
+        <p className="text-muted-foreground mb-0.5">Montant payé</p>
+        <p className="font-semibold text-primary">
+          {parseFloat(data.amount_paid).toLocaleString("fr-FR")} GNF
+        </p>
+      </div>
+      <div>
+        <p className="text-muted-foreground mb-0.5">Reste à payer</p>
+        <p className="font-semibold">
+          {parseFloat(data.amount_remaining).toLocaleString("fr-FR")} GNF
+        </p>
+      </div>
+      <div className="col-span-2">
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+            data.is_paid
+              ? "bg-primary/10 text-primary"
+              : "bg-orange-100 text-orange-700"
+          }`}
+        >
+          {data.is_paid ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+          {data.is_paid ? "Paiement complet" : "Paiement en attente"}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 // ── Contract Card ─────────────────────────────────────────────────────────────
 
@@ -31,6 +81,8 @@ function ContractCard({
   contract: ApiContractList;
   index: number;
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const config = statusConfig[contract.status] ?? {
     label: contract.status_display,
     badgeClass: "bg-muted text-foreground",
@@ -51,7 +103,7 @@ function ContractCard({
           <Badge className={config.badgeClass}>{config.label}</Badge>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
+        <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg mb-4">
           <div>
             <p className="text-sm text-muted-foreground mb-1">Montant Total</p>
             <p className="font-semibold">
@@ -69,6 +121,22 @@ function ContractCard({
             <p className="font-medium">{contract.funding_plan_display}</p>
           </div>
         </div>
+
+        {isExpanded && (
+          <div className="border-t border-border pt-3 mb-4">
+            <ContractSummarySection contractId={contract.id} />
+          </div>
+        )}
+
+        <Button
+          size="sm"
+          variant="ghost"
+          className="gap-1.5 text-muted-foreground w-full"
+          onClick={() => setIsExpanded((v) => !v)}
+        >
+          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {isExpanded ? "Masquer le résumé" : "Voir le résumé financier"}
+        </Button>
       </Card>
     </motion.div>
   );
@@ -84,7 +152,7 @@ const MyProjects = () => {
 
   const activeContracts = contracts.filter((c) => c.status === "IN_PROGRESS");
   const completedContracts = contracts.filter((c) => c.status === "COMPLETED");
-  const pendingContracts = contracts.filter((c) => c.status === "ON_HOLD");
+  const pendingContracts = contracts.filter((c) => c.status === "ON_HOLD" || c.status === "PENDING_PAYMENT");
 
   return (
     <DashboardLayout userType="freelancer">

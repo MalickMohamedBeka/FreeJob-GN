@@ -1,10 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiService } from '@/services/api.service';
 import type {
   DjangoPaginatedResponse,
   ApiContractList,
   ApiContractDetail,
   ContractSummary,
+  DjomyGatewayPaymentRequest,
+  DjomyGatewayPaymentResponse,
 } from '@/types';
 
 export function useContracts(page = 1) {
@@ -33,3 +35,9 @@ export function useContractSummary(id: string) {
   });
 }
 
+export function useInitiatePayment() {
+  return useMutation({
+    mutationFn: (data: DjomyGatewayPaymentRequest) =>
+      apiService.post<DjomyGatewayPaymentResponse>('/payments/djomy/gateway/', data),
+  });
+}

@@ -33,6 +33,7 @@ export {
   useContracts,
   useContractDetail,
   useContractSummary,
+  useInitiatePayment,
 } from './useContracts';
 export {
   useFreelanceProfile,

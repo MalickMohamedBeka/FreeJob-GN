@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 
 const skillFilters = ["Tous", "React", "Node.js", "Python", "Design", "Marketing", "Mobile", "SEO", "Data Science"];
 
-function mapApiProjectToUI(p: ApiProjectList, index: number): Project {
+function mapApiProjectToUI(p: ApiProjectList): Project {
   return {
     id: p.id,
     title: p.title,
@@ -101,7 +101,7 @@ const Projects = () => {
                 {filtered.map((project, index) => (
                   <ProjectCard3D
                     key={project.id}
-                    project={mapApiProjectToUI(project, index)}
+                    project={mapApiProjectToUI(project)}
                     index={index}
                     onApply={handleApply}
                   />

@@ -1,10 +1,12 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Coins, FileText, Trash2, Loader2, CheckCircle2 } from "lucide-react";
+import { Clock, Coins, FileText, Trash2, Loader2, CheckCircle2, ExternalLink } from "lucide-react";
 import { useProposals, useWithdrawProposal, useConfirmProposal } from "@/hooks/useProposals";
+import { ROUTES } from "@/constants/routes";
 
 const statusColorMap: Record<string, string> = {
   PENDING: "bg-yellow-500",
@@ -142,6 +144,16 @@ const Proposals = () => {
                           <CheckCircle2 size={16} />
                         )}
                         Confirmer le contrat
+                      </Button>
+                    )}
+
+                    {/* Link to contracts page — visible once CONFIRMED */}
+                    {proposal.status === "CONFIRMED" && (
+                      <Button variant="outline" size="sm" className="gap-2" asChild>
+                        <Link to={ROUTES.DASHBOARD.MY_PROJECTS}>
+                          <ExternalLink size={14} />
+                          Voir le contrat
+                        </Link>
                       </Button>
                     )}
 

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import {
   StarOff,
   CheckCircle2,
   XCircle,
+  ExternalLink,
 } from "lucide-react";
 import { useMyProjects } from "@/hooks/useProjects";
 import {
@@ -30,6 +32,7 @@ import {
   useRefuseProposal,
 } from "@/hooks/useProposals";
 import { useAuth } from "@/contexts/AuthContext";
+import { ROUTES } from "@/constants/routes";
 
 const statusConfig: Record<string, { label: string; class: string }> = {
   PENDING: { label: "En attente", class: "bg-yellow-500 text-white" },
@@ -143,6 +146,15 @@ const ClientProposals = () => {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
+                      {proposal.status === "CONFIRMED" && (
+                        <Button variant="outline" size="sm" className="gap-2" asChild>
+                          <Link to={ROUTES.CLIENT.CONTRACTS}>
+                            <ExternalLink size={14} />
+                            Voir le contrat
+                          </Link>
+                        </Button>
+                      )}
+
                       {canShortlist && (
                         <Button
                           size="sm"
