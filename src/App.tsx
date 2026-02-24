@@ -17,6 +17,7 @@ import Index from "./pages/Index";
 // Lazy load all other pages
 const Projects = lazy(() => import("./pages/Projects"));
 const Freelancers = lazy(() => import("./pages/Freelancers"));
+const FreelancerProfile = lazy(() => import("./pages/FreelancerProfile"));
 const About = lazy(() => import("./pages/About"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
@@ -90,6 +91,7 @@ const App = () => (
               {/* Browsable public pages — accessible regardless of auth state */}
               <Route path={ROUTES.PROJECTS} element={<Projects />} />
               <Route path={ROUTES.FREELANCERS} element={<Freelancers />} />
+              <Route path={ROUTES.FREELANCER_PROFILE} element={<FreelancerProfile />} />
               <Route path={ROUTES.ABOUT} element={<About />} />
               <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLogin />} />
               <Route path="/activate" element={<AccountActivation />} />

@@ -29,6 +29,7 @@ import {
   useSelectProposal,
   useRefuseProposal,
 } from "@/hooks/useProposals";
+import { useAuth } from "@/contexts/AuthContext";
 
 const statusConfig: Record<string, { label: string; class: string }> = {
   PENDING: { label: "En attente", class: "bg-yellow-500 text-white" },
@@ -44,8 +45,10 @@ const statusConfig: Record<string, { label: string; class: string }> = {
 const ClientProposals = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
 
+  const { user } = useAuth();
   const { data: projectsData } = useMyProjects();
-  const projects = projectsData?.results ?? [];
+  // Only show the client's own projects — GET /projects/ returns all public projects too
+  const projects = (projectsData?.results ?? []).filter((p) => p.client.id === user?.id);
 
   const { data: proposalsData, isLoading } = useProposalsByProject(selectedProjectId);
   const proposals = proposalsData?.results ?? [];

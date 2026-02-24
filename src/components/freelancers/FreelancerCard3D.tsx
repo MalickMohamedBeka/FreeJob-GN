@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { Star, MapPin, Briefcase, MessageCircle, TrendingUp, Heart } from "lucide-react";
+import { Star, MapPin, Briefcase, TrendingUp, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { useState, memo } from "react";
 
 interface FreelancerCard3DProps {
@@ -113,16 +114,10 @@ const FreelancerCard3D = memo(({ freelancer, index }: FreelancerCard3DProps) => 
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-2">
-          <Button className="flex-1 gap-1.5" size="sm">
-            <MessageCircle size={14} />
-            Contacter
-          </Button>
-          <Button variant="outline" size="sm" className="px-4">
-            Profil
-          </Button>
-        </div>
+        {/* Actions — Profil only, no direct contact */}
+        <Button className="w-full" size="sm" asChild>
+          <Link to={`/freelancers/${freelancer.id}`}>Voir le profil</Link>
+        </Button>
       </div>
     </motion.div>
   );

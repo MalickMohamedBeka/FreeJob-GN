@@ -134,6 +134,11 @@ class ApiService {
     return this.request<T>('GET', endpoint, undefined, params);
   }
 
+  /** GET without Authorization header — for public endpoints like stats, register options */
+  async getPublic<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
+    return this.request<T>('GET', endpoint, undefined, params, true, false);
+  }
+
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.request<T>('POST', endpoint, data);
   }

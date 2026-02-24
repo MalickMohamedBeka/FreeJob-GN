@@ -8,13 +8,12 @@ export const ROUTES = {
   HOME: '/',
   PROJECTS: '/projects',
   FREELANCERS: '/freelancers',
+  FREELANCER_PROFILE: '/freelancers/:id',
   ABOUT: '/about',
   
   // Auth routes
   LOGIN: '/login',
   SIGNUP: '/signup',
-  FREELANCER_LOGIN: '/freelancer/login',
-  CLIENT_LOGIN: '/client/login',
   ADMIN_LOGIN: '/admin',
   ONBOARDING: '/onboarding',
   

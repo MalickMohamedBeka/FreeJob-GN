@@ -330,40 +330,6 @@ export interface ContractSummary {
   total_refunded: string;
   remaining_to_fund: string;
   remaining_in_escrow: string;
-  milestones_count: number;
-  milestones_by_status: Record<string, number>;
-}
-
-// ── Milestones ──
-
-export type MilestoneStatusEnum =
-  | 'PENDING'
-  | 'FUNDED'
-  | 'DELIVERED'
-  | 'RELEASED'
-  | 'REFUNDED'
-  | 'CANCELLED';
-
-export interface ApiMilestone {
-  id: string;
-  order: number;
-  title: string;
-  description: string;
-  amount: string;
-  due_date: string | null;
-  status: MilestoneStatusEnum;
-  status_display: string;
-  funded_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface MilestoneCreateRequest {
-  title: string;
-  amount: string;
-  description?: string;
-  due_date?: string | null;
-  order?: number;
 }
 
 // ── Project Write ──
@@ -429,6 +395,29 @@ export interface ApiFreelanceDocument {
   issued_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// ── Client Company Documents ──
+
+export interface ApiClientCompanyDocument {
+  id: number;
+  doc_type: 'RCCM' | 'LEGAL' | 'OTHER';
+  doc_type_display: string;
+  reference_number: string;
+  file_url: string | null;
+  created_at: string;
+}
+
+export interface ClientCompanyDocumentCreateRequest {
+  doc_type: 'RCCM' | 'LEGAL' | 'OTHER';
+  file: File;
+  reference_number?: string;
+}
+
+// ── Auth ── (additional)
+
+export interface ResendActivationRequest {
+  email: string;
 }
 
 // ── Error ──

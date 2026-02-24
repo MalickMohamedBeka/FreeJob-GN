@@ -18,11 +18,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, User, MapPin, Phone, Pencil, Plus } from "lucide-react";
+import { Loader2, User, MapPin, Phone, Pencil, Plus, FileText, Trash2, ExternalLink } from "lucide-react";
 import {
   useClientProfile,
   useCreateClientProfile,
   useUpdateClientProfile,
+  useClientCompanyDocuments,
+  useUploadClientDocument,
+  useDeleteClientDocument,
 } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/services/api.service";
@@ -220,15 +223,118 @@ function ProfileFormDialog({
   );
 }
 
+// ── Document Upload Dialog ────────────────────────────────────────────────────
+
+function DocumentUploadDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const upload = useUploadClientDocument();
+  const [docType, setDocType] = useState<"RCCM" | "LEGAL" | "OTHER">("RCCM");
+  const [referenceNumber, setReferenceNumber] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [error, setError] = useState("");
+
+  const handleClose = () => {
+    setError("");
+    setDocType("RCCM");
+    setReferenceNumber("");
+    setFile(null);
+    onOpenChange(false);
+  };
+
+  const handleSubmit = async () => {
+    if (!file) {
+      setError("Veuillez sélectionner un fichier.");
+      return;
+    }
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.append("doc_type", docType);
+      formData.append("file", file);
+      if (referenceNumber) formData.append("reference_number", referenceNumber);
+      await upload.mutateAsync(formData);
+      handleClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Erreur lors de l'upload.");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Ajouter un document</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label>Type de document *</Label>
+            <Select value={docType} onValueChange={(v) => setDocType(v as "RCCM" | "LEGAL" | "OTHER")}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="RCCM">RCCM</SelectItem>
+                <SelectItem value="LEGAL">Document légal</SelectItem>
+                <SelectItem value="OTHER">Autre</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="doc-ref">Numéro de référence</Label>
+            <Input
+              id="doc-ref"
+              value={referenceNumber}
+              onChange={(e) => setReferenceNumber(e.target.value)}
+              placeholder="Ex: RCCM/GN/xxx/2024"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="doc-file">Fichier *</Label>
+            <Input
+              id="doc-file"
+              type="file"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              accept=".pdf,.jpg,.jpeg,.png"
+            />
+          </div>
+
+          {error && <p className="text-sm text-destructive">{error}</p>}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose}>Annuler</Button>
+          <Button onClick={handleSubmit} disabled={upload.isPending} className="gap-2">
+            {upload.isPending && <Loader2 size={16} className="animate-spin" />}
+            Téléverser
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 const ClientProfile = () => {
   const [showForm, setShowForm] = useState(false);
+  const [showDocUpload, setShowDocUpload] = useState(false);
   const { user } = useAuth();
   const { data, isLoading } = useClientProfile();
+  const { data: docsData, isLoading: docsLoading } = useClientCompanyDocuments();
+  const deleteDoc = useDeleteClientDocument();
 
   const profile = data?.client_profile ?? null;
   const hasProfile = !!profile;
+  const isCompany = profile?.client_type === "COMPANY";
+  const documents = docsData?.results ?? [];
 
   const initialForm: FormState | undefined = profile
     ? {
@@ -333,6 +439,74 @@ const ClientProfile = () => {
                   )}
                 </div>
               </Card>
+
+              {/* Company documents — only for COMPANY clients */}
+              {isCompany && (
+                <Card className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                      <FileText size={20} className="text-primary" />
+                      Documents de l'entreprise
+                    </h3>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => setShowDocUpload(true)}
+                    >
+                      <Plus size={16} />
+                      Ajouter
+                    </Button>
+                  </div>
+
+                  {docsLoading ? (
+                    <div className="flex justify-center py-6">
+                      <Loader2 className="animate-spin text-muted-foreground" size={24} />
+                    </div>
+                  ) : documents.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">
+                      Aucun document ajouté.
+                    </p>
+                  ) : (
+                    <div className="divide-y divide-border">
+                      {documents.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="flex items-center justify-between py-3 text-sm"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium">{doc.doc_type_display}</p>
+                            {doc.reference_number && (
+                              <p className="text-muted-foreground text-xs mt-0.5">
+                                Réf: {doc.reference_number}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 ml-4 shrink-0">
+                            {doc.file_url && (
+                              <a
+                                href={doc.file_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:text-primary/80 transition-colors"
+                              >
+                                <ExternalLink size={16} />
+                              </a>
+                            )}
+                            <button
+                              onClick={() => deleteDoc.mutate(doc.id)}
+                              disabled={deleteDoc.isPending}
+                              className="text-destructive hover:text-destructive/80 transition-colors disabled:opacity-50"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Card>
+              )}
             </div>
 
             {/* Sidebar */}
@@ -368,6 +542,13 @@ const ClientProfile = () => {
         isEdit={hasProfile}
         initial={initialForm}
       />
+
+      {isCompany && (
+        <DocumentUploadDialog
+          open={showDocUpload}
+          onOpenChange={setShowDocUpload}
+        />
+      )}
     </DashboardLayout>
   );
 };

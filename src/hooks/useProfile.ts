@@ -8,6 +8,7 @@ import type {
   ApiClientProfile,
   ClientProfileCreateRequest,
   PatchedClientProfileUpdateRequest,
+  ApiClientCompanyDocument,
 } from '@/types';
 
 export function useFreelanceProfile() {
@@ -105,6 +106,36 @@ export function useUpdateClientProfile() {
       apiService.patch<ApiClientProfile>('/users/client/profile/', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-profile'] });
+    },
+  });
+}
+
+export function useClientCompanyDocuments() {
+  return useQuery({
+    queryKey: ['client-company-documents'],
+    queryFn: () =>
+      apiService.get<DjangoPaginatedResponse<ApiClientCompanyDocument>>('/users/client/company/documents/'),
+  });
+}
+
+export function useUploadClientDocument() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (formData: FormData) =>
+      apiService.postFormData<ApiClientCompanyDocument>('/users/client/company/documents/', formData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-company-documents'] });
+    },
+  });
+}
+
+export function useDeleteClientDocument() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      apiService.delete<void>(`/users/client/company/documents/${id}/`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-company-documents'] });
     },
   });
 }
