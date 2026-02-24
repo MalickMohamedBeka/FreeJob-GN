@@ -18,9 +18,10 @@ interface ProjectCard3DProps {
     proposalsCount: number;
   };
   index: number;
+  onApply: () => void;
 }
 
-const ProjectCard3D = memo(({ project, index }: ProjectCard3DProps) => {
+const ProjectCard3D = memo(({ project, index, onApply }: ProjectCard3DProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -87,7 +88,7 @@ const ProjectCard3D = memo(({ project, index }: ProjectCard3DProps) => {
           </p>
         </div>
 
-        <Button size="sm" className="gap-1.5">
+        <Button size="sm" className="gap-1.5" onClick={onApply}>
           Postuler
           <ArrowRight size={14} />
         </Button>

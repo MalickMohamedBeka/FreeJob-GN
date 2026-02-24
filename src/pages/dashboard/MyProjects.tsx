@@ -2,183 +2,87 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import {
   Clock,
   CheckCircle2,
   AlertCircle,
   Loader2,
-  PackageCheck,
-  Coins,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
-import { useContracts, useContractMilestones, useDeliverMilestone } from "@/hooks/useContracts";
-import type { ApiContractList, ApiMilestone } from "@/types";
-
-// ── Milestone status styling ──────────────────────────────────────────────────
-
-const milestoneStatusConfig: Record<string, { label: string; class: string }> = {
-  PENDING: { label: "En attente", class: "bg-muted text-foreground" },
-  FUNDED: { label: "Financé", class: "bg-blue-500 text-white" },
-  DELIVERED: { label: "Livré", class: "bg-orange-500 text-white" },
-  RELEASED: { label: "Payé", class: "bg-primary text-white" },
-  REFUNDED: { label: "Remboursé", class: "bg-secondary text-white" },
-  CANCELLED: { label: "Annulé", class: "bg-destructive text-white" },
-};
-
-// ── Contract Detail Sheet ─────────────────────────────────────────────────────
-
-function ContractDetailSheet({
-  contract,
-  open,
-  onClose,
-}: {
-  contract: ApiContractList | null;
-  open: boolean;
-  onClose: () => void;
-}) {
-  const { data: milestonesData, isLoading } = useContractMilestones(contract?.id ?? "");
-  const deliver = useDeliverMilestone();
-
-  const milestones: ApiMilestone[] = milestonesData?.results ?? [];
-
-  return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-        <SheetHeader className="mb-6">
-          <SheetTitle>{contract?.project.title}</SheetTitle>
-          <p className="text-sm text-muted-foreground">
-            Client: {contract?.client.username}
-          </p>
-        </SheetHeader>
-
-        {/* Contract Summary */}
-        {contract && (
-          <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg mb-6 text-sm">
-            <div>
-              <p className="text-muted-foreground mb-0.5">Montant Total</p>
-              <p className="font-semibold">
-                {parseFloat(contract.total_amount).toLocaleString("fr-FR")} GNF
-              </p>
-            </div>
-            <div>
-              <p className="text-muted-foreground mb-0.5">Plan de financement</p>
-              <p className="font-semibold">{contract.funding_plan_display}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground mb-0.5">Début</p>
-              <p className="font-medium">
-                {new Date(contract.start_at).toLocaleDateString("fr-FR")}
-              </p>
-            </div>
-            <div>
-              <p className="text-muted-foreground mb-0.5">Fin</p>
-              <p className="font-medium">
-                {contract.end_at
-                  ? new Date(contract.end_at).toLocaleDateString("fr-FR")
-                  : "—"}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Milestones */}
-        <h4 className="font-semibold mb-3">Jalons</h4>
-
-        {isLoading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="animate-spin text-muted-foreground" size={24} />
-          </div>
-        ) : milestones.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">
-            Aucun jalon défini pour ce contrat.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {milestones.map((m) => {
-              const mConfig = milestoneStatusConfig[m.status] ?? {
-                label: m.status_display,
-                class: "bg-muted",
-              };
-              return (
-                <div key={m.id} className="p-4 border border-border rounded-lg">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{m.title}</p>
-                      {m.description && (
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                          {m.description}
-                        </p>
-                      )}
-                    </div>
-                    <Badge className={`${mConfig.class} ml-2 shrink-0`}>{mConfig.label}</Badge>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                      <Coins size={14} />
-                      <span>{parseFloat(m.amount).toLocaleString("fr-FR")} GNF</span>
-                    </div>
-                    {m.due_date && (
-                      <span className="text-xs text-muted-foreground">
-                        Échéance: {new Date(m.due_date).toLocaleDateString("fr-FR")}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Deliver action — only when FUNDED */}
-                  {m.status === "FUNDED" && (
-                    <Button
-                      size="sm"
-                      className="mt-3 w-full gap-2"
-                      disabled={deliver.isPending}
-                      onClick={() => deliver.mutate(m.id)}
-                    >
-                      {deliver.isPending ? (
-                        <Loader2 size={14} className="animate-spin" />
-                      ) : (
-                        <PackageCheck size={14} />
-                      )}
-                      Marquer comme livré
-                    </Button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </SheetContent>
-    </Sheet>
-  );
-}
+import { useContracts, useContractSummary } from "@/hooks/useContracts";
+import type { ApiContractList } from "@/types";
 
 // ── Contract status styling ───────────────────────────────────────────────────
 
 const statusConfig: Record<string, { label: string; badgeClass: string }> = {
+  PENDING_PAYMENT: { label: "En attente de paiement", badgeClass: "bg-orange-500 text-white" },
   IN_PROGRESS: { label: "En cours", badgeClass: "bg-secondary text-white" },
   COMPLETED: { label: "Terminé", badgeClass: "bg-primary text-white" },
-  ON_HOLD: { label: "En attente", badgeClass: "bg-yellow-500 text-white" },
+  ON_HOLD: { label: "En pause", badgeClass: "bg-yellow-500 text-white" },
   CANCELLED: { label: "Annulé", badgeClass: "bg-red-500 text-white" },
 };
+
+// ── Contract Summary (lazy-fetched on expand) ─────────────────────────────────
+
+function ContractSummarySection({ contractId }: { contractId: string }) {
+  const { data, isLoading } = useContractSummary(contractId);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 py-3 text-sm text-muted-foreground">
+        <Loader2 size={14} className="animate-spin" />
+        Chargement du résumé…
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  return (
+    <div className="grid grid-cols-2 gap-3 pt-3 text-sm">
+      <div>
+        <p className="text-muted-foreground mb-0.5">Montant payé</p>
+        <p className="font-semibold text-primary">
+          {parseFloat(data.amount_paid).toLocaleString("fr-FR")} GNF
+        </p>
+      </div>
+      <div>
+        <p className="text-muted-foreground mb-0.5">Reste à payer</p>
+        <p className="font-semibold">
+          {parseFloat(data.amount_remaining).toLocaleString("fr-FR")} GNF
+        </p>
+      </div>
+      <div className="col-span-2">
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+            data.is_paid
+              ? "bg-primary/10 text-primary"
+              : "bg-orange-100 text-orange-700"
+          }`}
+        >
+          {data.is_paid ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+          {data.is_paid ? "Paiement complet" : "Paiement en attente"}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 // ── Contract Card ─────────────────────────────────────────────────────────────
 
 function ContractCard({
   contract,
   index,
-  onViewDetails,
 }: {
   contract: ApiContractList;
   index: number;
-  onViewDetails: (c: ApiContractList) => void;
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const config = statusConfig[contract.status] ?? {
     label: contract.status_display,
     badgeClass: "bg-muted text-foreground",
@@ -199,7 +103,7 @@ function ContractCard({
           <Badge className={config.badgeClass}>{config.label}</Badge>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-4 mb-4 p-4 bg-muted/50 rounded-lg">
+        <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg mb-4">
           <div>
             <p className="text-sm text-muted-foreground mb-1">Montant Total</p>
             <p className="font-semibold">
@@ -218,8 +122,20 @@ function ContractCard({
           </div>
         </div>
 
-        <Button size="sm" className="w-full" onClick={() => onViewDetails(contract)}>
-          Voir les jalons
+        {isExpanded && (
+          <div className="border-t border-border pt-3 mb-4">
+            <ContractSummarySection contractId={contract.id} />
+          </div>
+        )}
+
+        <Button
+          size="sm"
+          variant="ghost"
+          className="gap-1.5 text-muted-foreground w-full"
+          onClick={() => setIsExpanded((v) => !v)}
+        >
+          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {isExpanded ? "Masquer le résumé" : "Voir le résumé financier"}
         </Button>
       </Card>
     </motion.div>
@@ -230,14 +146,13 @@ function ContractCard({
 
 const MyProjects = () => {
   const [activeTab, setActiveTab] = useState("active");
-  const [selectedContract, setSelectedContract] = useState<ApiContractList | null>(null);
 
   const { data, isLoading } = useContracts();
   const contracts = data?.results ?? [];
 
   const activeContracts = contracts.filter((c) => c.status === "IN_PROGRESS");
   const completedContracts = contracts.filter((c) => c.status === "COMPLETED");
-  const pendingContracts = contracts.filter((c) => c.status === "ON_HOLD");
+  const pendingContracts = contracts.filter((c) => c.status === "ON_HOLD" || c.status === "PENDING_PAYMENT");
 
   return (
     <DashboardLayout userType="freelancer">
@@ -314,7 +229,6 @@ const MyProjects = () => {
                         key={contract.id}
                         contract={contract}
                         index={i}
-                        onViewDetails={setSelectedContract}
                       />
                     ))
                   )}
@@ -324,12 +238,6 @@ const MyProjects = () => {
           </Tabs>
         )}
       </div>
-
-      <ContractDetailSheet
-        contract={selectedContract}
-        open={selectedContract !== null}
-        onClose={() => setSelectedContract(null)}
-      />
     </DashboardLayout>
   );
 };

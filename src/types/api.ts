@@ -167,7 +167,7 @@ export interface ApiProposalCreateRequest {
 
 // ── Contracts ──
 
-export type ContractStatusEnum = 'IN_PROGRESS' | 'ON_HOLD' | 'COMPLETED' | 'CANCELLED';
+export type ContractStatusEnum = 'PENDING_PAYMENT' | 'IN_PROGRESS' | 'ON_HOLD' | 'COMPLETED' | 'CANCELLED';
 
 export interface ApiContractList {
   id: string;
@@ -325,45 +325,28 @@ export interface PatchedClientProfileUpdateRequest {
 
 export interface ContractSummary {
   total_amount: string;
-  total_funded: string;
-  total_released: string;
-  total_refunded: string;
-  remaining_to_fund: string;
-  remaining_in_escrow: string;
-  milestones_count: number;
-  milestones_by_status: Record<string, number>;
+  status: string;
+  is_paid: boolean;
+  amount_paid: string;
+  amount_remaining: string;
+  next_action: 'PAY_FULL' | 'NONE';
 }
 
-// ── Milestones ──
-
-export type MilestoneStatusEnum =
-  | 'PENDING'
-  | 'FUNDED'
-  | 'DELIVERED'
-  | 'RELEASED'
-  | 'REFUNDED'
-  | 'CANCELLED';
-
-export interface ApiMilestone {
-  id: string;
-  order: number;
-  title: string;
-  description: string;
+export interface DjomyGatewayPaymentRequest {
   amount: string;
-  due_date: string | null;
-  status: MilestoneStatusEnum;
-  status_display: string;
-  funded_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface MilestoneCreateRequest {
-  title: string;
-  amount: string;
+  country_code: string;
+  payer_number: string;
+  return_url: string;
+  cancel_url?: string;
   description?: string;
-  due_date?: string | null;
-  order?: number;
+  allowed_payment_methods?: string[];
+  contract_id?: string;
+}
+
+export interface DjomyGatewayPaymentResponse {
+  transactionId?: string;
+  redirectUrl: string;
+  status: string;
 }
 
 // ── Project Write ──
@@ -429,6 +412,29 @@ export interface ApiFreelanceDocument {
   issued_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// ── Client Company Documents ──
+
+export interface ApiClientCompanyDocument {
+  id: number;
+  doc_type: 'RCCM' | 'LEGAL' | 'OTHER';
+  doc_type_display: string;
+  reference_number: string;
+  file_url: string | null;
+  created_at: string;
+}
+
+export interface ClientCompanyDocumentCreateRequest {
+  doc_type: 'RCCM' | 'LEGAL' | 'OTHER';
+  file: File;
+  reference_number?: string;
+}
+
+// ── Auth ── (additional)
+
+export interface ResendActivationRequest {
+  email: string;
 }
 
 // ── Error ──

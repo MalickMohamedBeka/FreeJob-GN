@@ -49,6 +49,7 @@ import {
 } from "@/hooks/useProjects";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/services/api.service";
+import { useToast } from "@/hooks/use-toast";
 import type { ApiProjectList, ApiProjectCreateRequest, BudgetBandEnum } from "@/types";
 
 const budgetBands: { value: BudgetBandEnum; label: string }[] = [
@@ -73,6 +74,8 @@ interface ProjectFormValues {
   title: string;
   description: string;
   category_id: string;
+  speciality_id: number | null;
+  skill_ids: number[];
   budget_band: BudgetBandEnum | "";
   budget_amount: string;
   deadline: string;
@@ -94,10 +97,25 @@ function ProjectFormDialog({
   const updateProject = useUpdateProject();
   const { data: allProjects } = useProjects();
 
-  // Derive unique categories from published projects (no dedicated categories endpoint)
+  // Derive unique categories, specialities, and skills from published projects
+  // (no dedicated endpoints for these resources)
+  const allResults = allProjects?.results ?? [];
+
   const categories = Array.from(
+    new Map(allResults.map((p) => [p.category.id, p.category])).values()
+  );
+
+  const specialities = Array.from(
     new Map(
-      (allProjects?.results ?? []).map((p) => [p.category.id, p.category])
+      allResults
+        .filter((p) => p.speciality?.id)
+        .map((p) => [p.speciality.id, p.speciality])
+    ).values()
+  );
+
+  const skills = Array.from(
+    new Map(
+      allResults.flatMap((p) => p.skills).map((s) => [s.id, s])
     ).values()
   );
 
@@ -105,6 +123,8 @@ function ProjectFormDialog({
     title: initial?.title ?? "",
     description: initial?.description ?? "",
     category_id: initial?.category.id ?? "",
+    speciality_id: initial?.speciality?.id ?? null,
+    skill_ids: initial?.skills.map((s) => s.id) ?? [],
     budget_band: (initial?.budget_band as BudgetBandEnum) ?? "",
     budget_amount: initial?.budget_amount ?? "",
     deadline: initial?.deadline ?? "",
@@ -116,6 +136,15 @@ function ProjectFormDialog({
   const handleClose = () => {
     setError("");
     onOpenChange(false);
+  };
+
+  const toggleSkill = (id: number) => {
+    setForm((f) => ({
+      ...f,
+      skill_ids: f.skill_ids.includes(id)
+        ? f.skill_ids.filter((s) => s !== id)
+        : [...f.skill_ids, id],
+    }));
   };
 
   const handleSubmit = async () => {
@@ -131,6 +160,8 @@ function ProjectFormDialog({
         category_id: form.category_id,
         budget_band: form.budget_band as BudgetBandEnum,
         budget_amount: form.budget_amount,
+        speciality_id: form.speciality_id,
+        skill_ids: form.skill_ids.length > 0 ? form.skill_ids : undefined,
         deadline: form.deadline || null,
       };
 
@@ -151,7 +182,7 @@ function ProjectFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Modifier le projet" : "Nouveau projet"}</DialogTitle>
         </DialogHeader>
@@ -185,6 +216,57 @@ function ProjectFormDialog({
             </Select>
           </div>
 
+          <div className="space-y-1.5">
+            <Label>Spécialité</Label>
+            <Select
+              value={form.speciality_id ? String(form.speciality_id) : "none"}
+              onValueChange={(v) =>
+                setForm((f) => ({ ...f, speciality_id: v === "none" ? null : Number(v) }))
+              }
+              disabled={specialities.length === 0}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={specialities.length === 0 ? "Aucune spécialité disponible" : "Sélectionner une spécialité"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Aucune</SelectItem>
+                {specialities.map((s) => (
+                  <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {skills.length > 0 && (
+            <div className="space-y-1.5">
+              <Label>Compétences requises</Label>
+              <div className="flex flex-wrap gap-2 p-3 border border-border rounded-md min-h-[44px]">
+                {skills.map((skill) => {
+                  const selected = form.skill_ids.includes(skill.id);
+                  return (
+                    <button
+                      key={skill.id}
+                      type="button"
+                      onClick={() => toggleSkill(skill.id)}
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                        selected
+                          ? "bg-primary text-white border-primary"
+                          : "border-border text-muted-foreground hover:border-primary hover:text-foreground"
+                      }`}
+                    >
+                      {skill.name}
+                    </button>
+                  );
+                })}
+              </div>
+              {form.skill_ids.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {form.skill_ids.length} compétence{form.skill_ids.length > 1 ? "s" : ""} sélectionnée{form.skill_ids.length > 1 ? "s" : ""}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Tranche budgétaire *</Label>
@@ -210,7 +292,7 @@ function ProjectFormDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="proj-deadline">Date limite</Label>
+            <Label htmlFor="proj-deadline">Date limite <span className="text-muted-foreground text-xs">(requise pour soumettre)</span></Label>
             <Input id="proj-deadline" type="date" value={form.deadline} onChange={set("deadline")} />
           </div>
 
@@ -238,6 +320,7 @@ const ClientProjects = () => {
 
   const { data, isLoading } = useMyProjects();
   const { user } = useAuth();
+  const { toast } = useToast();
   const deleteProject = useDeleteProject();
   const submitForReview = useSubmitProjectForReview();
 
@@ -328,7 +411,19 @@ const ClientProjects = () => {
                           size="sm"
                           className="gap-2"
                           disabled={submitForReview.isPending}
-                          onClick={() => submitForReview.mutate(project.id)}
+                          onClick={() =>
+                            submitForReview.mutate(project.id, {
+                              onError: (err) =>
+                                toast({
+                                  title: "Impossible de soumettre",
+                                  description:
+                                    err instanceof ApiError
+                                      ? err.message
+                                      : "Une erreur est survenue.",
+                                  variant: "destructive",
+                                }),
+                            })
+                          }
                         >
                           {submitForReview.isPending ? (
                             <Loader2 size={14} className="animate-spin" />

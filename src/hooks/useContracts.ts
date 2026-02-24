@@ -1,12 +1,12 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiService } from '@/services/api.service';
 import type {
   DjangoPaginatedResponse,
   ApiContractList,
   ApiContractDetail,
   ContractSummary,
-  ApiMilestone,
-  MilestoneCreateRequest,
+  DjomyGatewayPaymentRequest,
+  DjomyGatewayPaymentResponse,
 } from '@/types';
 
 export function useContracts(page = 1) {
@@ -35,47 +35,9 @@ export function useContractSummary(id: string) {
   });
 }
 
-export function useContractMilestones(contractId: string) {
-  return useQuery({
-    queryKey: ['milestones', contractId],
-    queryFn: () =>
-      apiService.get<DjangoPaginatedResponse<ApiMilestone>>(`/contracts/${contractId}/milestones/`),
-    enabled: !!contractId,
-  });
-}
-
-export function useCreateMilestone() {
-  const queryClient = useQueryClient();
+export function useInitiatePayment() {
   return useMutation({
-    mutationFn: ({ contractId, data }: { contractId: string; data: MilestoneCreateRequest }) =>
-      apiService.post<ApiMilestone>(`/contracts/${contractId}/milestones/`, data),
-    onSuccess: (_data, { contractId }) => {
-      queryClient.invalidateQueries({ queryKey: ['milestones', contractId] });
-      queryClient.invalidateQueries({ queryKey: ['contract-summary'] });
-    },
-  });
-}
-
-export function useDeliverMilestone() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) =>
-      apiService.post<ApiMilestone>(`/milestones/${id}/deliver/`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['milestones'] });
-      queryClient.invalidateQueries({ queryKey: ['contract-summary'] });
-    },
-  });
-}
-
-export function useReleaseMilestone() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) =>
-      apiService.post<ApiMilestone>(`/milestones/${id}/release/`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['milestones'] });
-      queryClient.invalidateQueries({ queryKey: ['contract-summary'] });
-    },
+    mutationFn: (data: DjomyGatewayPaymentRequest) =>
+      apiService.post<DjomyGatewayPaymentResponse>('/payments/djomy/gateway/', data),
   });
 }

@@ -33,10 +33,7 @@ export {
   useContracts,
   useContractDetail,
   useContractSummary,
-  useContractMilestones,
-  useCreateMilestone,
-  useDeliverMilestone,
-  useReleaseMilestone,
+  useInitiatePayment,
 } from './useContracts';
 export {
   useFreelanceProfile,
@@ -48,6 +45,10 @@ export {
   useClientProfile,
   useCreateClientProfile,
   useUpdateClientProfile,
+  useClientCompanyDocuments,
+  useUploadClientDocument,
+  useDeleteClientDocument,
 } from './useProfile';
 export { useProfileInit } from './useProfileInit';
 export { useConversation, useMessages, useSendMessage } from './useMessages';
+export { usePublicStats, useRegistrationOptions, useResendActivation } from './useAuth';

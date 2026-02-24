@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRegistrationOptions } from "@/hooks/useAuth";
 import type { RegisterRequest } from "@/types";
 
 const features = [
@@ -16,16 +17,23 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [role, setRole] = useState<"freelancer" | "client">("freelancer");
+  const [providerKind, setProviderKind] = useState<"FREELANCE" | "AGENCY">("FREELANCE");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const { register } = useAuth();
+  const { data: regOptions } = useRegistrationOptions();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+
+  const providerKinds = regOptions?.provider_kinds ?? [
+    { value: "FREELANCE", label: "Freelancer" },
+    { value: "AGENCY", label: "Agence" },
+  ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -48,7 +56,7 @@ const Signup = () => {
         role: role === "client" ? "CLIENT" : "PROVIDER",
       };
       if (role === "freelancer") {
-        payload.provider_kind = "FREELANCE";
+        payload.provider_kind = providerKind;
       }
       await register(payload);
       setSuccess(true);
@@ -128,7 +136,7 @@ const Signup = () => {
                     )}
 
                     {/* Role selector */}
-                    <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-xl mb-6">
+                    <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-xl mb-4">
                       <button
                         type="button"
                         onClick={() => setRole("freelancer")}
@@ -154,6 +162,26 @@ const Signup = () => {
                         Client
                       </button>
                     </div>
+
+                    {/* Provider kind selector — only for freelancer role */}
+                    {role === "freelancer" && providerKinds.length > 1 && (
+                      <div className="grid grid-cols-2 gap-2 p-1 bg-muted/50 rounded-xl mb-4">
+                        {providerKinds.map((kind) => (
+                          <button
+                            key={kind.value}
+                            type="button"
+                            onClick={() => setProviderKind(kind.value as "FREELANCE" | "AGENCY")}
+                            className={`py-2 rounded-lg text-xs font-semibold transition-colors ${
+                              providerKind === kind.value
+                                ? "bg-white text-primary shadow-sm"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            {kind.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                       <div>

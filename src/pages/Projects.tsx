@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Loader2, Rocket } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -7,13 +8,15 @@ import FilterBar3D from "@/components/projects/FilterBar3D";
 import ProjectCard3D from "@/components/projects/ProjectCard3D";
 import { useProjects } from "@/hooks/useProjects";
 import { useDebounce } from "@/hooks";
+import { useAuth } from "@/contexts/AuthContext";
+import { ROUTES } from "@/constants/routes";
 import type { Project } from "@/types";
 import type { ApiProjectList } from "@/types";
 import { Button } from "@/components/ui/button";
 
 const skillFilters = ["Tous", "React", "Node.js", "Python", "Design", "Marketing", "Mobile", "SEO", "Data Science"];
 
-function mapApiProjectToUI(p: ApiProjectList, index: number): Project {
+function mapApiProjectToUI(p: ApiProjectList): Project {
   return {
     id: p.id,
     title: p.title,
@@ -41,11 +44,22 @@ const Projects = () => {
   const [activeFilter, setActiveFilter] = useState("Tous");
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebounce(search, 300);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { data, isLoading } = useProjects({
     search: debouncedSearch || undefined,
     page,
   });
+
+  // Only PROVIDERs can apply. Anyone else is sent to /signup to create a freelancer account.
+  const handleApply = () => {
+    if (user?.role === "PROVIDER") {
+      navigate(ROUTES.DASHBOARD.FIND_PROJECTS);
+    } else {
+      navigate(ROUTES.LOGIN);
+    }
+  };
 
   const results = data?.results ?? [];
 
@@ -87,8 +101,9 @@ const Projects = () => {
                 {filtered.map((project, index) => (
                   <ProjectCard3D
                     key={project.id}
-                    project={mapApiProjectToUI(project, index)}
+                    project={mapApiProjectToUI(project)}
                     index={index}
+                    onApply={handleApply}
                   />
                 ))}
               </div>
