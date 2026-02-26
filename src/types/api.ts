@@ -449,6 +449,72 @@ export interface ResendActivationRequest {
   email: string;
 }
 
+// ── Subscriptions ──
+
+export type TierEnum = 'FREE' | 'PRO' | 'PRO_MAX' | 'AGENCY';
+export type CurrencyEnum = 'GNF' | 'EUR' | 'USD';
+export type SubscriptionPaymentStatusEnum = 'PENDING' | 'SUCCESS' | 'FAILED' | 'REFUNDED';
+
+export interface ApiSubscriptionPlan {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  tier: TierEnum;
+  price: string;
+  currency: CurrencyEnum;
+  duration_months: number;
+  is_annual: boolean;
+  features: Record<string, unknown>;
+  limits: Record<string, unknown>;
+  is_active: boolean;
+  is_featured: boolean;
+}
+
+export interface ApiSubscription {
+  id: number;
+  plan: ApiSubscriptionPlan;
+  status: string;
+  status_display: string;
+  is_active: boolean;
+  start_date: string | null;
+  end_date: string | null;
+  auto_renew: boolean;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiSubscriptionPayment {
+  id: number;
+  subscription: number;
+  amount: string;
+  currency: CurrencyEnum;
+  status: SubscriptionPaymentStatusEnum;
+  status_display: string;
+  paid_at: string;
+  description: string;
+}
+
+export interface ApiSubscriptionUsage {
+  id: number;
+  period_start: string;
+  period_end: string;
+  client_contacts_used: number;
+  last_reset_at: string;
+}
+
+export interface SubscribeRequest {
+  plan_id: number;
+  payer_number: string;
+  country_code: string;
+  return_url: string;
+  cancel_url?: string;
+  allowed_payment_methods?: string[];
+  description?: string;
+}
+
 // ── Error ──
 
 export interface ApiErrorResponse {

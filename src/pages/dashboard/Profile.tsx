@@ -56,6 +56,7 @@ import {
   useUploadDocument,
   useDeleteDocument,
 } from "@/hooks/useProfile";
+import { useSkills, useSpecialities } from "@/hooks/useSkills";
 import type { FreelanceProfilePatchRequest, FreelanceDocTypeEnum } from "@/types";
 import { ApiError } from "@/services/api.service";
 import { toast } from "@/hooks";
@@ -148,6 +149,8 @@ interface EditProfileDialogProps {
     city_or_region: string;
     postal_code: string;
     phone: string;
+    skill_ids: number[];
+    speciality_id: number | null;
   };
 }
 
@@ -155,6 +158,10 @@ function EditProfileDialog({ open, onOpenChange, initialValues }: EditProfileDia
   const [form, setForm] = useState(initialValues);
   const [error, setError] = useState("");
   const update = useUpdateFreelanceProfile();
+  const { data: skillsData } = useSkills();
+  const { data: specialitiesData } = useSpecialities();
+  const allSkills = skillsData?.results ?? [];
+  const allSpecialities = specialitiesData?.results ?? [];
 
   // Reset form when dialog opens with fresh values
   const handleOpenChange = (v: boolean) => {
@@ -166,6 +173,15 @@ function EditProfileDialog({ open, onOpenChange, initialValues }: EditProfileDia
   const set = (field: keyof typeof form, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
+  const toggleSkill = (id: number) => {
+    setForm((prev) => ({
+      ...prev,
+      skill_ids: prev.skill_ids.includes(id)
+        ? prev.skill_ids.filter((s) => s !== id)
+        : [...prev.skill_ids, id],
+    }));
+  };
+
   const handleSave = async () => {
     setError("");
     const payload: FreelanceProfilePatchRequest = {
@@ -175,6 +191,8 @@ function EditProfileDialog({ open, onOpenChange, initialValues }: EditProfileDia
       city_or_region: form.city_or_region || undefined,
       postal_code: form.postal_code || undefined,
       phone: form.phone || undefined,
+      skill_ids: form.skill_ids,
+      speciality_id: form.speciality_id,
       freelance: {
         first_name: form.first_name,
         last_name: form.last_name,
@@ -202,6 +220,7 @@ function EditProfileDialog({ open, onOpenChange, initialValues }: EditProfileDia
             <TabsTrigger value="identity" className="flex-1">Identité</TabsTrigger>
             <TabsTrigger value="professional" className="flex-1">Professionnel</TabsTrigger>
             <TabsTrigger value="location" className="flex-1">Localisation</TabsTrigger>
+            <TabsTrigger value="skills" className="flex-1">Compétences</TabsTrigger>
           </TabsList>
 
           {/* ── Identity ── */}
@@ -307,6 +326,62 @@ function EditProfileDialog({ open, onOpenChange, initialValues }: EditProfileDia
                   placeholder="+224 XXX XXX XXX"
                 />
               </div>
+            </div>
+          </TabsContent>
+
+          {/* ── Skills & Speciality ── */}
+          <TabsContent value="skills" className="space-y-5 mt-4">
+            <div className="space-y-1.5">
+              <Label>Spécialité</Label>
+              <Select
+                value={form.speciality_id ? String(form.speciality_id) : ""}
+                onValueChange={(v) =>
+                  setForm((prev) => ({ ...prev, speciality_id: v ? Number(v) : null }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir une spécialité" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allSpecialities.map((sp) => (
+                    <SelectItem key={sp.id} value={String(sp.id)}>
+                      {sp.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Compétences</Label>
+              {allSkills.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Chargement des compétences…</p>
+              ) : (
+                <div className="flex flex-wrap gap-2 max-h-52 overflow-y-auto p-1">
+                  {allSkills.map((skill) => {
+                    const selected = form.skill_ids.includes(skill.id);
+                    return (
+                      <button
+                        key={skill.id}
+                        type="button"
+                        onClick={() => toggleSkill(skill.id)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                          selected
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background text-muted-foreground border-border hover:border-primary/50"
+                        }`}
+                      >
+                        {skill.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {form.skill_ids.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {form.skill_ids.length} compétence{form.skill_ids.length > 1 ? "s" : ""} sélectionnée{form.skill_ids.length > 1 ? "s" : ""}
+                </p>
+              )}
             </div>
           </TabsContent>
         </Tabs>
@@ -493,6 +568,8 @@ const Profile = () => {
     city_or_region: profile.city_or_region ?? "",
     postal_code: profile.postal_code ?? "",
     phone: profile.phone ?? "",
+    skill_ids: profile.skills?.map((s) => s.id) ?? [],
+    speciality_id: profile.speciality?.id ?? null,
   };
 
   return (
