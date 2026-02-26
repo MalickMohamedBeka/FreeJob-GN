@@ -128,6 +128,7 @@ class ApiService {
   private clearAuth() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('user');
+    window.dispatchEvent(new CustomEvent('session:expired'));
   }
 
   async get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {

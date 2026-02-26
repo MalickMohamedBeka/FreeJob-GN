@@ -34,6 +34,8 @@ export {
   useContractDetail,
   useContractSummary,
   useInitiatePayment,
+  useCheckTransactionStatus,
+  useConfirmOTP,
 } from './useContracts';
 export {
   useFreelanceProfile,

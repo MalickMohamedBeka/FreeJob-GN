@@ -89,6 +89,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, checkProfileStatus]);
 
+  // When apiService clears auth (token refresh failed), sync React state and
+  // redirect to login so the user doesn't appear authenticated without a token.
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setUser(null);
+      setProfileInitialized(null);
+      // Hard redirect — clears all TanStack Query cache and component state
+      window.location.href = '/login';
+    };
+    window.addEventListener('session:expired', handleSessionExpired);
+    return () => window.removeEventListener('session:expired', handleSessionExpired);
+  }, []);
+
   const login = useCallback(async (credentials: LoginRequest) => {
     const res = await apiService.postPublic<LoginResponse>('/users/login/', credentials);
     localStorage.setItem('access_token', res.access);

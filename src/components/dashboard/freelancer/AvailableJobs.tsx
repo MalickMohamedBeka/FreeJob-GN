@@ -77,9 +77,9 @@ const AvailableJobs = () => {
                   </div>
                 </div>
 
-                <Link to={`/projects/${job.id}`}>
+                <Link to={`/dashboard/find-projects`} state={{ search: job.title }}>
                   <Button className="w-full" size="sm">
-                    Voir le projet
+                    Postuler
                   </Button>
                 </Link>
               </motion.div>

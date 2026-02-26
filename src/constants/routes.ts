@@ -44,6 +44,7 @@ export const ROUTES = {
     CONTRACTS: '/client/contracts',
     MESSAGES: '/client/messages',
     PROFILE: '/client/profile',
+    PAYMENT_RETURN: '/client/payment/return',
   },
 } as const;
 

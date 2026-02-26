@@ -53,9 +53,9 @@ import { useToast } from "@/hooks/use-toast";
 import type { ApiProjectList, ApiProjectCreateRequest, BudgetBandEnum } from "@/types";
 
 const budgetBands: { value: BudgetBandEnum; label: string }[] = [
-  { value: "BAND_25_50", label: "25M – 50M GNF" },
-  { value: "BAND_50_100", label: "50M – 100M GNF" },
-  { value: "BAND_100_PLUS", label: "100M GNF et plus" },
+  { value: "BAND_25_50", label: "2.5M – 5M GNF" },
+  { value: "BAND_50_100", label: "5M – 10M GNF" },
+  { value: "BAND_100_PLUS", label: "10M GNF et plus" },
 ];
 
 const statusConfig: Record<string, { label: string; class: string }> = {

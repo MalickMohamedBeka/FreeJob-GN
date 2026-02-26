@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '@/services/api.service';
 import type {
   DjangoPaginatedResponse,
@@ -7,6 +7,8 @@ import type {
   ContractSummary,
   DjomyGatewayPaymentRequest,
   DjomyGatewayPaymentResponse,
+  DjomyPaymentStatus,
+  DjomyConfirmOTPRequest,
 } from '@/types';
 
 export function useContracts(page = 1) {
@@ -39,5 +41,31 @@ export function useInitiatePayment() {
   return useMutation({
     mutationFn: (data: DjomyGatewayPaymentRequest) =>
       apiService.post<DjomyGatewayPaymentResponse>('/payments/djomy/gateway/', data),
+  });
+}
+
+export function useCheckTransactionStatus(transactionId: string, enabled = true) {
+  return useQuery({
+    queryKey: ['transaction-status', transactionId],
+    queryFn: () =>
+      apiService.get<DjomyPaymentStatus>(`/payments/djomy/transactions/${transactionId}/`),
+    enabled: !!transactionId && enabled,
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      if (!status) return 5000;
+      return status === 'SUCCESS' || status === 'FAILED' || status === 'COMPLETED' ? false : 5000;
+    },
+  });
+}
+
+export function useConfirmOTP() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ transactionReference, data }: { transactionReference: string; data: DjomyConfirmOTPRequest }) =>
+      apiService.post<void>(`/payments/djomy/transactions/${transactionReference}/otp/`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['transaction-status'] });
+    },
   });
 }

@@ -32,6 +32,7 @@ const ClientProposals = lazy(() => import("./pages/client/ClientProposals"));
 const ClientContracts = lazy(() => import("./pages/client/ClientContracts"));
 const ClientProfile = lazy(() => import("./pages/client/ClientProfile"));
 const ClientMessages = lazy(() => import("./pages/client/ClientMessages"));
+const PaymentReturn = lazy(() => import("./pages/client/PaymentReturn"));
 const FreelancerDashboard = lazy(() => import("./pages/dashboard/FreelancerDashboard"));
 const FindProjects = lazy(() => import("./pages/dashboard/FindProjects"));
 const MyProjects = lazy(() => import("./pages/dashboard/MyProjects"));
@@ -85,8 +86,8 @@ const App = () => (
               <Route path={ROUTES.HOME} element={<PublicRoute><Index /></PublicRoute>} />
               <Route path={ROUTES.LOGIN} element={<PublicRoute><Login /></PublicRoute>} />
               <Route path={ROUTES.SIGNUP} element={<PublicRoute><Signup /></PublicRoute>} />
-              <Route path={ROUTES.FREELANCER_LOGIN} element={<PublicRoute><FreelancerLogin /></PublicRoute>} />
-              <Route path={ROUTES.CLIENT_LOGIN} element={<PublicRoute><ClientLogin /></PublicRoute>} />
+              <Route path={ROUTES.LOGIN} element={<PublicRoute><FreelancerLogin /></PublicRoute>} />
+              <Route path={ROUTES.LOGIN} element={<PublicRoute><ClientLogin /></PublicRoute>} />
 
               {/* Browsable public pages — accessible regardless of auth state */}
               <Route path={ROUTES.PROJECTS} element={<Projects />} />
@@ -118,6 +119,9 @@ const App = () => (
               } />
               <Route path={ROUTES.CLIENT.PROFILE} element={
                 <ProtectedRoute requiredRole="CLIENT"><ClientProfile /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.CLIENT.PAYMENT_RETURN} element={
+                <ProtectedRoute requiredRole="CLIENT"><PaymentReturn /></ProtectedRoute>
               } />
 
               {/* Freelancer dashboard (protected) */}
