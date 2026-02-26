@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { MapPin, Coins, Briefcase, ArrowLeft, Loader2, AlertCircle } from "lucide-react";
+import { MapPin, Coins, Briefcase, ArrowLeft, Loader2, AlertCircle, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import Navbar from "@/components/layout/Navbar";
@@ -110,8 +110,26 @@ const FreelancerProfile = () => {
                 </Card>
               )}
 
+              {/* Speciality */}
+              {profile.speciality?.name && (
+                <Card className="p-6">
+                  <h2 className="font-semibold text-base mb-3 flex items-center gap-2">
+                    <Tag size={16} className="text-primary" />
+                    Spécialité
+                  </h2>
+                  <Badge variant="secondary" className="text-sm py-1 px-3">
+                    {profile.speciality.name}
+                  </Badge>
+                  {profile.speciality.description && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {profile.speciality.description}
+                    </p>
+                  )}
+                </Card>
+              )}
+
               {/* Skills */}
-              {profile.skills.length > 0 && (
+              {profile.skills?.length > 0 && (
                 <Card className="p-6">
                   <h2 className="font-semibold text-base mb-3">Compétences</h2>
                   <div className="flex flex-wrap gap-2">

@@ -9,6 +9,7 @@ interface FreelancerCard3DProps {
     id: string;
     name: string;
     title: string;
+    avatar?: string;
     skills: string[];
     rating: number;
     reviewsCount: number;
@@ -38,7 +39,7 @@ const FreelancerCard3D = memo(({ freelancer, index }: FreelancerCard3DProps) => 
     >
       {/* Header */}
       <div className="relative bg-primary/5 pt-8 pb-12">
-        <button
+        {/* <button
           onClick={() => setIsLiked(!isLiked)}
           className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white border border-border flex items-center justify-center hover:bg-muted transition-colors"
         >
@@ -46,23 +47,31 @@ const FreelancerCard3D = memo(({ freelancer, index }: FreelancerCard3DProps) => 
             size={14}
             className={isLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"}
           />
-        </button>
+        </button> */}
 
-        {freelancer.available && (
+        {/* {freelancer.available && (
           <div className="absolute top-3 left-3">
             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-success/10 text-success text-xs font-medium border border-success/20">
               <span className="w-1.5 h-1.5 rounded-full bg-success" />
               Disponible
             </span>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Avatar */}
       <div className="flex justify-center -mt-8 mb-3">
-        <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg border-4 border-white shadow-sm">
-          {getInitials(freelancer.name)}
-        </div>
+        {freelancer.avatar ? (
+          <img
+            src={freelancer.avatar}
+            alt={freelancer.name}
+            className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-sm"
+          />
+        ) : (
+          <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg border-4 border-white shadow-sm">
+            {getInitials(freelancer.name)}
+          </div>
+        )}
       </div>
 
       {/* Info */}
