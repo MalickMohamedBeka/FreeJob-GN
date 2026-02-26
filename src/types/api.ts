@@ -344,9 +344,21 @@ export interface DjomyGatewayPaymentRequest {
 }
 
 export interface DjomyGatewayPaymentResponse {
-  transactionId?: string;
-  redirectUrl: string;
+  data: {
+    transactionId?: string;
+    redirectUrl: string;
+    status: string;
+  }
+}
+
+export interface DjomyPaymentStatus {
   status: string;
+  transactionId: string;
+  details?: Record<string, unknown>;
+}
+
+export interface DjomyConfirmOTPRequest {
+  one_time_pin: string;
 }
 
 // ── Project Write ──

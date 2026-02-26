@@ -31,7 +31,6 @@ import { useDebounce } from "@/hooks";
 import { ApiError } from "@/services/api.service";
 import type { ApiProjectList } from "@/types";
 
-const categories = ["Tous", "Développement Web", "Mobile", "Design", "Marketing", "Rédaction"];
 
 // ── Submit Proposal Dialog ────────────────────────────────────────────────────
 
@@ -161,6 +160,19 @@ const FindProjects = () => {
   const [proposalProject, setProposalProject] = useState<ApiProjectList | null>(null);
   const debouncedSearch = useDebounce(searchQuery, 300);
 
+  // Fetch all projects (no filters) once to build the category list
+  const { data: allData } = useProjects();
+  const categories = [
+    "Tous",
+    ...Array.from(
+      new Map(
+        (allData?.results ?? [])
+          .filter((p) => p.category?.name)
+          .map((p) => [p.category.name, p.category.name])
+      ).values()
+    ),
+  ];
+
   const { data, isLoading } = useProjects({
     search: debouncedSearch || undefined,
     category: selectedCategory !== "Tous" ? selectedCategory : undefined,
@@ -208,7 +220,7 @@ const FindProjects = () => {
                   key={category}
                   variant={selectedCategory === category ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setSelectedCategory(category)}
+                  onClick={() => { setSelectedCategory(category); setPage(1); }}
                 >
                   {category}
                 </Button>

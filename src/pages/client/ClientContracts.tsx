@@ -12,12 +12,20 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, Clock, CheckCircle2, Coins, ChevronDown, ChevronUp, CreditCard } from "lucide-react";
+import {
+  Loader2,
+  Clock,
+  CheckCircle2,
+  Coins,
+  ChevronDown,
+  ChevronUp,
+  CreditCard,
+} from "lucide-react";
 import { useContracts, useContractSummary, useInitiatePayment } from "@/hooks/useContracts";
 import { useToast } from "@/hooks/use-toast";
 import type { ApiContractList } from "@/types";
 
-// ── Contract status styling ───────────────────────────────────────────────────
+// ── Status config ─────────────────────────────────────────────────────────────
 
 const statusConfig: Record<string, { label: string; class: string }> = {
   PENDING_PAYMENT: { label: "En attente de paiement", class: "bg-orange-500 text-white" },
@@ -75,6 +83,8 @@ function ContractSummarySection({ contractId }: { contractId: string }) {
 
 // ── Payment Dialog ────────────────────────────────────────────────────────────
 
+const PENDING_PAYMENT_KEY = "pending_payment";
+
 function PaymentDialog({
   contract,
   open,
@@ -90,22 +100,45 @@ function PaymentDialog({
 
   const handlePay = () => {
     if (!phone.trim()) {
-      toast({ title: "Numéro requis", description: "Saisissez votre numéro de téléphone.", variant: "destructive" });
+      toast({
+        title: "Numéro requis",
+        description: "Saisissez votre numéro de téléphone.",
+        variant: "destructive",
+      });
       return;
     }
+    const origin = import.meta.env.VITE_APP_URL || window.location.origin;
     initiate.mutate(
       {
         amount: contract.total_amount,
         country_code: "GN",
         payer_number: phone.trim(),
-        return_url: window.location.href,
-        cancel_url: window.location.href,
+        allowed_payment_methods: ["OM", "MOMO", "SOUTRA_MONEY", "PAYCARD", "CARD"],
+        return_url: `${origin}/client/payment/return`,
+        cancel_url: `${origin}/client/payment/return?status=cancelled`,
         description: `Paiement pour le contrat — ${contract.project.title}`,
         contract_id: contract.id,
       },
       {
         onSuccess: (res) => {
-          window.location.href = res.redirectUrl;
+          alert(JSON.stringify(res))
+          if (res.data.transactionId) {
+            sessionStorage.setItem(
+              PENDING_PAYMENT_KEY,
+              JSON.stringify({ transactionId: res.data.transactionId, contractId: contract.id })
+            );
+          }
+          const redirectUrl = res.data.redirectUrl;
+          alert(JSON.stringify(redirectUrl))
+          if (!redirectUrl) {
+            toast({
+              title: "Erreur de paiement",
+              description: "URL de redirection manquante.",
+              variant: "destructive",
+            });
+            return;
+          }
+          window.location.assign(redirectUrl);
         },
         onError: (err) => {
           toast({
@@ -276,7 +309,6 @@ const ClientContracts = () => {
                       </div>
                     </div>
 
-                    {/* Expandable summary */}
                     {isExpanded && (
                       <div className="border-t border-border pt-3 mb-4">
                         <ContractSummarySection contractId={contract.id} />
@@ -313,7 +345,6 @@ const ClientContracts = () => {
         )}
       </div>
 
-      {/* Payment dialog */}
       {payingContract && (
         <PaymentDialog
           contract={payingContract}
