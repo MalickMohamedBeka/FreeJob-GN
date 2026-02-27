@@ -24,117 +24,161 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close drawer on route change
   useEffect(() => {
     setIsMobileOpen(false);
   }, [location.pathname]);
 
+  // Prevent body scroll when drawer is open
+  useEffect(() => {
+    if (isMobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [isMobileOpen]);
+
   const dashboardPath = user?.role === "CLIENT" ? "/client/dashboard" : "/dashboard";
 
   const handleLogout = async () => {
+    setIsMobileOpen(false);
     await logout();
     navigate("/login");
   };
 
+  const close = () => setIsMobileOpen(false);
+
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
-        isScrolled ? "bg-white border-b border-border shadow-sm" : "bg-white/95"
-      }`}
-    >
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
-        <Link to="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="FreeJobGN" className="h-14 w-auto" />
-        </Link>
+    <>
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
+          isScrolled ? "bg-white border-b border-border shadow-sm" : "bg-white/95"
+        }`}
+      >
+        <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/logo.png" alt="FreeJobGN" className="h-14 w-auto" />
+          </Link>
 
-        {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                location.pathname === link.path ? "text-primary" : "text-foreground/70"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-
-        <div className="hidden md:flex items-center gap-2">
-          {isAuthenticated ? (
-            <>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to={dashboardPath}>Dashboard</Link>
-              </Button>
-              <Button variant="default" size="sm" onClick={handleLogout}>
-                Déconnexion
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/login">Connexion</Link>
-              </Button>
-              <Button variant="cta" size="sm" asChild>
-                <Link to="/signup">S'inscrire</Link>
-              </Button>
-            </>
-          )}
-        </div>
-
-        {/* Mobile Toggle */}
-        <button
-          onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className="md:hidden p-2 text-foreground"
-          aria-label="Menu"
-        >
-          {isMobileOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {isMobileOpen && (
-        <div className="md:hidden bg-white border-t border-border">
-          <div className="container mx-auto px-4 py-4 flex flex-col gap-1">
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                  location.pathname === link.path
-                    ? "text-primary bg-primary/5"
-                    : "text-foreground/70 hover:bg-muted"
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  location.pathname === link.path ? "text-primary" : "text-foreground/70"
                 }`}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="flex flex-col gap-2 pt-3 mt-1 border-t border-border">
+          </div>
+
+          <div className="hidden md:flex items-center gap-2">
+            {isAuthenticated ? (
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to={dashboardPath}>Dashboard</Link>
+                </Button>
+                <Button variant="default" size="sm" onClick={handleLogout}>
+                  Déconnexion
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/login">Connexion</Link>
+                </Button>
+                <Button variant="cta" size="sm" asChild>
+                  <Link to="/signup">S'inscrire</Link>
+                </Button>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Toggle */}
+          <button
+            onClick={() => setIsMobileOpen(true)}
+            className="md:hidden p-2 text-foreground hover:bg-muted rounded-lg transition-colors"
+            aria-label="Ouvrir le menu"
+          >
+            <Menu size={22} />
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile Drawer */}
+      {isMobileOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/40 z-50 md:hidden"
+            onClick={close}
+            aria-hidden="true"
+          />
+
+          {/* Drawer panel */}
+          <div className="fixed inset-y-0 right-0 w-72 bg-white z-50 md:hidden shadow-xl flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 h-16 border-b border-border flex-shrink-0">
+              <Link to="/" onClick={close} className="flex items-center">
+                <img src="/logo.png" alt="FreeJobGN" className="h-10 w-auto" />
+              </Link>
+              <button
+                onClick={close}
+                className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Fermer le menu"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Nav links */}
+            <nav className="flex-1 px-4 py-6 flex flex-col gap-1 overflow-y-auto">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={close}
+                  className={`py-3 px-4 rounded-xl text-sm font-medium transition-colors ${
+                    location.pathname === link.path
+                      ? "text-primary bg-primary/10 font-semibold"
+                      : "text-foreground/70 hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+
+            {/* Auth actions */}
+            <div className="px-4 py-5 border-t border-border flex flex-col gap-2 flex-shrink-0">
               {isAuthenticated ? (
                 <>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to={dashboardPath}>Dashboard</Link>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link to={dashboardPath} onClick={close}>Dashboard</Link>
                   </Button>
-                  <Button variant="default" size="sm" onClick={handleLogout}>
+                  <Button variant="default" className="w-full" onClick={handleLogout}>
                     Déconnexion
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to="/login">Connexion</Link>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link to="/login" onClick={close}>Connexion</Link>
                   </Button>
-                  <Button variant="cta" size="sm" asChild>
-                    <Link to="/signup">S'inscrire</Link>
+                  <Button variant="cta" className="w-full" asChild>
+                    <Link to="/signup" onClick={close}>S'inscrire</Link>
                   </Button>
                 </>
               )}
             </div>
           </div>
-        </div>
+        </>
       )}
-    </nav>
+    </>
   );
 };
 

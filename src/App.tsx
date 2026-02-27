@@ -73,12 +73,12 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <NormalizeSlashes />
-        <AuthProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <NormalizeSlashes />
           <MotionConfig reducedMotion="user">
           <Suspense fallback={<PageLoader />}>
             <Routes>
@@ -154,9 +154,9 @@ const App = () => (
             </Routes>
           </Suspense>
           </MotionConfig>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
