@@ -9,6 +9,15 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = ({ children, userType }: DashboardLayoutProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopOpen, setDesktopOpen] = useState(true);
+
+  const handleMenuToggle = () => {
+    if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+      setDesktopOpen((v) => !v);
+    } else {
+      setMobileOpen(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -16,14 +25,14 @@ const DashboardLayout = ({ children, userType }: DashboardLayoutProps) => {
         userType={userType}
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
+        desktopOpen={desktopOpen}
       />
 
-      <div className="lg:pl-64">
+      <div className={`transition-[padding] duration-300 ${desktopOpen ? "lg:pl-64" : ""}`}>
         <DashboardHeader
           userType={userType}
-          onOpenMobile={() => setMobileOpen(true)}
+          onMenuToggle={handleMenuToggle}
         />
-
         <main className="p-6 lg:p-8">
           {children}
         </main>

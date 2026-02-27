@@ -21,26 +21,27 @@ interface DashboardSidebarProps {
   userType: "freelancer" | "client";
   mobileOpen: boolean;
   onCloseMobile: () => void;
+  desktopOpen: boolean;
 }
 
 const freelancerMenuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: Search, label: "Trouver des Projets", path: "/dashboard/find-projects" },
-  { icon: Briefcase, label: "Mes Projets", path: "/dashboard/projects" },
-  { icon: FileText, label: "Propositions", path: "/dashboard/proposals" },
-  { icon: Coins, label: "Revenus", path: "/dashboard/earnings" },
-  { icon: MessageSquare, label: "Messages", path: "/dashboard/messages" },
-  { icon: User, label: "Mon Profil", path: "/dashboard/profile" },
-  { icon: Settings, label: "Paramètres", path: "/dashboard/settings" },
+  { icon: LayoutDashboard, label: "Dashboard",          path: "/dashboard" },
+  { icon: Search,          label: "Trouver des Projets", path: "/dashboard/find-projects" },
+  { icon: Briefcase,       label: "Mes Projets",         path: "/dashboard/projects" },
+  { icon: FileText,        label: "Propositions",        path: "/dashboard/proposals" },
+  { icon: Coins,           label: "Revenus",             path: "/dashboard/earnings" },
+  { icon: MessageSquare,   label: "Messages",            path: "/dashboard/messages" },
+  { icon: User,            label: "Mon Profil",          path: "/dashboard/profile" },
+  { icon: Settings,        label: "Paramètres",          path: "/dashboard/settings" },
 ];
 
 const clientMenuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/client/dashboard" },
-  { icon: Briefcase, label: "Mes Projets", path: "/client/projects" },
-  { icon: FileText, label: "Propositions", path: "/client/proposals" },
-  { icon: FileCheck, label: "Contrats", path: "/client/contracts" },
-  { icon: MessageSquare, label: "Messages", path: "/client/messages" },
-  { icon: User, label: "Mon Profil", path: "/client/profile" },
+  { icon: LayoutDashboard, label: "Dashboard",    path: "/client/dashboard" },
+  { icon: Briefcase,       label: "Mes Projets",  path: "/client/projects" },
+  { icon: FileText,        label: "Propositions", path: "/client/proposals" },
+  { icon: FileCheck,       label: "Contrats",     path: "/client/contracts" },
+  { icon: MessageSquare,   label: "Messages",     path: "/client/messages" },
+  { icon: User,            label: "Mon Profil",   path: "/client/profile" },
 ];
 
 // ── Avatar helpers ─────────────────────────────────────────────────────────────
@@ -53,16 +54,10 @@ function AvatarDisplay({ src, username }: { src?: string | null; username: strin
     .join("") || "?";
 
   if (src) {
-    return (
-      <img
-        src={src}
-        alt={username}
-        className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-      />
-    );
+    return <img src={src} alt={username} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />;
   }
   return (
-    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+    <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
       <span className="text-white text-sm font-bold">{initials}</span>
     </div>
   );
@@ -83,9 +78,13 @@ function ClientAvatar({ username }: { username: string }) {
 function SidebarContent({
   userType,
   onItemClick,
+  showClose,
+  onClose,
 }: {
   userType: "freelancer" | "client";
   onItemClick?: () => void;
+  showClose?: boolean;
+  onClose?: () => void;
 }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -101,41 +100,50 @@ function SidebarContent({
   };
 
   return (
-    <div className="flex flex-col flex-grow bg-white overflow-y-auto h-full">
+    <div className="flex flex-col h-full bg-white overflow-y-auto">
       {/* Logo */}
-      <div className="flex items-center justify-center h-16 px-4 border-b border-border flex-shrink-0">
-        <Link to="/" className="flex items-center gap-3" onClick={onItemClick}>
-          <img src="/logo.png" alt="FreeJobGN" className="h-10 w-auto" />
-          <span className="font-bold text-xl">FreeJobGN</span>
+      <div className="flex items-center justify-between h-16 px-4 border-b border-border flex-shrink-0">
+        <Link to="/" className="flex items-center gap-2.5" onClick={onItemClick}>
+          <img src="/logo.png" alt="FreeJobGN" className="h-9 w-auto" />
+          <span className="font-bold text-lg">FreeJobGN</span>
         </Link>
+        {showClose && (
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            aria-label="Fermer"
+          >
+            <X size={17} />
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 px-3 py-4 space-y-0.5">
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
           return (
             <Link key={item.path} to={item.path} onClick={onItemClick}>
               <motion.div
-                whileHover={{ x: 4 }}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+                whileHover={{ x: 3 }}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-sm ${
                   isActive
-                    ? "bg-primary text-white"
+                    ? "bg-primary text-white font-medium"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
-                <Icon size={20} />
-                <span className="font-medium">{item.label}</span>
+                <Icon size={18} className="flex-shrink-0" />
+                <span>{item.label}</span>
               </motion.div>
             </Link>
           );
         })}
       </nav>
 
-      {/* User Section */}
-      <div className="p-4 border-t border-border flex-shrink-0">
-        <div className="flex items-center gap-3 mb-3">
+      {/* User section */}
+      <div className="p-3 border-t border-border flex-shrink-0">
+        <div className="flex items-center gap-2.5 px-2 py-2 mb-1">
           {userType === "freelancer" ? (
             <FreelancerAvatar username={username} />
           ) : (
@@ -149,12 +157,12 @@ function SidebarContent({
           </div>
         </div>
         <motion.button
-          whileHover={{ x: 4 }}
+          whileHover={{ x: 3 }}
           onClick={handleLogout}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground w-full px-3 py-2 rounded-lg hover:bg-muted transition-colors"
+          className="flex items-center gap-2.5 text-muted-foreground hover:text-foreground w-full px-3 py-2 rounded-xl hover:bg-muted transition-colors text-sm"
         >
-          <LogOut size={18} />
-          <span className="text-sm font-medium">Déconnexion</span>
+          <LogOut size={17} />
+          <span>Déconnexion</span>
         </motion.button>
       </div>
     </div>
@@ -163,37 +171,33 @@ function SidebarContent({
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
-const DashboardSidebar = ({ userType, mobileOpen, onCloseMobile }: DashboardSidebarProps) => {
+const DashboardSidebar = ({ userType, mobileOpen, onCloseMobile, desktopOpen }: DashboardSidebarProps) => {
   return (
     <>
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col border-r border-border">
+      {/* Desktop Sidebar — slides in/out with CSS transform */}
+      <div
+        className={`fixed inset-y-0 left-0 w-64 border-r border-border z-30 transition-transform duration-300 hidden lg:block ${
+          desktopOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <SidebarContent userType={userType} />
       </div>
 
       {/* Mobile Drawer */}
       {mobileOpen && (
         <>
-          {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/40 z-40 lg:hidden"
             onClick={onCloseMobile}
             aria-hidden="true"
           />
-
-          {/* Drawer panel */}
-          <div className="fixed inset-y-0 left-0 w-72 z-50 lg:hidden shadow-xl flex flex-col">
-            {/* Close button inside drawer header area */}
-            <div className="absolute top-4 right-4 z-10">
-              <button
-                onClick={onCloseMobile}
-                className="p-1.5 rounded-lg bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Fermer le menu"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <SidebarContent userType={userType} onItemClick={onCloseMobile} />
+          <div className="fixed inset-y-0 left-0 w-72 z-50 lg:hidden shadow-xl">
+            <SidebarContent
+              userType={userType}
+              onItemClick={onCloseMobile}
+              showClose
+              onClose={onCloseMobile}
+            />
           </div>
         </>
       )}
