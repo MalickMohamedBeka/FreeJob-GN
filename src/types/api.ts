@@ -515,6 +515,13 @@ export interface SubscribeRequest {
   description?: string;
 }
 
+export interface SubscribeResponse {
+  transaction_id?: string;
+  redirect_url: string;
+  status: string;
+  details?: Record<string, unknown>;
+}
+
 // ── Error ──
 
 export interface ApiErrorResponse {

@@ -7,6 +7,7 @@ import type {
   ApiSubscriptionPayment,
   ApiSubscriptionUsage,
   SubscribeRequest,
+  SubscribeResponse,
 } from '@/types';
 
 export function useSubscriptionPlans() {
@@ -40,15 +41,9 @@ export function useSubscriptionPayments() {
 }
 
 export function useSubscribe() {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: SubscribeRequest) =>
-      apiService.post<ApiSubscription>('/subscriptions/subscribe/', data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-subscription'] });
-      queryClient.invalidateQueries({ queryKey: ['subscription-payments'] });
-      queryClient.invalidateQueries({ queryKey: ['subscription-usage'] });
-    },
+      apiService.post<SubscribeResponse>('/subscriptions/subscribe/', data),
   });
 }
 
@@ -56,8 +51,10 @@ export function useCancelSubscription() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => apiService.post<ApiSubscription>('/subscriptions/cancel/'),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-subscription'] });
+    onSuccess: (updated) => {
+      // Write the returned subscription directly into the cache so the UI
+      // reflects the cancellation instantly without waiting for a refetch.
+      queryClient.setQueryData(['my-subscription'], updated);
     },
   });
 }

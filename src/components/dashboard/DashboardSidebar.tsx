@@ -29,7 +29,7 @@ const freelancerMenuItems = [
   { icon: Search,          label: "Trouver des Projets", path: "/dashboard/find-projects" },
   { icon: Briefcase,       label: "Mes Projets",         path: "/dashboard/projects" },
   { icon: FileText,        label: "Propositions",        path: "/dashboard/proposals" },
-  { icon: Coins,           label: "Revenus",             path: "/dashboard/earnings" },
+  { icon: Coins,           label: "Abonnement",           path: "/dashboard/earnings" },
   { icon: MessageSquare,   label: "Messages",            path: "/dashboard/messages" },
   { icon: User,            label: "Mon Profil",          path: "/dashboard/profile" },
   { icon: Settings,        label: "Paramètres",          path: "/dashboard/settings" },
