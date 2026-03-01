@@ -61,6 +61,12 @@ export { usePublicStats, useRegistrationOptions, useResendActivation } from './u
 export { useSubscriptionPlans, useMySubscription, useSubscriptionUsage, useSubscriptionPayments, useSubscribe, useCancelSubscription } from './useSubscriptions';
 export { useSkills, useSpecialities, useSkillsBySpeciality } from './useSkills';
 export {
+  useWallet,
+  useWalletTransactions,
+  useWithdrawals,
+  useCreateWithdrawal,
+} from './useWallet';
+export {
   useNotifications,
   useUnreadCount,
   useMarkNotificationRead,

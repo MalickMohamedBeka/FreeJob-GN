@@ -12,6 +12,7 @@ import {
   Search,
   FileCheck,
   Bell,
+  Wallet,
   X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,11 +28,12 @@ interface DashboardSidebarProps {
 }
 
 const freelancerMenuItems = [
-  { icon: LayoutDashboard, label: "Dashboard",          path: "/dashboard" },
+  { icon: LayoutDashboard, label: "Dashboard",           path: "/dashboard" },
   { icon: Search,          label: "Trouver des Projets", path: "/dashboard/find-projects" },
   { icon: Briefcase,       label: "Mes Projets",         path: "/dashboard/projects" },
   { icon: FileText,        label: "Propositions",        path: "/dashboard/proposals" },
-  { icon: Coins,           label: "Abonnement",           path: "/dashboard/earnings" },
+  { icon: Coins,           label: "Abonnement",          path: "/dashboard/earnings" },
+  { icon: Wallet,          label: "Portefeuille",        path: "/dashboard/wallet" },
   { icon: MessageSquare,   label: "Messages",            path: "/dashboard/messages" },
   { icon: Bell,            label: "Notifications",       path: "/dashboard/notifications", badge: true },
   { icon: User,            label: "Mon Profil",          path: "/dashboard/profile" },
@@ -39,13 +41,14 @@ const freelancerMenuItems = [
 ];
 
 const clientMenuItems = [
-  { icon: LayoutDashboard, label: "Dashboard",       path: "/client/dashboard" },
-  { icon: Briefcase,       label: "Mes Projets",     path: "/client/projects" },
-  { icon: FileText,        label: "Propositions",    path: "/client/proposals" },
-  { icon: FileCheck,       label: "Contrats",        path: "/client/contracts" },
-  { icon: MessageSquare,   label: "Messages",        path: "/client/messages" },
-  { icon: Bell,            label: "Notifications",   path: "/client/notifications", badge: true },
-  { icon: User,            label: "Mon Profil",      path: "/client/profile" },
+  { icon: LayoutDashboard, label: "Dashboard",     path: "/client/dashboard" },
+  { icon: Briefcase,       label: "Mes Projets",   path: "/client/projects" },
+  { icon: FileText,        label: "Propositions",  path: "/client/proposals" },
+  { icon: FileCheck,       label: "Contrats",      path: "/client/contracts" },
+  { icon: Wallet,          label: "Portefeuille",  path: "/client/wallet" },
+  { icon: MessageSquare,   label: "Messages",      path: "/client/messages" },
+  { icon: Bell,            label: "Notifications", path: "/client/notifications", badge: true },
+  { icon: User,            label: "Mon Profil",    path: "/client/profile" },
 ];
 
 // ── Avatar helpers ─────────────────────────────────────────────────────────────
