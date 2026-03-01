@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -55,9 +55,10 @@ import {
   useFreelanceDocuments,
   useUploadDocument,
   useDeleteDocument,
+  usePatchFreelanceDocument,
 } from "@/hooks/useProfile";
-import { useSkills, useSpecialities } from "@/hooks/useSkills";
-import type { FreelanceProfilePatchRequest, FreelanceDocTypeEnum } from "@/types";
+import { useSkills, useSpecialities, useSkillsBySpeciality } from "@/hooks/useSkills";
+import type { FreelanceProfilePatchRequest, FreelanceDocTypeEnum, ApiFreelanceDocument } from "@/types";
 import { ApiError } from "@/services/api.service";
 import { toast } from "@/hooks";
 
@@ -160,8 +161,12 @@ function EditProfileDialog({ open, onOpenChange, initialValues }: EditProfileDia
   const update = useUpdateFreelanceProfile();
   const { data: skillsData } = useSkills();
   const { data: specialitiesData } = useSpecialities();
+  const { data: specialityData } = useSkillsBySpeciality(form.speciality_id);
   const allSkills = skillsData?.results ?? [];
   const allSpecialities = specialitiesData?.results ?? [];
+  const availableSkills = form.speciality_id
+    ? (specialityData?.skills ?? [])
+    : allSkills;
 
   // Reset form when dialog opens with fresh values
   const handleOpenChange = (v: boolean) => {
@@ -336,7 +341,7 @@ function EditProfileDialog({ open, onOpenChange, initialValues }: EditProfileDia
               <Select
                 value={form.speciality_id ? String(form.speciality_id) : ""}
                 onValueChange={(v) =>
-                  setForm((prev) => ({ ...prev, speciality_id: v ? Number(v) : null }))
+                  setForm((prev) => ({ ...prev, speciality_id: v ? Number(v) : null, skill_ids: [] }))
                 }
               >
                 <SelectTrigger>
@@ -354,11 +359,13 @@ function EditProfileDialog({ open, onOpenChange, initialValues }: EditProfileDia
 
             <div className="space-y-2">
               <Label>Compétences</Label>
-              {allSkills.length === 0 ? (
+              {!form.speciality_id ? (
+                <p className="text-sm text-muted-foreground">Sélectionnez une spécialité pour voir les compétences disponibles.</p>
+              ) : availableSkills.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Chargement des compétences…</p>
               ) : (
                 <div className="flex flex-wrap gap-2 max-h-52 overflow-y-auto p-1">
-                  {allSkills.map((skill) => {
+                  {availableSkills.map((skill) => {
                     const selected = form.skill_ids.includes(skill.id);
                     return (
                       <button
@@ -517,6 +524,140 @@ function UploadDocumentDialog({
   );
 }
 
+// ── Edit Document Dialog ────────────────────────────────────────────────────────
+
+function EditFreelanceDocumentDialog({
+  open,
+  onOpenChange,
+  doc,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  doc: ApiFreelanceDocument | null;
+}) {
+  const [docType, setDocType] = useState<FreelanceDocTypeEnum | "">("");
+  const [title, setTitle] = useState("");
+  const [referenceNumber, setReferenceNumber] = useState("");
+  const [issuedAt, setIssuedAt] = useState("");
+  const [newFile, setNewFile] = useState<File | null>(null);
+  const [error, setError] = useState("");
+  const patch = usePatchFreelanceDocument();
+
+  useEffect(() => {
+    if (doc) {
+      setDocType(doc.doc_type);
+      setTitle(doc.title ?? "");
+      setReferenceNumber(doc.reference_number ?? "");
+      setIssuedAt(doc.issued_at ?? "");
+      setNewFile(null);
+      setError("");
+    }
+  }, [doc]);
+
+  const handleOpenChange = (v: boolean) => {
+    if (!v) setError("");
+    onOpenChange(v);
+  };
+
+  const handleSave = async () => {
+    if (!doc || !docType) {
+      setError("Le type de document est obligatoire.");
+      return;
+    }
+    setError("");
+    try {
+      await patch.mutateAsync({
+        id: doc.id,
+        data: {
+          doc_type: docType as FreelanceDocTypeEnum,
+          title: title || undefined,
+          reference_number: referenceNumber || undefined,
+          issued_at: issuedAt || null,
+          file: newFile ?? undefined,
+        },
+      });
+      handleOpenChange(false);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Erreur lors de la mise à jour.");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Modifier le document</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div className="space-y-1.5">
+            <Label>Type de document *</Label>
+            <Select value={docType} onValueChange={(v) => setDocType(v as FreelanceDocTypeEnum)}>
+              <SelectTrigger><SelectValue placeholder="Sélectionner un type" /></SelectTrigger>
+              <SelectContent>
+                {DOC_TYPES.map(([value, label]) => (
+                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-doc-title">
+              Titre <span className="text-muted-foreground text-xs">(optionnel)</span>
+            </Label>
+            <Input
+              id="edit-doc-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={120}
+              placeholder="Ex: CV 2024"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-doc-ref">
+              Numéro de référence <span className="text-muted-foreground text-xs">(optionnel)</span>
+            </Label>
+            <Input
+              id="edit-doc-ref"
+              value={referenceNumber}
+              onChange={(e) => setReferenceNumber(e.target.value)}
+              maxLength={60}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-doc-issued">
+              Date d'émission <span className="text-muted-foreground text-xs">(optionnel)</span>
+            </Label>
+            <Input
+              id="edit-doc-issued"
+              type="date"
+              value={issuedAt}
+              onChange={(e) => setIssuedAt(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>
+              Remplacer le fichier <span className="text-muted-foreground text-xs">(optionnel)</span>
+            </Label>
+            <label className="flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background cursor-pointer hover:bg-muted/50 transition-colors text-sm text-muted-foreground">
+              <Upload size={16} className="flex-shrink-0" />
+              <span className="truncate">{newFile ? newFile.name : "Garder le fichier actuel"}</span>
+              <input type="file" className="hidden" onChange={(e) => setNewFile(e.target.files?.[0] ?? null)} />
+            </label>
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+        </div>
+        <DialogFooter className="mt-4">
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>Annuler</Button>
+          <Button onClick={handleSave} disabled={patch.isPending}>
+            {patch.isPending && <Loader2 size={16} className="animate-spin mr-2" />}
+            Enregistrer
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
 const Profile = () => {
@@ -528,6 +669,7 @@ const Profile = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [uploadDocOpen, setUploadDocOpen] = useState(false);
   const [deleteDocId, setDeleteDocId] = useState<number | null>(null);
+  const [editDocId, setEditDocId] = useState<number | null>(null);
 
   // ── Loading state ──
   if (isLoading) {
@@ -751,6 +893,14 @@ const Profile = () => {
                         </a>
                         <button
                           type="button"
+                          onClick={() => setEditDocId(doc.id)}
+                          className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                          title="Modifier"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => setDeleteDocId(doc.id)}
                           className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
                           title="Supprimer"
@@ -856,6 +1006,12 @@ const Profile = () => {
       <UploadDocumentDialog
         open={uploadDocOpen}
         onOpenChange={setUploadDocOpen}
+      />
+
+      <EditFreelanceDocumentDialog
+        open={editDocId !== null}
+        onOpenChange={(v) => !v && setEditDocId(null)}
+        doc={documents.find((d) => d.id === editDocId) ?? null}
       />
 
       <AlertDialog open={deleteDocId !== null} onOpenChange={(v) => !v && setDeleteDocId(null)}>

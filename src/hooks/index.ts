@@ -44,15 +44,19 @@ export {
   useFreelanceDocuments,
   useUploadDocument,
   useDeleteDocument,
+  useFreelanceDocument,
+  usePatchFreelanceDocument,
   useClientProfile,
   useCreateClientProfile,
   useUpdateClientProfile,
   useClientCompanyDocuments,
   useUploadClientDocument,
   useDeleteClientDocument,
+  useClientDocument,
+  usePatchClientDocument,
 } from './useProfile';
 export { useProfileInit } from './useProfileInit';
 export { useConversation, useMessages, useSendMessage } from './useMessages';
 export { usePublicStats, useRegistrationOptions, useResendActivation } from './useAuth';
 export { useSubscriptionPlans, useMySubscription, useSubscriptionUsage, useSubscriptionPayments, useSubscribe, useCancelSubscription } from './useSubscriptions';
-export { useSkills, useSpecialities } from './useSkills';
+export { useSkills, useSpecialities, useSkillsBySpeciality } from './useSkills';

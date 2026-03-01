@@ -17,3 +17,12 @@ export function useSpecialities() {
     staleTime: Infinity,
   });
 }
+
+export function useSkillsBySpeciality(specialityId: number | null) {
+  return useQuery({
+    queryKey: ['speciality', specialityId, 'skills'],
+    queryFn: () => apiService.getPublic<ApiSpeciality>(`/users/specialities/${specialityId}/`),
+    enabled: specialityId !== null,
+    staleTime: Infinity,
+  });
+}

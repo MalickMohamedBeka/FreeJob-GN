@@ -79,6 +79,7 @@ export interface ApiSpeciality {
   id: number;
   name: string;
   description?: string;
+  skills?: ApiSkill[];
 }
 
 export interface ApiCategory {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,10 +26,11 @@ import {
   useClientCompanyDocuments,
   useUploadClientDocument,
   useDeleteClientDocument,
+  usePatchClientDocument,
 } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/services/api.service";
-import type { ClientProfileCreateRequest, PatchedClientProfileUpdateRequest } from "@/types";
+import type { ClientProfileCreateRequest, PatchedClientProfileUpdateRequest, ApiClientCompanyDocument } from "@/types";
 
 // ── Profile Form Dialog ───────────────────────────────────────────────────────
 
@@ -321,11 +322,94 @@ function DocumentUploadDialog({
   );
 }
 
+// ── Edit Document Dialog ──────────────────────────────────────────────────────
+
+function EditClientDocumentDialog({
+  open,
+  onOpenChange,
+  doc,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  doc: ApiClientCompanyDocument | null;
+}) {
+  const [docType, setDocType] = useState<"RCCM" | "LEGAL" | "OTHER">("RCCM");
+  const [referenceNumber, setReferenceNumber] = useState("");
+  const [error, setError] = useState("");
+  const patch = usePatchClientDocument();
+
+  useEffect(() => {
+    if (doc) {
+      setDocType(doc.doc_type as "RCCM" | "LEGAL" | "OTHER");
+      setReferenceNumber(doc.reference_number ?? "");
+      setError("");
+    }
+  }, [doc]);
+
+  const handleClose = () => { setError(""); onOpenChange(false); };
+
+  const handleSave = async () => {
+    if (!doc) return;
+    setError("");
+    try {
+      await patch.mutateAsync({
+        id: doc.id,
+        data: { doc_type: docType, reference_number: referenceNumber || undefined },
+      });
+      handleClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Erreur lors de la mise à jour.");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Modifier le document</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label>Type de document *</Label>
+            <Select value={docType} onValueChange={(v) => setDocType(v as "RCCM" | "LEGAL" | "OTHER")}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="RCCM">RCCM</SelectItem>
+                <SelectItem value="LEGAL">Document légal</SelectItem>
+                <SelectItem value="OTHER">Autre</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-client-ref">Numéro de référence</Label>
+            <Input
+              id="edit-client-ref"
+              value={referenceNumber}
+              onChange={(e) => setReferenceNumber(e.target.value)}
+              maxLength={60}
+              placeholder="Ex: RCCM/GN/xxx/2024"
+            />
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose}>Annuler</Button>
+          <Button onClick={handleSave} disabled={patch.isPending} className="gap-2">
+            {patch.isPending && <Loader2 size={16} className="animate-spin" />}
+            Enregistrer
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 const ClientProfile = () => {
   const [showForm, setShowForm] = useState(false);
   const [showDocUpload, setShowDocUpload] = useState(false);
+  const [editDocId, setEditDocId] = useState<number | null>(null);
   const { user } = useAuth();
   const { data, isLoading } = useClientProfile();
   const { data: docsData, isLoading: docsLoading } = useClientCompanyDocuments();
@@ -494,6 +578,13 @@ const ClientProfile = () => {
                               </a>
                             )}
                             <button
+                              onClick={() => setEditDocId(doc.id)}
+                              className="text-muted-foreground hover:text-foreground transition-colors"
+                              title="Modifier"
+                            >
+                              <Pencil size={16} />
+                            </button>
+                            <button
                               onClick={() => deleteDoc.mutate(doc.id)}
                               disabled={deleteDoc.isPending}
                               className="text-destructive hover:text-destructive/80 transition-colors disabled:opacity-50"
@@ -547,6 +638,14 @@ const ClientProfile = () => {
         <DocumentUploadDialog
           open={showDocUpload}
           onOpenChange={setShowDocUpload}
+        />
+      )}
+
+      {isCompany && (
+        <EditClientDocumentDialog
+          open={editDocId !== null}
+          onOpenChange={(v) => !v && setEditDocId(null)}
+          doc={documents.find((d) => d.id === editDocId) ?? null}
         />
       )}
     </DashboardLayout>

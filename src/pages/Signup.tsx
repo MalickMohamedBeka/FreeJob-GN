@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff, Mail, Lock, User, Briefcase, ArrowRight, Shield, CheckCircle2, Sparkles, Building2, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Briefcase, ArrowRight, Shield, CheckCircle2, Sparkles, Building2, Loader2, type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -16,7 +16,7 @@ const features = [
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [role, setRole] = useState<"freelancer" | "client">("freelancer");
+  const [role, setRole] = useState("PROVIDER");
   const [providerKind, setProviderKind] = useState<"FREELANCE" | "AGENCY">("FREELANCE");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -30,10 +30,20 @@ const Signup = () => {
     confirmPassword: "",
   });
 
+  const roles = regOptions?.roles ?? [
+    { value: "PROVIDER", label: "Freelancer" },
+    { value: "CLIENT", label: "Client" },
+  ];
   const providerKinds = regOptions?.provider_kinds ?? [
     { value: "FREELANCE", label: "Freelancer" },
     { value: "AGENCY", label: "Agence" },
   ];
+  const providerKindRequiredRole = regOptions?.rules?.provider_kind_required_if_role ?? "PROVIDER";
+
+  const roleIconMap: Record<string, LucideIcon> = {
+    PROVIDER: Briefcase,
+    CLIENT: Building2,
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -53,9 +63,9 @@ const Signup = () => {
         username: formData.fullName,
         password: formData.password,
         password_confirm: formData.confirmPassword,
-        role: role === "client" ? "CLIENT" : "PROVIDER",
+        role: role as "CLIENT" | "PROVIDER",
       };
-      if (role === "freelancer") {
+      if (role === providerKindRequiredRole) {
         payload.provider_kind = providerKind;
       }
       await register(payload);
@@ -136,35 +146,29 @@ const Signup = () => {
                     )}
 
                     {/* Role selector */}
-                    <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-xl mb-4">
-                      <button
-                        type="button"
-                        onClick={() => setRole("freelancer")}
-                        className={`py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
-                          role === "freelancer"
-                            ? "bg-white text-primary shadow-sm"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        <Briefcase size={16} />
-                        Freelancer
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRole("client")}
-                        className={`py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
-                          role === "client"
-                            ? "bg-white text-primary shadow-sm"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        <Building2 size={16} />
-                        Client
-                      </button>
+                    <div className={`grid gap-2 p-1 bg-muted rounded-xl mb-4`} style={{ gridTemplateColumns: `repeat(${roles.length}, 1fr)` }}>
+                      {roles.map((r) => {
+                        const Icon = roleIconMap[r.value] ?? User;
+                        return (
+                          <button
+                            key={r.value}
+                            type="button"
+                            onClick={() => setRole(r.value)}
+                            className={`py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                              role === r.value
+                                ? "bg-white text-primary shadow-sm"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            <Icon size={16} />
+                            {r.label}
+                          </button>
+                        );
+                      })}
                     </div>
 
-                    {/* Provider kind selector — only for freelancer role */}
-                    {role === "freelancer" && providerKinds.length > 1 && (
+                    {/* Provider kind selector — only for the role that requires it */}
+                    {role === providerKindRequiredRole && providerKinds.length > 1 && (
                       <div className="grid grid-cols-2 gap-2 p-1 bg-muted/50 rounded-xl mb-4">
                         {providerKinds.map((kind) => (
                           <button
