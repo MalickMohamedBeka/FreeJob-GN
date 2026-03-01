@@ -530,6 +530,63 @@ export interface ApiErrorResponse {
   [key: string]: unknown;
 }
 
+// ── Wallet ──
+
+export type CurrencyEnum = 'GNF' | 'EUR' | 'USD';
+
+export type TransactionTypeEnum =
+  | 'DEPOSIT'
+  | 'WITHDRAWAL'
+  | 'TRANSFER_IN'
+  | 'TRANSFER_OUT'
+  | 'PAYMENT'
+  | 'REFUND'
+  | 'ESCROW_LOCK'
+  | 'ESCROW_RELEASE';
+
+export type WithdrawalStatusEnum = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export type PayoutMethodEnum = 'MOBILE_MONEY' | 'BANK_TRANSFER';
+
+export interface ApiWallet {
+  id: number;
+  balance: string;
+  currency: CurrencyEnum;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiWalletTransaction {
+  id: number;
+  amount: string;
+  transaction_type: TransactionTypeEnum;
+  description: string;
+  contract_id: string | null;
+  payment_transaction_id: number | null;
+  withdrawal_request_id: number | null;
+  created_at: string;
+}
+
+export interface ApiWithdrawalRequest {
+  id: number;
+  amount: string;
+  status: WithdrawalStatusEnum;
+  comment: string;
+  payout_method: string;
+  payout_details: Record<string, unknown>;
+  rejection_reason: string;
+  processed_at: string | null;
+  processed_by_id: number | null;
+  created_at: string;
+}
+
+export interface WithdrawalRequestCreateRequest {
+  amount: string;
+  comment?: string;
+  payout_method?: PayoutMethodEnum;
+  payout_details?: Record<string, unknown>;
+}
+
 // ── Notifications ──
 
 export type NotificationTypeEnum =

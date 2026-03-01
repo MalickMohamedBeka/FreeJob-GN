@@ -28,6 +28,7 @@ export const ROUTES = {
     PROFILE: '/dashboard/profile',
     SETTINGS: '/dashboard/settings',
     NOTIFICATIONS: '/dashboard/notifications',
+    WALLET: '/dashboard/wallet',
   },
   
   // Admin routes
@@ -47,6 +48,7 @@ export const ROUTES = {
     PROFILE: '/client/profile',
     PAYMENT_RETURN: '/client/payment/return',
     NOTIFICATIONS: '/client/notifications',
+    WALLET: '/client/wallet',
   },
 } as const;
 
