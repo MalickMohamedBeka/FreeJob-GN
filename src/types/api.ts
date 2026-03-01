@@ -529,3 +529,72 @@ export interface ApiErrorResponse {
   detail?: string;
   [key: string]: unknown;
 }
+
+// ── Notifications ──
+
+export type NotificationTypeEnum =
+  | 'PROJECT_CREATED'
+  | 'PROJECT_SUBMITTED_FOR_REVIEW'
+  | 'PROJECT_PUBLISHED'
+  | 'PROJECT_REJECTED'
+  | 'PROJECT_CLOSED'
+  | 'PROJECT_UPDATED'
+  | 'PROPOSAL_SENT'
+  | 'PROPOSAL_RECEIVED'
+  | 'PROPOSAL_SHORTLISTED'
+  | 'PROPOSAL_UNSHORTLISTED'
+  | 'PROPOSAL_REFUSED'
+  | 'PROPOSAL_SELECTED'
+  | 'PROPOSAL_CONFIRMATION_REMINDER'
+  | 'PROPOSAL_SELECTION_EXPIRED'
+  | 'PROPOSAL_CONFIRMED'
+  | 'PROPOSAL_WITHDRAWN'
+  | 'PROPOSAL_DECLINED'
+  | 'CONTRACT_CREATED'
+  | 'CONTRACT_STATUS_CHANGED'
+  | 'CONTRACT_ENDED'
+  | 'CONTRACT_COMPLETED'
+  | 'MESSAGE_RECEIVED'
+  | 'MESSAGE_DIGEST'
+  | 'MILESTONE_FUNDED'
+  | 'MILESTONE_DELIVERED'
+  | 'MILESTONE_RELEASED'
+  | 'SUBSCRIPTION_ACTIVATED'
+  | 'SUBSCRIPTION_EXPIRING'
+  | 'SUBSCRIPTION_EXPIRED'
+  | 'SYSTEM';
+
+export interface ApiNotification {
+  id: number;
+  notification_type: NotificationTypeEnum;
+  notification_type_display: string;
+  title: string;
+  message: string;
+  target_content_type: string;
+  target_object_id: string;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationListResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: ApiNotification[];
+  unread_count?: number;
+}
+
+export interface ApiNotificationPreference {
+  email_enabled: boolean;
+  sms_enabled: boolean;
+  push_enabled: boolean;
+  preferences: Record<string, unknown>;
+}
+
+export interface ApiNotificationTypeInfo {
+  value: string;
+  label: string;
+  default_channels: string[];
+}

@@ -11,11 +11,13 @@ import {
   LogOut,
   Search,
   FileCheck,
+  Bell,
   X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFreelanceProfile } from "@/hooks/useProfile";
 import { useClientProfile } from "@/hooks/useProfile";
+import { useUnreadCount } from "@/hooks/useNotifications";
 
 interface DashboardSidebarProps {
   userType: "freelancer" | "client";
@@ -31,17 +33,19 @@ const freelancerMenuItems = [
   { icon: FileText,        label: "Propositions",        path: "/dashboard/proposals" },
   { icon: Coins,           label: "Abonnement",           path: "/dashboard/earnings" },
   { icon: MessageSquare,   label: "Messages",            path: "/dashboard/messages" },
+  { icon: Bell,            label: "Notifications",       path: "/dashboard/notifications", badge: true },
   { icon: User,            label: "Mon Profil",          path: "/dashboard/profile" },
   { icon: Settings,        label: "Paramètres",          path: "/dashboard/settings" },
 ];
 
 const clientMenuItems = [
-  { icon: LayoutDashboard, label: "Dashboard",    path: "/client/dashboard" },
-  { icon: Briefcase,       label: "Mes Projets",  path: "/client/projects" },
-  { icon: FileText,        label: "Propositions", path: "/client/proposals" },
-  { icon: FileCheck,       label: "Contrats",     path: "/client/contracts" },
-  { icon: MessageSquare,   label: "Messages",     path: "/client/messages" },
-  { icon: User,            label: "Mon Profil",   path: "/client/profile" },
+  { icon: LayoutDashboard, label: "Dashboard",       path: "/client/dashboard" },
+  { icon: Briefcase,       label: "Mes Projets",     path: "/client/projects" },
+  { icon: FileText,        label: "Propositions",    path: "/client/proposals" },
+  { icon: FileCheck,       label: "Contrats",        path: "/client/contracts" },
+  { icon: MessageSquare,   label: "Messages",        path: "/client/messages" },
+  { icon: Bell,            label: "Notifications",   path: "/client/notifications", badge: true },
+  { icon: User,            label: "Mon Profil",      path: "/client/profile" },
 ];
 
 // ── Avatar helpers ─────────────────────────────────────────────────────────────
@@ -89,6 +93,7 @@ function SidebarContent({
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const unreadCount = useUnreadCount();
 
   const menuItems = userType === "freelancer" ? freelancerMenuItems : clientMenuItems;
   const username = user?.username || "Utilisateur";
@@ -123,6 +128,7 @@ function SidebarContent({
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
+          const showBadge = item.badge && unreadCount > 0;
           return (
             <Link key={item.path} to={item.path} onClick={onItemClick}>
               <motion.div
@@ -134,7 +140,12 @@ function SidebarContent({
                 }`}
               >
                 <Icon size={18} className="flex-shrink-0" />
-                <span>{item.label}</span>
+                <span className="flex-1">{item.label}</span>
+                {showBadge && (
+                  <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
               </motion.div>
             </Link>
           );

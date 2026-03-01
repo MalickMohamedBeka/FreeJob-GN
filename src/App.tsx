@@ -41,6 +41,7 @@ const Earnings = lazy(() => import("./pages/dashboard/Earnings"));
 const Messages = lazy(() => import("./pages/dashboard/Messages"));
 const Profile = lazy(() => import("./pages/dashboard/Profile"));
 const Settings = lazy(() => import("./pages/dashboard/Settings"));
+const Notifications = lazy(() => import("./pages/dashboard/Notifications"));
 const AccountActivation = lazy(() => import("./pages/AccountActivation"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 
@@ -123,6 +124,9 @@ const App = () => (
               <Route path={ROUTES.CLIENT.PAYMENT_RETURN} element={
                 <ProtectedRoute requiredRole="CLIENT"><PaymentReturn /></ProtectedRoute>
               } />
+              <Route path={ROUTES.CLIENT.NOTIFICATIONS} element={
+                <ProtectedRoute requiredRole="CLIENT"><Notifications /></ProtectedRoute>
+              } />
 
               {/* Freelancer dashboard (protected) */}
               <Route path={ROUTES.DASHBOARD.ROOT} element={
@@ -148,6 +152,9 @@ const App = () => (
               } />
               <Route path={ROUTES.DASHBOARD.SETTINGS} element={
                 <ProtectedRoute requiredRole="PROVIDER"><Settings /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.DASHBOARD.NOTIFICATIONS} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Notifications /></ProtectedRoute>
               } />
 
               <Route path="*" element={<NotFound />} />

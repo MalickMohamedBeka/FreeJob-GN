@@ -60,3 +60,14 @@ export { useConversation, useMessages, useSendMessage } from './useMessages';
 export { usePublicStats, useRegistrationOptions, useResendActivation } from './useAuth';
 export { useSubscriptionPlans, useMySubscription, useSubscriptionUsage, useSubscriptionPayments, useSubscribe, useCancelSubscription } from './useSubscriptions';
 export { useSkills, useSpecialities, useSkillsBySpeciality } from './useSkills';
+export {
+  useNotifications,
+  useUnreadCount,
+  useMarkNotificationRead,
+  useDeleteNotification,
+  useMarkAllRead,
+  useNotificationPreferences,
+  useUpdateNotificationPreferences,
+  useResetNotificationPreferences,
+  useNotificationTypes,
+} from './useNotifications';
