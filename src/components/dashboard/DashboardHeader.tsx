@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
 import { Bell, Search, Menu } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFreelanceProfile } from "@/hooks/useProfile";
 import { useClientProfile } from "@/hooks/useProfile";
+import { useUnreadCount } from "@/hooks/useNotifications";
 
 interface DashboardHeaderProps {
   userType: "freelancer" | "client";
@@ -43,6 +45,9 @@ function ClientAvatar({ username }: { username: string }) {
 const DashboardHeader = ({ userType, onMenuToggle }: DashboardHeaderProps) => {
   const { user } = useAuth();
   const username = user?.username || "Utilisateur";
+  const unreadCount = useUnreadCount();
+  const notifPath =
+    userType === "client" ? "/client/notifications" : "/dashboard/notifications";
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-border">
@@ -70,14 +75,20 @@ const DashboardHeader = ({ userType, onMenuToggle }: DashboardHeaderProps) => {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="relative p-2 hover:bg-muted rounded-lg transition-colors"
-          >
-            <Bell size={19} />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
-          </motion.button>
+          <Link to={notifPath}>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="relative p-2 hover:bg-muted rounded-lg transition-colors cursor-pointer"
+            >
+              <Bell size={19} />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-bold leading-none">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </motion.div>
+          </Link>
 
           {/* Profile (Desktop) */}
           <div className="hidden lg:flex items-center gap-2.5 pl-2.5 border-l border-border ml-1">
