@@ -22,7 +22,7 @@ const AvailableJobs = () => {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold">Projets Disponibles</h3>
-          <Link to="/projects">
+          <Link to="/dashboard/find-projects">
             <Button variant="ghost" size="sm">
               Voir tout
             </Button>

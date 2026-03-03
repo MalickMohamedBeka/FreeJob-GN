@@ -59,6 +59,8 @@ const ProfileCompletion = () => {
   const completedSteps = steps.filter((s) => s.completed).length;
   const progress = Math.round((completedSteps / steps.length) * 100);
 
+  if (progress === 100) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

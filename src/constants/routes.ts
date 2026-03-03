@@ -35,6 +35,7 @@ export const ROUTES = {
   ADMIN: {
     ROOT: '/admin',
     DASHBOARD: '/admin/dashboard',
+    WITHDRAWALS: '/admin/withdrawals',
   },
   
   // Client routes

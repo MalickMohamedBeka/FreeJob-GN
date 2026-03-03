@@ -1,13 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '@/services/api.service';
 import { projectService } from '@/services/project.service';
+import type { ProjectFilters } from '@/services/project.service';
 import type { ApiProjectDetail, ApiProjectCreateRequest, ApiProjectPatchRequest } from '@/types';
-
-interface ProjectFilters {
-  search?: string;
-  category?: string;
-  page?: number;
-}
 
 export function useProjects(filters?: ProjectFilters) {
   return useQuery({
