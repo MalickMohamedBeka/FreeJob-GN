@@ -177,12 +177,12 @@ function WithdrawalDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md flex flex-col max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Demande de retrait</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-1">
+        <div className="space-y-4 py-1 overflow-y-auto flex-1 pr-1">
           <p className="text-xs text-muted-foreground">
             Solde disponible :{" "}
             <strong>

@@ -7,6 +7,27 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
@@ -16,17 +37,18 @@ import {
 } from "@/components/ui/dialog";
 import {
   Search,
-  Filter,
-  Bookmark,
   MapPin,
   Clock,
   Coins,
   Briefcase,
   Loader2,
   SendHorizonal,
+  ChevronDown,
+  X,
 } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useCreateProposal } from "@/hooks/useProposals";
+import { useAllSkills, useAllSpecialities } from "@/hooks/useTaxonomy";
 import { useDebounce } from "@/hooks";
 import { ApiError } from "@/services/api.service";
 import type { ApiProjectList } from "@/types";
@@ -154,38 +176,54 @@ function SubmitProposalDialog({
 
 const FindProjects = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Tous");
-  const [savedProjects, setSavedProjects] = useState<string[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<number[]>([]);
+  const [selectedSpeciality, setSelectedSpeciality] = useState<number | null>(null);
+  const [skillsOpen, setSkillsOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [proposalProject, setProposalProject] = useState<ApiProjectList | null>(null);
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  // Fetch all projects (no filters) once to build the category list
-  const { data: allData } = useProjects();
-  const categories = [
-    "Tous",
-    ...Array.from(
-      new Map(
-        (allData?.results ?? [])
-          .filter((p) => p.category?.name)
-          .map((p) => [p.category.name, p.category.name])
-      ).values()
-    ),
-  ];
+  // Taxonomy from dedicated endpoints
+  const { data: skillsData } = useAllSkills();
+  const { data: specialitiesData } = useAllSpecialities();
+
+  const allSpecialities = specialitiesData?.results ?? [];
+  const selectedSpecialityObj = allSpecialities.find((s) => s.id === selectedSpeciality);
+  // When a speciality is selected, show only its skills; otherwise all skills
+  const visibleSkills =
+    selectedSpeciality && selectedSpecialityObj?.skills?.length
+      ? selectedSpecialityObj.skills
+      : (skillsData?.results ?? []);
+
+  const toggleSkill = (id: number) => {
+    setSelectedSkills((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
+    setPage(1);
+  };
+
+  const handleSpecialityChange = (value: string) => {
+    const next = value === "__all__" ? null : Number(value);
+    setSelectedSpeciality(next);
+    // Drop skills that don't belong to the newly selected speciality
+    if (next !== null) {
+      const newSp = allSpecialities.find((s) => s.id === next);
+      const allowed = new Set((newSp?.skills ?? []).map((s) => s.id));
+      setSelectedSkills((prev) => prev.filter((sid) => allowed.has(sid)));
+    }
+    setPage(1);
+  };
+
+  const hasActiveFilters = selectedSkills.length > 0 || selectedSpeciality !== null;
 
   const { data, isLoading } = useProjects({
     search: debouncedSearch || undefined,
-    category: selectedCategory !== "Tous" ? selectedCategory : undefined,
+    skill_ids: selectedSkills.length > 0 ? selectedSkills : undefined,
+    speciality_id: selectedSpeciality ?? undefined,
     page,
   });
 
   const projects = data?.results ?? [];
-
-  const toggleSave = (projectId: string) => {
-    setSavedProjects((prev) =>
-      prev.includes(projectId) ? prev.filter((id) => id !== projectId) : [...prev, projectId],
-    );
-  };
 
   return (
     <DashboardLayout userType="freelancer">
@@ -199,34 +237,118 @@ const FindProjects = () => {
         </div>
 
         {/* Search & Filters */}
-        <Card className="p-6">
-          <div className="space-y-4">
-            <div className="relative">
+        <Card className="p-4">
+          <div className="flex flex-wrap gap-3 items-end">
+            {/* Search */}
+            <div className="relative flex-1 min-w-[200px]">
               <Search
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                size={20}
+                size={16}
               />
               <Input
-                placeholder="Rechercher par titre, compétence, entreprise..."
-                className="pl-10 h-12"
+                placeholder="Rechercher un projet…"
+                className="pl-9 h-10"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
               />
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <Filter size={18} className="text-muted-foreground" />
-              {categories.map((category) => (
+
+            {/* Spécialité — single select */}
+            <Select
+              value={selectedSpeciality !== null ? String(selectedSpeciality) : "__all__"}
+              onValueChange={handleSpecialityChange}
+            >
+              <SelectTrigger className="h-10 w-[200px]">
+                <SelectValue placeholder="Toutes les spécialités" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">Toutes les spécialités</SelectItem>
+                {allSpecialities.map((sp) => (
+                  <SelectItem key={sp.id} value={String(sp.id)}>
+                    {sp.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Compétences — multi-select popover */}
+            <Popover open={skillsOpen} onOpenChange={setSkillsOpen}>
+              <PopoverTrigger asChild>
                 <Button
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => { setSelectedCategory(category); setPage(1); }}
+                  variant="outline"
+                  className="h-10 w-[220px] justify-between font-normal"
                 >
-                  {category}
+                  <span className="truncate text-sm">
+                    {selectedSkills.length === 0
+                      ? "Toutes les compétences"
+                      : `${selectedSkills.length} compétence${selectedSkills.length > 1 ? "s" : ""}`}
+                  </span>
+                  <ChevronDown size={14} className="ml-2 flex-shrink-0 text-muted-foreground" />
                 </Button>
-              ))}
-            </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-[240px] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Rechercher…" />
+                  <CommandList>
+                    <CommandEmpty>Aucune compétence trouvée.</CommandEmpty>
+                    <CommandGroup>
+                      {visibleSkills.map((skill) => {
+                        const checked = selectedSkills.includes(skill.id);
+                        return (
+                          <CommandItem
+                            key={skill.id}
+                            onSelect={() => toggleSkill(skill.id)}
+                            className="flex items-center gap-2 cursor-pointer"
+                          >
+                            <Checkbox checked={checked} className="pointer-events-none" />
+                            <span>{skill.name}</span>
+                          </CommandItem>
+                        );
+                      })}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+
+            {/* Reset */}
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-10 text-destructive hover:text-destructive gap-1"
+                onClick={() => {
+                  setSelectedSkills([]);
+                  setSelectedSpeciality(null);
+                  setPage(1);
+                }}
+              >
+                <X size={14} />
+                Réinitialiser
+              </Button>
+            )}
           </div>
+
+          {/* Selected skills badges */}
+          {selectedSkills.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border">
+              {selectedSkills.map((id) => {
+                const skill = visibleSkills.find((s) => s.id === id);
+                if (!skill) return null;
+                return (
+                  <Badge
+                    key={id}
+                    variant="secondary"
+                    className="gap-1 cursor-pointer"
+                    onClick={() => toggleSkill(id)}
+                  >
+                    {skill.name}
+                    <X size={11} />
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
         </Card>
 
         {/* Results Count */}
@@ -262,13 +384,6 @@ const FindProjects = () => {
                         <h3 className="text-xl font-semibold">{project.title}</h3>
                         <p className="text-muted-foreground font-medium">{project.client.username}</p>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => toggleSave(project.id)}>
-                        <Bookmark
-                          size={20}
-                          fill={savedProjects.includes(project.id) ? "currentColor" : "none"}
-                          className={savedProjects.includes(project.id) ? "text-primary" : ""}
-                        />
-                      </Button>
                     </div>
 
                     <p className="text-muted-foreground mb-4">{project.description}</p>

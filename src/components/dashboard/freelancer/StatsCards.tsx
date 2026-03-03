@@ -1,45 +1,56 @@
 import { motion } from "framer-motion";
-import { Briefcase, Construction, FileText } from "lucide-react";
+import { Briefcase, FileText, Wallet as WalletIcon, TrendingUp, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useContracts } from "@/hooks/useContracts";
 import { useProposals } from "@/hooks/useProposals";
+import { useWallet } from "@/hooks/useWallet";
 
 const StatsCards = () => {
   const { data: contractsData } = useContracts();
   const { data: proposalsData } = useProposals();
+  const { data: wallet, isLoading: walletLoading } = useWallet();
 
-  const activeProjects = (contractsData?.results ?? []).filter(
-    (c) => c.status === "IN_PROGRESS"
-  ).length;
+  const contracts = contractsData?.results ?? [];
+  const totalContracts = contractsData?.count ?? 0;
+  const activeProjects = contracts.filter((c) => c.status === "IN_PROGRESS").length;
+  const completedContracts = contracts.filter((c) => c.status === "COMPLETED").length;
   const proposalsSent = proposalsData?.count ?? 0;
+
+  // Success rate: completed (from page) / total contracts (from API count)
+  const successRate =
+    totalContracts > 0 ? Math.round((completedContracts / totalContracts) * 100) : null;
+
+  const walletBalance = wallet
+    ? `${parseFloat(wallet.balance).toLocaleString("fr-FR")} ${wallet.currency}`
+    : null;
 
   const stats = [
     {
       icon: Briefcase,
       label: "Projets Actifs",
       value: String(activeProjects),
-      change: "",
+      sub: null,
       color: "from-blue-500 to-blue-600",
     },
     {
       icon: FileText,
       label: "Propositions Envoyées",
       value: String(proposalsSent),
-      change: "",
+      sub: null,
       color: "from-purple-500 to-purple-600",
     },
     {
-      icon: Construction,
-      label: "Revenus ce Mois",
-      value: "—",
-      change: "Bientôt disponible",
+      icon: WalletIcon,
+      label: "Solde Portefeuille",
+      value: walletLoading ? null : (walletBalance ?? "—"),
+      sub: walletLoading ? "Chargement…" : null,
       color: "from-green-500 to-green-600",
     },
     {
-      icon: Construction,
+      icon: TrendingUp,
       label: "Taux de Réussite",
-      value: "—",
-      change: "Bientôt disponible",
+      value: successRate !== null ? `${successRate}%` : "—",
+      sub: successRate === null ? "Aucun contrat" : null,
       color: "from-orange-500 to-orange-600",
     },
   ];
@@ -63,9 +74,13 @@ const StatsCards = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
-                <p className="text-2xl font-bold mb-2">{stat.value}</p>
-                {stat.change && (
-                  <p className="text-xs text-muted-foreground font-medium">{stat.change}</p>
+                {stat.value === null ? (
+                  <Loader2 size={20} className="animate-spin text-muted-foreground mt-1" />
+                ) : (
+                  <p className="text-2xl font-bold mb-1">{stat.value}</p>
+                )}
+                {stat.sub && (
+                  <p className="text-xs text-muted-foreground">{stat.sub}</p>
                 )}
               </div>
             </Card>

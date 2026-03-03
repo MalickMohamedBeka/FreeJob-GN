@@ -24,6 +24,7 @@ const Signup = lazy(() => import("./pages/Signup"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminWithdrawals = lazy(() => import("./pages/admin/AdminWithdrawals"));
 const FreelancerLogin = lazy(() => import("./pages/FreelancerLogin"));
 const ClientLogin = lazy(() => import("./pages/ClientLogin"));
 const ClientDashboard = lazy(() => import("./pages/client/ClientDashboard"));
@@ -102,6 +103,7 @@ const App = () => (
 
               {/* Admin */}
               <Route path={ROUTES.ADMIN.DASHBOARD} element={<AdminDashboard />} />
+              <Route path={ROUTES.ADMIN.WITHDRAWALS} element={<AdminWithdrawals />} />
 
               {/* Client dashboard (protected) */}
               <Route path={ROUTES.CLIENT.DASHBOARD} element={

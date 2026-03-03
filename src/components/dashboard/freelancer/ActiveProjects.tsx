@@ -4,12 +4,13 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useContracts } from "@/hooks/useContracts";
+import { Link } from "react-router-dom";
 
 const ActiveProjects = () => {
   const { data, isLoading } = useContracts();
 
   const activeContracts = (data?.results ?? []).filter(
-    (c) => c.status === "IN_PROGRESS"
+    (c) => c.status === "IN_PROGRESS",
   );
 
   return (
@@ -21,9 +22,11 @@ const ActiveProjects = () => {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold">Projets Actifs</h3>
-          <Button variant="ghost" size="sm">
-            Voir tout
-          </Button>
+          <Link to="/dashboard/projects">
+            <Button variant="ghost" size="sm">
+              Voir tout
+            </Button>
+          </Link>
         </div>
 
         {isLoading ? (
@@ -46,7 +49,9 @@ const ActiveProjects = () => {
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h4 className="font-semibold mb-1">{contract.project.title}</h4>
+                    <h4 className="font-semibold mb-1">
+                      {contract.project.title}
+                    </h4>
                     <p className="text-sm text-muted-foreground">
                       Client: {contract.client.username}
                     </p>
@@ -63,14 +68,17 @@ const ActiveProjects = () => {
                   {contract.end_at && (
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Clock size={14} />
-                      <span>{new Date(contract.end_at).toLocaleDateString("fr-FR")}</span>
+                      <span>
+                        {new Date(contract.end_at).toLocaleDateString("fr-FR")}
+                      </span>
                     </div>
                   )}
                 </div>
 
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-green-600">
-                    {parseFloat(contract.total_amount).toLocaleString("fr-FR")} GNF
+                    {parseFloat(contract.total_amount).toLocaleString("fr-FR")}{" "}
+                    GNF
                   </span>
                   <Button size="sm" variant="outline">
                     Voir détails

@@ -587,6 +587,10 @@ export interface WithdrawalRequestCreateRequest {
   payout_details?: Record<string, unknown>;
 }
 
+export interface WithdrawalDecisionRequest {
+  reason: string;
+}
+
 // ── Notifications ──
 
 export type NotificationTypeEnum =
