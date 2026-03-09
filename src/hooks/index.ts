@@ -83,4 +83,5 @@ export {
   useProviderRankHistory,
   useProviderReviews,
   useCreateReview,
+  usePortfolio,
 } from './useRankings';

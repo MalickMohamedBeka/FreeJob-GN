@@ -93,12 +93,12 @@ const App = () => (
               <Route path={ROUTES.LOGIN} element={<PublicRoute><FreelancerLogin /></PublicRoute>} />
               <Route path={ROUTES.LOGIN} element={<PublicRoute><ClientLogin /></PublicRoute>} />
 
-              {/* Browsable public pages — accessible regardless of auth state */}
-              <Route path={ROUTES.PROJECTS} element={<Projects />} />
-              <Route path={ROUTES.FREELANCERS} element={<Freelancers />} />
-              <Route path={ROUTES.FREELANCER_PROFILE} element={<FreelancerProfile />} />
-              <Route path={ROUTES.ABOUT} element={<About />} />
-              <Route path={ROUTES.HOW_IT_WORKS} element={<CommentCaMarche />} />
+              {/* Public browsing pages — redirect to dashboard when logged in */}
+              <Route path={ROUTES.PROJECTS} element={<PublicRoute><Projects /></PublicRoute>} />
+              <Route path={ROUTES.FREELANCERS} element={<PublicRoute><Freelancers /></PublicRoute>} />
+              <Route path={ROUTES.FREELANCER_PROFILE} element={<PublicRoute><FreelancerProfile /></PublicRoute>} />
+              <Route path={ROUTES.ABOUT} element={<PublicRoute><About /></PublicRoute>} />
+              <Route path={ROUTES.HOW_IT_WORKS} element={<PublicRoute><CommentCaMarche /></PublicRoute>} />
               <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLogin />} />
               <Route path="/activate" element={<AccountActivation />} />
               <Route path={ROUTES.ONBOARDING} element={<Onboarding />} />

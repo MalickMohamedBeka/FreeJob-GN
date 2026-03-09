@@ -47,6 +47,10 @@ import {
   ExternalLink,
   CalendarDays,
   User,
+  Trophy,
+  Star,
+  BarChart2,
+  Eye,
 } from "lucide-react";
 import {
   useFreelanceProfile,
@@ -58,7 +62,9 @@ import {
   usePatchFreelanceDocument,
 } from "@/hooks/useProfile";
 import { useSkills, useSpecialities, useSkillsBySpeciality } from "@/hooks/useSkills";
-import type { FreelanceProfilePatchRequest, FreelanceDocTypeEnum, ApiFreelanceDocument } from "@/types";
+import { useProviderRank, useProviderReviews, usePortfolio } from "@/hooks/useRankings";
+import { PublicProfileSheet } from "@/components/dashboard/PublicProfileSheet";
+import type { FreelanceProfilePatchRequest, FreelanceDocTypeEnum, ApiFreelanceDocument, StarsEnum } from "@/types";
 import { ApiError } from "@/services/api.service";
 import { toast } from "@/hooks";
 
@@ -660,16 +666,39 @@ function EditFreelanceDocumentDialog({
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
+const TIER_LABELS: Record<string, string> = {
+  FREE: "Gratuit",
+  PRO: "Freelance Pro",
+  PRO_MAX: "Freelance Pro Max",
+  AGENCY: "Agence",
+};
+
+const TIER_COLORS: Record<string, string> = {
+  FREE: "bg-muted text-muted-foreground",
+  PRO: "bg-primary/10 text-primary",
+  PRO_MAX: "bg-cta/10 text-cta",
+  AGENCY: "bg-secondary/10 text-secondary-foreground",
+};
+
 const Profile = () => {
   const { data: profile, isLoading } = useFreelanceProfile();
   const { data: docsData, isLoading: docsLoading } = useFreelanceDocuments();
+  const { data: rank } = useProviderRank(profile?.id);
+  const { data: reviewsData } = useProviderReviews(profile?.id);
+  const { data: portfolioData } = usePortfolio(profile?.id);
   const updatePicture = useUpdateProfilePicture();
   const deleteDoc = useDeleteDocument();
+
+  const totalReviews = reviewsData?.count ?? 0;
+  const avgRating = totalReviews > 0
+    ? (reviewsData?.results ?? []).reduce((sum, r) => sum + r.rating, 0) / (reviewsData?.results.length ?? 1)
+    : null;
 
   const [editOpen, setEditOpen] = useState(false);
   const [uploadDocOpen, setUploadDocOpen] = useState(false);
   const [deleteDocId, setDeleteDocId] = useState<number | null>(null);
   const [editDocId, setEditDocId] = useState<number | null>(null);
+  const [publicProfileOpen, setPublicProfileOpen] = useState(false);
 
   // ── Loading state ──
   if (isLoading) {
@@ -918,6 +947,104 @@ const Profile = () => {
           {/* ── Right column ── */}
           <div className="space-y-6">
 
+            {/* Public profile preview */}
+            {profile?.id && (
+              <button
+                type="button"
+                onClick={() => setPublicProfileOpen(true)}
+                className="flex items-center justify-between w-full p-4 rounded-xl border border-border bg-white hover:border-primary/40 hover:bg-primary/5 transition-colors group text-left"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Voir mon profil public</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Tel qu'il apparaît aux clients</p>
+                </div>
+                <Eye size={16} className="text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+              </button>
+            )}
+
+            {/* Ranking & reputation */}
+            {(rank || totalReviews > 0 || portfolioData?.summary?.total_completed) ? (
+              <Card className="p-5">
+                <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                  <BarChart2 size={15} className="text-primary" />
+                  Réputation publique
+                </h3>
+                <div className="space-y-3">
+                  {/* Ranking */}
+                  {rank && (
+                    <>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground flex items-center gap-1.5">
+                          <Trophy size={13} className="text-cta" />
+                          Classement
+                        </span>
+                        <span className="font-bold text-primary">#{rank.position}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Score</span>
+                        <span className="font-bold text-cta">{parseFloat(rank.score).toFixed(2)}</span>
+                      </div>
+                      {rank.stars > 0 && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Étoiles</span>
+                          <span className="inline-flex gap-0.5">
+                            {Array.from({ length: rank.stars as number }).map((_, i) => (
+                              <Star key={i} size={12} className="fill-cta text-cta" />
+                            ))}
+                          </span>
+                        </div>
+                      )}
+                      {rank.tier !== "FREE" && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Niveau</span>
+                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${TIER_COLORS[rank.tier]}`}>
+                            {TIER_LABELS[rank.tier]}
+                          </span>
+                        </div>
+                      )}
+                      <div className="border-t border-border pt-3 mt-1" />
+                    </>
+                  )}
+
+                  {/* Reviews */}
+                  {totalReviews > 0 && (
+                    <>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground flex items-center gap-1.5">
+                          <Star size={13} className="text-cta" />
+                          Avis clients
+                        </span>
+                        <span className="font-semibold">{totalReviews}</span>
+                      </div>
+                      {avgRating !== null && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Note moyenne</span>
+                          <span className="font-bold">{avgRating.toFixed(1)} / 5</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Portfolio */}
+                  {portfolioData?.summary?.total_completed > 0 && (
+                    <>
+                      {totalReviews > 0 && <div className="border-t border-border pt-3 mt-1" />}
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Missions terminées</span>
+                        <span className="font-semibold">{portfolioData.summary.total_completed}</span>
+                      </div>
+                      {portfolioData.summary.average_rating !== null && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Note portfolio</span>
+                          <span className="font-bold">{portfolioData.summary.average_rating.toFixed(1)} / 5</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </Card>
+            ) : null}
+
             {/* Personal info */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -997,6 +1124,14 @@ const Profile = () => {
       </div>
 
       {/* ── Dialogs ── */}
+      {profile?.id && (
+        <PublicProfileSheet
+          userId={profile.id}
+          open={publicProfileOpen}
+          onOpenChange={setPublicProfileOpen}
+        />
+      )}
+
       <EditProfileDialog
         open={editOpen}
         onOpenChange={setEditOpen}

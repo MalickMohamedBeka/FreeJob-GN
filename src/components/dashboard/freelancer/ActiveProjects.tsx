@@ -1,13 +1,21 @@
 import { motion } from "framer-motion";
-import { Clock, MoreVertical, Loader2 } from "lucide-react";
+import { Clock, MoreVertical, Loader2, FileText, MessageSquare } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useContracts } from "@/hooks/useContracts";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { ROUTES } from "@/constants/routes";
 
 const ActiveProjects = () => {
   const { data, isLoading } = useContracts();
+  const navigate = useNavigate();
 
   const activeContracts = (data?.results ?? []).filter(
     (c) => c.status === "IN_PROGRESS",
@@ -22,7 +30,7 @@ const ActiveProjects = () => {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold">Projets Actifs</h3>
-          <Link to="/dashboard/projects">
+          <Link to={ROUTES.DASHBOARD.MY_PROJECTS}>
             <Button variant="ghost" size="sm">
               Voir tout
             </Button>
@@ -48,17 +56,38 @@ const ActiveProjects = () => {
                 className="p-4 rounded-xl border border-border hover:border-primary/50 transition-colors"
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h4 className="font-semibold mb-1">
+                  <div className="flex-1 min-w-0 pr-2">
+                    <h4 className="font-semibold mb-1 truncate">
                       {contract.project.title}
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      Client: {contract.client.username}
+                      Client : {contract.client.username}
                     </p>
                   </div>
-                  <button className="p-1 hover:bg-muted rounded-lg">
-                    <MoreVertical size={18} />
-                  </button>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-1 hover:bg-muted rounded-lg transition-colors flex-shrink-0">
+                        <MoreVertical size={18} className="text-muted-foreground" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-44">
+                      <DropdownMenuItem
+                        className="gap-2 cursor-pointer"
+                        onClick={() => navigate(ROUTES.DASHBOARD.MY_PROJECTS)}
+                      >
+                        <FileText size={14} />
+                        Voir les détails
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="gap-2 cursor-pointer"
+                        onClick={() => navigate(ROUTES.DASHBOARD.MESSAGES)}
+                      >
+                        <MessageSquare size={14} />
+                        Contacter le client
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 <div className="flex items-center gap-2 mb-3">
@@ -80,7 +109,11 @@ const ActiveProjects = () => {
                     {parseFloat(contract.total_amount).toLocaleString("fr-FR")}{" "}
                     GNF
                   </span>
-                  <Button size="sm" variant="outline">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => navigate(ROUTES.DASHBOARD.MY_PROJECTS)}
+                  >
                     Voir détails
                   </Button>
                 </div>

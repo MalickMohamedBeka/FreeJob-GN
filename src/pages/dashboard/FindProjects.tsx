@@ -51,6 +51,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { useCreateProposal } from "@/hooks/useProposals";
 import { useAllSkills, useAllSpecialities } from "@/hooks/useTaxonomy";
 import { useDebounce } from "@/hooks";
+import { PagePagination } from "@/components/ui/page-pagination";
 import { ApiError } from "@/services/api.service";
 import type { ApiProjectList } from "@/types";
 import { ROUTES } from "@/constants/routes";
@@ -273,6 +274,8 @@ const FindProjects = () => {
   });
 
   const projects = data?.results ?? [];
+  const PAGE_SIZE = projects.length > 0 && data?.next ? projects.length : 10;
+  const totalPages = data ? Math.ceil(data.count / PAGE_SIZE) : 0;
 
   return (
     <DashboardLayout userType="freelancer">
@@ -487,13 +490,7 @@ const FindProjects = () => {
               ))}
             </div>
 
-            {data?.next && (
-              <div className="text-center mt-6">
-                <Button variant="outline" onClick={() => setPage((p) => p + 1)}>
-                  Charger plus de projets
-                </Button>
-              </div>
-            )}
+            <PagePagination page={page} totalPages={totalPages} onPageChange={setPage} />
           </>
         )}
       </div>
