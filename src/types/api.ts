@@ -729,3 +729,35 @@ export interface ApiProviderReviewCreateRequest {
   rating: number;
   comment?: string;
 }
+
+// ── Portfolio ──
+
+export interface ApiPortfolioReview {
+  rating: number;
+  comment: string;
+  created_at: string;
+  verified: boolean;
+}
+
+export interface ApiPortfolioItem {
+  project_title: string;
+  project_category: string;
+  project_speciality: string | null;
+  project_skills: string[];
+  budget_range: string;
+  completed_at: string;
+  duration_days: number | null;
+  review: ApiPortfolioReview | null;
+}
+
+export interface ApiPortfolioSummary {
+  total_completed: number;
+  average_rating: number | null;
+  rating_distribution: Record<string, number>;
+  top_categories: Record<string, unknown>[];
+}
+
+export interface ApiPortfolioResponse {
+  summary: ApiPortfolioSummary;
+  results: ApiPortfolioItem[];
+}

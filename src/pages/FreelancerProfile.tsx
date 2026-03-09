@@ -13,6 +13,10 @@ import {
   Building2,
   MessageSquare,
   Hash,
+  Briefcase,
+  Clock,
+  Tag,
+  CheckCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -20,9 +24,9 @@ import { Button } from "@/components/ui/button";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useFreelancer } from "@/hooks/useFreelancers";
-import { useProviderRank, useProviderReviews } from "@/hooks/useRankings";
+import { useProviderRank, useProviderReviews, usePortfolio } from "@/hooks/useRankings";
 import { ROUTES } from "@/constants/routes";
-import type { ApiProviderReview, StarsEnum } from "@/types";
+import type { ApiProviderReview, StarsEnum, ApiPortfolioItem } from "@/types";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -134,6 +138,7 @@ const FreelancerProfile = () => {
   const { data: profile, isLoading, isError } = useFreelancer(Number(id));
   const { data: rank } = useProviderRank(Number(id));
   const { data: reviewsData } = useProviderReviews(Number(id));
+  const { data: portfolioData } = usePortfolio(Number(id));
 
   const reviews = reviewsData?.results ?? [];
   const totalReviews = reviewsData?.count ?? 0;
@@ -393,6 +398,94 @@ const FreelancerProfile = () => {
                           </div>
                         </div>
                       )}
+                    </Card>
+                  )}
+
+                  {/* Portfolio */}
+                  {portfolioData && portfolioData.results.length > 0 && (
+                    <Card className="p-6">
+                      <div className="flex items-center justify-between mb-5">
+                        <h2 className="font-semibold text-base flex items-center gap-2">
+                          <Briefcase size={16} className="text-primary" />
+                          Portfolio
+                        </h2>
+                        <span className="text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                          {portfolioData.summary.total_completed} mission{portfolioData.summary.total_completed > 1 ? "s" : ""} réalisée{portfolioData.summary.total_completed > 1 ? "s" : ""}
+                        </span>
+                      </div>
+
+                      {/* Summary strip */}
+                      {portfolioData.summary.average_rating && (
+                        <div className="flex items-center gap-3 mb-5 p-3 bg-muted/50 rounded-xl">
+                          <StarsDisplay rating={portfolioData.summary.average_rating} size={14} />
+                          <span className="font-semibold text-sm">{portfolioData.summary.average_rating.toFixed(1)}</span>
+                          <span className="text-xs text-muted-foreground">note moyenne sur les projets terminés</span>
+                        </div>
+                      )}
+
+                      {/* Project list */}
+                      <div className="space-y-4">
+                        {portfolioData.results.map((item: ApiPortfolioItem, idx: number) => (
+                          <div
+                            key={idx}
+                            className="p-4 rounded-xl border border-border hover:border-primary/30 hover:bg-muted/30 transition-colors"
+                          >
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm leading-snug">{item.project_title}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">{item.project_category}</p>
+                              </div>
+                              {item.review && (
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <StarsDisplay rating={item.review.rating} size={12} />
+                                  {item.review.verified && (
+                                    <CheckCircle size={12} className="text-green-500 ml-0.5" aria-label="Avis vérifié" />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Skills */}
+                            {item.project_skills.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mb-3">
+                                {item.project_skills.map((skill) => (
+                                  <span
+                                    key={skill}
+                                    className="text-[10px] px-2 py-0.5 bg-primary/8 text-primary rounded-full font-medium"
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Meta */}
+                            <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Tag size={10} />
+                                {item.budget_range}
+                              </span>
+                              {item.duration_days && (
+                                <span className="flex items-center gap-1">
+                                  <Clock size={10} />
+                                  {item.duration_days} jour{item.duration_days > 1 ? "s" : ""}
+                                </span>
+                              )}
+                              <span className="flex items-center gap-1">
+                                <Calendar size={10} />
+                                {new Date(item.completed_at).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
+                              </span>
+                            </div>
+
+                            {/* Review comment */}
+                            {item.review?.comment && (
+                              <blockquote className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground italic leading-relaxed line-clamp-2">
+                                "{item.review.comment}"
+                              </blockquote>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </Card>
                   )}
 

@@ -6,7 +6,7 @@ export function useAllSkills() {
   return useQuery({
     queryKey: ['taxonomy', 'skills'],
     queryFn: () =>
-      apiService.get<DjangoPaginatedResponse<ApiSkill>>('/users/skills/'),
+      apiService.getPublic<DjangoPaginatedResponse<ApiSkill>>('/users/skills/'),
     staleTime: 10 * 60_000, // 10 min — taxonomy rarely changes
   });
 }
@@ -15,7 +15,7 @@ export function useAllSpecialities() {
   return useQuery({
     queryKey: ['taxonomy', 'specialities'],
     queryFn: () =>
-      apiService.get<DjangoPaginatedResponse<ApiSpeciality>>('/users/specialities/'),
+      apiService.getPublic<DjangoPaginatedResponse<ApiSpeciality>>('/users/specialities/'),
     staleTime: 10 * 60_000,
   });
 }

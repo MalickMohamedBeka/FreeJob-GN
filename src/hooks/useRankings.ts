@@ -6,6 +6,7 @@ import type {
   ApiProviderRankHistory,
   ApiProviderReview,
   ApiProviderReviewCreateRequest,
+  ApiPortfolioResponse,
 } from '@/types';
 
 export interface RankingFilters {
@@ -77,5 +78,16 @@ export function useCreateReview() {
       queryClient.invalidateQueries({ queryKey: ['rankings-reviews'] });
       queryClient.invalidateQueries({ queryKey: ['rankings'] });
     },
+  });
+}
+
+export function usePortfolio(providerId: number | undefined) {
+  return useQuery({
+    queryKey: ['portfolio', providerId],
+    queryFn: () =>
+      apiService.getPublic<ApiPortfolioResponse>(`/users/freelancers/${providerId}/portfolio/`),
+    enabled: !!providerId,
+    retry: (count, err) => (err as { status?: number })?.status !== 404 && count < 2,
+    staleTime: 5 * 60 * 1000,
   });
 }

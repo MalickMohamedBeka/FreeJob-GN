@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Loader2, Users } from "lucide-react";
+import { Search, Loader2, X, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -7,11 +7,33 @@ import FreelancersHero3D from "@/components/freelancers/FreelancersHero3D";
 import SearchBar3D from "@/components/freelancers/SearchBar3D";
 import FreelancerCard3D from "@/components/freelancers/FreelancerCard3D";
 import { useFreelancers } from "@/hooks/useFreelancers";
+import { useAllSkills, useAllSpecialities } from "@/hooks/useTaxonomy";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { PagePagination } from "@/components/ui/page-pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { Freelancer } from "@/types";
 import type { ApiFreelancerProfile } from "@/types";
-
-const skillFilters = ["Tous", "React", "Design", "Marketing", "Mobile", "Python", "SEO", "Data Science", "Blockchain"];
 
 function mapApiFreelancerToUI(f: ApiFreelancerProfile): Freelancer {
   const fullName = f.freelance_details
@@ -36,25 +58,74 @@ function mapApiFreelancerToUI(f: ApiFreelancerProfile): Freelancer {
 
 const Freelancers = () => {
   const [search, setSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState("Tous");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [selectedSpeciality, setSelectedSpeciality] = useState<number | null>(null);
+  const [selectedSkillId, setSelectedSkillId] = useState<number | null>(null);
+  const [skillsOpen, setSkillsOpen] = useState(false);
   const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useFreelancers({ page });
+  // Taxonomy
+  const { data: specialitiesData } = useAllSpecialities();
+  const { data: skillsData } = useAllSkills();
+
+  const allSpecialities = specialitiesData?.results ?? [];
+  const selectedSpecialityObj = allSpecialities.find((s) => s.id === selectedSpeciality);
+  // When speciality is selected, show only its skills; otherwise all skills
+  const visibleSkills =
+    selectedSpeciality && selectedSpecialityObj?.skills?.length
+      ? selectedSpecialityObj.skills
+      : (skillsData?.results ?? []);
+
+  const selectedSkillObj = visibleSkills.find((s) => s.id === selectedSkillId);
+
+  const { data, isLoading } = useFreelancers({
+    page,
+    skill_id: selectedSkillId ?? undefined,
+    speciality_id: selectedSpeciality ?? undefined,
+  });
 
   const results = data?.results ?? [];
+  const PAGE_SIZE = results.length > 0 && data?.next ? results.length : 10;
+  const totalPages = data ? Math.ceil(data.count / PAGE_SIZE) : 0;
 
-  const filtered = results.filter((f) => {
-    const ui = mapApiFreelancerToUI(f);
-    const matchesSearch =
-      !search ||
-      ui.name.toLowerCase().includes(search.toLowerCase()) ||
-      ui.title.toLowerCase().includes(search.toLowerCase());
-    const matchesFilter =
-      activeFilter === "Tous" ||
-      f.skills.some((s) => s.name.toLowerCase().includes(activeFilter.toLowerCase()));
-    return matchesSearch && matchesFilter;
-  });
+  // Text search is client-side (API doesn't support search on freelancers endpoint)
+  const filtered = search
+    ? results.filter((f) => {
+        const ui = mapApiFreelancerToUI(f);
+        return (
+          ui.name.toLowerCase().includes(search.toLowerCase()) ||
+          ui.title.toLowerCase().includes(search.toLowerCase())
+        );
+      })
+    : results;
+
+  const hasActiveFilters = selectedSkillId !== null || selectedSpeciality !== null;
+
+  const handleSpecialityChange = (value: string) => {
+    const next = value === "__all__" ? null : Number(value);
+    setSelectedSpeciality(next);
+    // Drop skill if it doesn't belong to the new speciality
+    if (next !== null) {
+      const newSp = allSpecialities.find((s) => s.id === next);
+      const allowed = new Set((newSp?.skills ?? []).map((s) => s.id));
+      if (selectedSkillId !== null && !allowed.has(selectedSkillId)) {
+        setSelectedSkillId(null);
+      }
+    }
+    setPage(1);
+  };
+
+  const handleSkillSelect = (id: number) => {
+    setSelectedSkillId((prev) => (prev === id ? null : id));
+    setSkillsOpen(false);
+    setPage(1);
+  };
+
+  const resetFilters = () => {
+    setSelectedSpeciality(null);
+    setSelectedSkillId(null);
+    setPage(1);
+  };
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -66,13 +137,112 @@ const Freelancers = () => {
           <SearchBar3D
             search={search}
             setSearch={setSearch}
-            activeFilter={activeFilter}
-            setActiveFilter={setActiveFilter}
-            filters={skillFilters}
             viewMode={viewMode}
             setViewMode={setViewMode}
             resultsCount={filtered.length}
           />
+
+          {/* Taxonomy Filters */}
+          <div className="max-w-4xl mx-auto mb-8">
+            <div className="bg-white rounded-xl border border-border p-4">
+              <div className="flex flex-wrap gap-3 items-end">
+                {/* Spécialité */}
+                <Select
+                  value={selectedSpeciality !== null ? String(selectedSpeciality) : "__all__"}
+                  onValueChange={handleSpecialityChange}
+                >
+                  <SelectTrigger className="h-10 w-[200px]">
+                    <SelectValue placeholder="Toutes les spécialités" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">Toutes les spécialités</SelectItem>
+                    {allSpecialities.map((sp) => (
+                      <SelectItem key={sp.id} value={String(sp.id)}>
+                        {sp.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Compétence — single select popover */}
+                <Popover open={skillsOpen} onOpenChange={setSkillsOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="h-10 w-[220px] justify-between font-normal"
+                    >
+                      <span className="truncate text-sm">
+                        {selectedSkillObj ? selectedSkillObj.name : "Toutes les compétences"}
+                      </span>
+                      <ChevronDown size={14} className="ml-2 flex-shrink-0 text-muted-foreground" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[240px] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Rechercher…" />
+                      <CommandList>
+                        <CommandEmpty>Aucune compétence trouvée.</CommandEmpty>
+                        <CommandGroup>
+                          {visibleSkills.map((skill) => (
+                            <CommandItem
+                              key={skill.id}
+                              onSelect={() => handleSkillSelect(skill.id)}
+                              className="flex items-center gap-2 cursor-pointer"
+                            >
+                              <Checkbox
+                                checked={selectedSkillId === skill.id}
+                                className="pointer-events-none"
+                              />
+                              <span>{skill.name}</span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+
+                {/* Reset */}
+                {hasActiveFilters && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-10 text-destructive hover:text-destructive gap-1"
+                    onClick={resetFilters}
+                  >
+                    <X size={14} />
+                    Réinitialiser
+                  </Button>
+                )}
+              </div>
+
+              {/* Active filter badges */}
+              {hasActiveFilters && (
+                <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border">
+                  {selectedSpecialityObj && (
+                    <Badge
+                      variant="secondary"
+                      className="gap-1 cursor-pointer"
+                      onClick={() => { setSelectedSpeciality(null); setPage(1); }}
+                    >
+                      {selectedSpecialityObj.name}
+                      <X size={11} />
+                    </Badge>
+                  )}
+                  {selectedSkillObj && (
+                    <Badge
+                      variant="secondary"
+                      className="gap-1 cursor-pointer"
+                      onClick={() => { setSelectedSkillId(null); setPage(1); }}
+                    >
+                      {selectedSkillObj.name}
+                      <X size={11} />
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
 
           {isLoading ? (
             <div className="flex justify-center py-20">
@@ -96,28 +266,19 @@ const Freelancers = () => {
                 ))}
               </div>
 
-              {data?.next && (
-                <div className="text-center mt-12">
-                  <Button variant="outline" onClick={() => setPage((p) => p + 1)}>
-                    <Users size={16} className="mr-2" />
-                    Découvrir Plus de Talents
-                  </Button>
-                </div>
-              )}
+              <PagePagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
-              {filtered.length > 0 && (
-                <div className="mt-16 bg-primary rounded-2xl p-10 text-center">
-                  <h2 className="text-2xl font-bold text-white mb-3">
-                    Vous êtes un Talent ?
-                  </h2>
-                  <p className="text-white/80 mb-6 max-w-xl mx-auto">
-                    Rejoignez notre communauté de freelancers et accédez à des projets exceptionnels
-                  </p>
-                  <Button variant="cta" asChild>
-                    <Link to="/signup">Créer Mon Profil Gratuitement</Link>
-                  </Button>
-                </div>
-              )}
+              <div className="mt-16 bg-primary rounded-2xl p-10 text-center">
+                <h2 className="text-2xl font-bold text-white mb-3">
+                  Vous êtes un Talent ?
+                </h2>
+                <p className="text-white/80 mb-6 max-w-xl mx-auto">
+                  Rejoignez notre communauté de freelancers et accédez à des projets exceptionnels
+                </p>
+                <Button variant="cta" asChild>
+                  <Link to="/signup">Créer Mon Profil Gratuitement</Link>
+                </Button>
+              </div>
             </>
           ) : (
             <div className="text-center py-20">
@@ -128,7 +289,7 @@ const Freelancers = () => {
               </p>
               <Button
                 variant="outline"
-                onClick={() => { setSearch(""); setActiveFilter("Tous"); }}
+                onClick={() => { setSearch(""); resetFilters(); }}
               >
                 Réinitialiser les filtres
               </Button>
