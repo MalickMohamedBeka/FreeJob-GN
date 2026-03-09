@@ -6,6 +6,7 @@ import Timeline3D from "@/components/about/Timeline3D";
 import Team3D from "@/components/about/Team3D";
 import FAQ3D from "@/components/about/FAQ3D";
 import Stats3D from "@/components/about/Stats3D";
+import Mission3D from "@/components/about/Mission3D";
 
 const About = () => {
   return (
@@ -14,6 +15,7 @@ const About = () => {
       <main className="pt-16">
         <AboutHero3D />
         <Stats3D />
+        <Mission3D />
         <Values3D />
         {/* <Timeline3D /> */}
         <Team3D />

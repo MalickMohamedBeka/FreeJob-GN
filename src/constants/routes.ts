@@ -10,6 +10,7 @@ export const ROUTES = {
   FREELANCERS: '/freelancers',
   FREELANCER_PROFILE: '/freelancers/:id',
   ABOUT: '/about',
+  HOW_IT_WORKS: '/comment-ca-marche',
   
   // Auth routes
   LOGIN: '/login',
@@ -49,7 +50,6 @@ export const ROUTES = {
     PROFILE: '/client/profile',
     PAYMENT_RETURN: '/client/payment/return',
     NOTIFICATIONS: '/client/notifications',
-    WALLET: '/client/wallet',
   },
 } as const;
 

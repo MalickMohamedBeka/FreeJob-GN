@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { Spotlight } from "@/components/ui/spotlight";
 import heroImage from "@/assets/hero-illustration.jpg";
 
 const fadeUp = (delay = 0) => ({
@@ -12,8 +13,11 @@ const fadeUp = (delay = 0) => ({
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
-      <div className="container mx-auto px-4 lg:px-8 pt-24 pb-16">
+    <section className="relative min-h-screen flex items-center overflow-hidden bg-white">
+      {/* Subtle Spotlight */}
+      <Spotlight className="-top-40 left-0 md:-top-20 md:left-48 opacity-30" fill="hsl(231,68%,32%)" />
+
+      <div className="container mx-auto px-4 lg:px-8 pt-24 pb-16 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left — Content */}
           <div className="max-w-xl">

@@ -8,6 +8,7 @@ const navLinks = [
   { label: "Accueil", path: "/" },
   { label: "Freelancers", path: "/freelancers" },
   { label: "Projets", path: "/projects" },
+  { label: "Comment ça marche", path: "/comment-ca-marche" },
   { label: "À Propos", path: "/about" },
 ];
 
@@ -52,13 +53,15 @@ const Navbar = () => {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
-          isScrolled ? "bg-white border-b border-border shadow-sm" : "bg-white/95"
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? "bg-white/95 backdrop-blur-md border-b border-border shadow-[0_1px_12px_0_rgba(0,0,0,0.06)]"
+            : "bg-white/80 backdrop-blur-sm"
         }`}
       >
         <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="FreeJobGN" className="h-14 w-auto" />
+            <img src="/logo.png" alt="FreeJobGN" className="h-24 w-auto object-contain" />
           </Link>
 
           {/* Desktop Nav */}
@@ -67,8 +70,10 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  location.pathname === link.path ? "text-primary" : "text-foreground/70"
+                className={`relative text-sm font-medium transition-colors hover:text-primary pb-0.5 ${
+                  location.pathname === link.path
+                    ? "text-primary after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-primary"
+                    : "text-foreground/70"
                 }`}
               >
                 {link.label}
@@ -124,7 +129,7 @@ const Navbar = () => {
             {/* Header */}
             <div className="flex items-center justify-between px-5 h-16 border-b border-border flex-shrink-0">
               <Link to="/" onClick={close} className="flex items-center">
-                <img src="/logo.png" alt="FreeJobGN" className="h-10 w-auto" />
+                <img src="/logo.png" alt="FreeJobGN" className="h-20 w-auto object-contain" />
               </Link>
               <button
                 onClick={close}

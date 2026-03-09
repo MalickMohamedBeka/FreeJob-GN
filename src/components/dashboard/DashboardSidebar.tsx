@@ -45,7 +45,6 @@ const clientMenuItems = [
   { icon: Briefcase,       label: "Mes Projets",   path: "/client/projects" },
   { icon: FileText,        label: "Propositions",  path: "/client/proposals" },
   { icon: FileCheck,       label: "Contrats",      path: "/client/contracts" },
-  { icon: Wallet,          label: "Portefeuille",  path: "/client/wallet" },
   { icon: MessageSquare,   label: "Messages",      path: "/client/messages" },
   { icon: Bell,            label: "Notifications", path: "/client/notifications", badge: true },
   { icon: User,            label: "Mon Profil",    path: "/client/profile" },
