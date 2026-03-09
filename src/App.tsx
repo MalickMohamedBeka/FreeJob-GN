@@ -46,6 +46,7 @@ const Notifications = lazy(() => import("./pages/dashboard/Notifications"));
 const Wallet = lazy(() => import("./pages/dashboard/Wallet"));
 const AccountActivation = lazy(() => import("./pages/AccountActivation"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
+const CommentCaMarche = lazy(() => import("./pages/CommentCaMarche"));
 
 /**
  * Normalises URLs with consecutive slashes (e.g. //activate → /activate).
@@ -97,6 +98,7 @@ const App = () => (
               <Route path={ROUTES.FREELANCERS} element={<Freelancers />} />
               <Route path={ROUTES.FREELANCER_PROFILE} element={<FreelancerProfile />} />
               <Route path={ROUTES.ABOUT} element={<About />} />
+              <Route path={ROUTES.HOW_IT_WORKS} element={<CommentCaMarche />} />
               <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLogin />} />
               <Route path="/activate" element={<AccountActivation />} />
               <Route path={ROUTES.ONBOARDING} element={<Onboarding />} />
@@ -129,9 +131,6 @@ const App = () => (
               } />
               <Route path={ROUTES.CLIENT.NOTIFICATIONS} element={
                 <ProtectedRoute requiredRole="CLIENT"><Notifications /></ProtectedRoute>
-              } />
-              <Route path={ROUTES.CLIENT.WALLET} element={
-                <ProtectedRoute requiredRole="CLIENT"><Wallet /></ProtectedRoute>
               } />
 
               {/* Freelancer dashboard (protected) */}

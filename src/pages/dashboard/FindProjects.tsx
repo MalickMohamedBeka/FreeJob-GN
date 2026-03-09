@@ -45,6 +45,7 @@ import {
   SendHorizonal,
   ChevronDown,
   X,
+  CreditCard,
 } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useCreateProposal } from "@/hooks/useProposals";
@@ -52,6 +53,8 @@ import { useAllSkills, useAllSpecialities } from "@/hooks/useTaxonomy";
 import { useDebounce } from "@/hooks";
 import { ApiError } from "@/services/api.service";
 import type { ApiProjectList } from "@/types";
+import { ROUTES } from "@/constants/routes";
+import { Link } from "react-router-dom";
 
 
 // ── Submit Proposal Dialog ────────────────────────────────────────────────────
@@ -69,6 +72,7 @@ function SubmitProposalDialog({
   const [durationDays, setDurationDays] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const create = useCreateProposal();
 
   const reset = () => {
@@ -76,6 +80,7 @@ function SubmitProposalDialog({
     setDurationDays("");
     setMessage("");
     setError("");
+    setErrorCode(null);
   };
 
   const handleOpenChange = (v: boolean) => {
@@ -87,9 +92,11 @@ function SubmitProposalDialog({
     if (!project) return;
     if (!price || !durationDays || !message.trim()) {
       setError("Tous les champs sont obligatoires.");
+      setErrorCode(null);
       return;
     }
     setError("");
+    setErrorCode(null);
     try {
       await create.mutateAsync({
         project_id: project.id,
@@ -99,7 +106,13 @@ function SubmitProposalDialog({
       });
       handleOpenChange(false);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Une erreur est survenue.");
+      if (err instanceof ApiError) {
+        const code = (err.data as { code?: string })?.code ?? null;
+        setErrorCode(code);
+        setError(err.message);
+      } else {
+        setError("Une erreur est survenue.");
+      }
     }
   };
 
@@ -154,7 +167,43 @@ function SubmitProposalDialog({
             />
           </div>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && (
+            <div className={`rounded-lg p-3 text-sm ${
+              errorCode === 'active_subscription_required'
+                ? 'bg-primary/5 border border-primary/20'
+                : 'bg-destructive/5 border border-destructive/20'
+            }`}>
+              <p className={errorCode === 'active_subscription_required' ? 'text-primary font-medium' : 'text-destructive'}>
+                {errorCode === 'monthly_credits_exhausted'
+                  ? 'Quota mensuel atteint — vos crédits du mois sont épuisés.'
+                  : errorCode === 'annual_credits_exhausted'
+                  ? 'Quota annuel atteint — vos crédits annuels sont épuisés.'
+                  : errorCode === 'monthly_credits_not_allowed'
+                  ? 'Votre abonnement ne permet pas de crédits mensuels.'
+                  : error}
+              </p>
+              {errorCode === 'active_subscription_required' && (
+                <Link
+                  to={ROUTES.DASHBOARD.EARNINGS}
+                  className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary underline underline-offset-2"
+                  onClick={() => handleOpenChange(false)}
+                >
+                  <CreditCard size={12} />
+                  Souscrire un abonnement
+                </Link>
+              )}
+              {(errorCode === 'monthly_credits_exhausted' || errorCode === 'annual_credits_exhausted') && (
+                <Link
+                  to={ROUTES.DASHBOARD.EARNINGS}
+                  className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground underline underline-offset-2"
+                  onClick={() => handleOpenChange(false)}
+                >
+                  <CreditCard size={12} />
+                  Voir mon abonnement
+                </Link>
+              )}
+            </div>
+          )}
         </div>
 
         <DialogFooter>

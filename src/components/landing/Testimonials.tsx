@@ -1,32 +1,55 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Star, Quote } from "lucide-react";
-import { mockTestimonials } from "@/lib/mockData";
+import { motion } from "framer-motion";
+import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
+
+const testimonials = [
+  {
+    quote: "FreeJobGN a transformé la façon dont nous trouvons des talents. En quelques jours, nous avons trouvé le développeur parfait pour notre projet.",
+    name: "Mamadou Bah",
+    title: "CEO, TechStart Guinea",
+    rating: 5,
+  },
+  {
+    quote: "Grâce à FreeJobGN, j'ai pu développer ma carrière de freelance et travailler avec des clients incroyables en Guinée et à l'international.",
+    name: "Aissatou Diallo",
+    title: "Freelance Designer",
+    rating: 5,
+  },
+  {
+    quote: "La qualité des freelancers sur cette plateforme est exceptionnelle. Nos projets sont livrés dans les temps et dépassent nos attentes.",
+    name: "Ibrahim Keita",
+    title: "Directeur Marketing, AfricaConnect",
+    rating: 5,
+  },
+  {
+    quote: "Le système de paiement sécurisé m'a donné confiance pour démarrer mes premières collaborations. Je recommande à tous les entrepreneurs guinéens.",
+    name: "Fatoumata Sow",
+    title: "Fondatrice, Conakry Digital",
+    rating: 5,
+  },
+  {
+    quote: "Enfin une plateforme qui comprend le marché africain ! Les tarifs sont adaptés et les freelancers sont vraiment professionnels.",
+    name: "Boubacar Camara",
+    title: "CTO, AfriPay",
+    rating: 5,
+  },
+  {
+    quote: "J'ai décroché 3 contrats en moins d'une semaine après mon inscription. FreeJobGN est incontournable pour les freelancers guinéens.",
+    name: "Mariama Kouyaté",
+    title: "Développeuse Full-Stack",
+    rating: 5,
+  },
+];
 
 const Testimonials = () => {
-  const [current, setCurrent] = useState(0);
-  const [direction, setDirection] = useState(1);
-
-  const next = () => {
-    setDirection(1);
-    setCurrent((c) => (c + 1) % mockTestimonials.length);
-  };
-  const prev = () => {
-    setDirection(-1);
-    setCurrent((c) => (c - 1 + mockTestimonials.length) % mockTestimonials.length);
-  };
-
-  const t = mockTestimonials[current];
-
   return (
-    <section className="py-20 lg:py-28 bg-muted/40">
+    <section className="py-20 lg:py-28 bg-muted/40 overflow-hidden">
       <div className="container mx-auto px-4 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="text-center max-w-2xl mx-auto mb-16"
+          className="text-center max-w-2xl mx-auto mb-14"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Ce que disent nos <span className="text-secondary">utilisateurs</span>
@@ -35,79 +58,22 @@ const Testimonials = () => {
             Des milliers de professionnels nous font confiance.
           </p>
         </motion.div>
-
-        <div className="max-w-3xl mx-auto">
-          <div className="relative overflow-hidden rounded-2xl border border-border bg-white min-h-[260px]">
-            <AnimatePresence mode="wait" custom={direction}>
-              <motion.div
-                key={current}
-                custom={direction}
-                initial={{ opacity: 0, x: direction * 60 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: direction * -60 }}
-                transition={{ duration: 0.35, ease: "easeInOut" }}
-                className="p-8 md:p-12 relative"
-              >
-                <Quote className="absolute top-6 right-6 text-primary/20" size={40} />
-
-                <p className="text-lg leading-relaxed text-foreground mb-8">
-                  "{t.content}"
-                </p>
-
-                <div className="flex justify-center gap-1 mb-6">
-                  {[...Array(t.rating)].map((_, i) => (
-                    <Star key={i} size={18} className="fill-warning text-warning" />
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold">
-                    {t.name.split(" ").slice(0, 2).map((w: string) => w[0]).join("")}
-                  </div>
-                  <div className="text-left">
-                    <p className="font-semibold">{t.name}</p>
-                    <p className="text-sm text-muted-foreground">{t.role}</p>
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          <div className="flex justify-center items-center gap-4 mt-8">
-            <button
-              onClick={prev}
-              className="w-10 h-10 rounded-full border border-border bg-white flex items-center justify-center hover:bg-muted transition-colors"
-              aria-label="Précédent"
-            >
-              <ChevronLeft size={20} />
-            </button>
-
-            <div className="flex items-center gap-2">
-              {mockTestimonials.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    setDirection(i > current ? 1 : -1);
-                    setCurrent(i);
-                  }}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    i === current ? "bg-primary w-6" : "bg-border w-2 hover:bg-muted-foreground"
-                  }`}
-                  aria-label={`Témoignage ${i + 1}`}
-                />
-              ))}
-            </div>
-
-            <button
-              onClick={next}
-              className="w-10 h-10 rounded-full border border-border bg-white flex items-center justify-center hover:bg-muted transition-colors"
-              aria-label="Suivant"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
-        </div>
       </div>
+
+      {/* Full-width scrolling row 1 — left */}
+      <InfiniteMovingCards
+        items={testimonials}
+        direction="left"
+        speed="slow"
+        className="mb-4"
+      />
+
+      {/* Full-width scrolling row 2 — right (reversed) */}
+      <InfiniteMovingCards
+        items={[...testimonials].reverse()}
+        direction="right"
+        speed="slow"
+      />
     </section>
   );
 };

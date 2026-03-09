@@ -1,26 +1,40 @@
 import { motion } from "framer-motion";
 import { Search, Shield, Zap, Globe } from "lucide-react";
+import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
 
+const FeatureHeader = ({ gradient }: { gradient: string }) => (
+  <div className={`h-full w-full rounded-xl bg-gradient-to-br ${gradient} opacity-80`} />
+);
+
+// 4 items: row 1 = span-2 + span-1, row 2 = span-1 + span-2 → perfectly fills a 3-col grid
 const features = [
   {
-    icon: Search,
+    icon: <Search className="text-primary" size={22} />,
     title: "Trouvez le Talent Idéal",
-    description: "Parcourez des milliers de freelancers qualifiés et trouvez l'expert parfait pour votre projet.",
+    description: "Parcourez des milliers de freelancers qualifiés avec filtres par compétence, tarif et localisation. Comparez les profils, avis et tarifs en un coup d'œil.",
+    header: <FeatureHeader gradient="from-primary/10 to-secondary/10" />,
+    className: "md:col-span-2",
   },
   {
-    icon: Shield,
+    icon: <Shield className="text-secondary" size={22} />,
     title: "Paiements Sécurisés",
-    description: "Vos transactions sont protégées. Le freelancer est payé uniquement lorsque vous êtes satisfait.",
+    description: "Fonds bloqués en escrow, libérés uniquement à votre validation.",
+    header: <FeatureHeader gradient="from-secondary/10 to-primary/5" />,
+    className: "md:col-span-1",
   },
   {
-    icon: Zap,
+    icon: <Zap className="text-cta" size={22} />,
     title: "Rapidité d'Exécution",
-    description: "Recevez des propositions en quelques minutes et démarrez votre projet immédiatement.",
+    description: "Recevez des propositions en quelques minutes et démarrez immédiatement.",
+    header: <FeatureHeader gradient="from-cta/10 to-cta/5" />,
+    className: "md:col-span-1",
   },
   {
-    icon: Globe,
-    title: "Talents Locaux & Internationaux",
-    description: "Accédez aux meilleurs talents de Guinée et d'Afrique pour des projets de qualité mondiale.",
+    icon: <Globe className="text-primary" size={22} />,
+    title: "Talents Locaux & Africains",
+    description: "Accédez aux meilleurs profils de Guinée et d'Afrique pour des résultats de qualité mondiale. 0% de commission sur vos revenus, paiement via Mobile Money.",
+    header: <FeatureHeader gradient="from-primary/10 to-secondary/10" />,
+    className: "md:col-span-2",
   },
 ];
 
@@ -43,29 +57,25 @@ const Features = () => {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.45, ease: "easeOut", delay: index * 0.1 }}
-              whileHover={{ y: -6, transition: { duration: 0.2 } }}
-              className="group bg-white rounded-xl p-6 border border-border hover:shadow-md transition-shadow cursor-default"
-            >
-              <div className="w-12 h-12 rounded-lg bg-primary flex items-center justify-center mb-5 transition-transform duration-200 group-hover:scale-110">
-                <feature.icon className="text-white" size={22} />
-              </div>
-              <h3 className="text-lg font-bold mb-2 group-hover:text-primary transition-colors duration-200">
-                {feature.title}
-              </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                {feature.description}
-              </p>
-            </motion.div>
-          ))}
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+        >
+          <BentoGrid className="max-w-5xl mx-auto">
+            {features.map((feature) => (
+              <BentoGridItem
+                key={feature.title}
+                title={feature.title}
+                description={feature.description}
+                header={feature.header}
+                icon={feature.icon}
+                className={feature.className}
+              />
+            ))}
+          </BentoGrid>
+        </motion.div>
       </div>
     </section>
   );

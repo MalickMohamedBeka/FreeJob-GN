@@ -468,8 +468,27 @@ export interface ApiSubscriptionPlan {
   is_annual: boolean;
   features: Record<string, unknown>;
   limits: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
   is_active: boolean;
   is_featured: boolean;
+}
+
+export interface ApiSubscriptionCreditSnapshot {
+  monthly_used: number;
+  monthly_limit: number;
+  monthly_remaining: number;
+  annual_used?: number;
+  annual_limit?: number;
+  annual_remaining?: number;
+}
+
+export interface ApiSubscriptionEntitlements {
+  freejobgn_rank_stars?: number;
+  client_contact_visible?: boolean;
+  own_contact_visible?: boolean;
+  premium_email_alerts?: boolean;
+  suggested_profile?: boolean;
+  [key: string]: unknown;
 }
 
 export interface ApiSubscription {
@@ -483,6 +502,8 @@ export interface ApiSubscription {
   auto_renew: boolean;
   current_period_start: string | null;
   current_period_end: string | null;
+  entitlements: ApiSubscriptionEntitlements;
+  credit_snapshot: ApiSubscriptionCreditSnapshot;
   created_at: string;
   updated_at: string;
 }
@@ -503,6 +524,9 @@ export interface ApiSubscriptionUsage {
   period_start: string;
   period_end: string;
   client_contacts_used: number;
+  credits_used: number;
+  credits_limit: number;
+  credits_remaining: number;
   last_reset_at: string;
 }
 
@@ -517,10 +541,10 @@ export interface SubscribeRequest {
 }
 
 export interface SubscribeResponse {
-  transaction_id?: string;
+  subscription_id: string;
   redirect_url: string;
-  status: string;
-  details?: Record<string, unknown>;
+  transaction_id: string;
+  status: string | null;
 }
 
 // ── Error ──
@@ -531,8 +555,6 @@ export interface ApiErrorResponse {
 }
 
 // ── Wallet ──
-
-export type CurrencyEnum = 'GNF' | 'EUR' | 'USD';
 
 export type TransactionTypeEnum =
   | 'DEPOSIT'
@@ -658,4 +680,52 @@ export interface ApiNotificationTypeInfo {
   value: string;
   label: string;
   default_channels: string[];
+}
+
+// ── Rankings ──
+
+export type StarsEnum = 0 | 1 | 2 | 3;
+
+export interface ApiProviderRank {
+  provider_id: number;
+  provider_username: string;
+  score: string;
+  computed_score: string;
+  manual_adjustment: string;
+  position: number;
+  stars: StarsEnum;
+  tier: TierEnum;
+  breakdown: Record<string, unknown>;
+  computed_at: string;
+}
+
+export interface ApiProviderRankHistory {
+  id: number;
+  provider_id: number;
+  score: string;
+  position: number;
+  stars: StarsEnum;
+  period_start: string;
+  period_end: string;
+  breakdown: Record<string, unknown>;
+  computed_at: string;
+}
+
+export interface ApiProviderReview {
+  id: number;
+  contract: string;
+  provider: number;
+  provider_username: string;
+  client: number;
+  client_username: string;
+  rating: number;
+  comment: string;
+  project_budget: string;
+  created_at: string;
+}
+
+export interface ApiProviderReviewCreateRequest {
+  contract: string;
+  rating: number;
+  comment?: string;
 }

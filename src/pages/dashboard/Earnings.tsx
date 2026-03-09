@@ -27,6 +27,8 @@ import {
   XCircle,
   Calendar,
   CheckCircle2,
+  CreditCard,
+  TrendingUp,
 } from "lucide-react";
 import {
   useSubscriptionPlans,
@@ -500,6 +502,9 @@ function HistoriqueSection({
   usageList: {
     id: number;
     client_contacts_used: number;
+    credits_used: number;
+    credits_limit: number;
+    credits_remaining: number;
     period_start: string;
     period_end: string;
   }[];
@@ -602,17 +607,31 @@ function HistoriqueSection({
       ) : (
         <div className="grid sm:grid-cols-2 gap-3">
           {usageList.map((usage) => (
-            <div key={usage.id} className="p-4 rounded-xl border bg-muted/20">
-              <p className="text-2xl font-bold text-primary">
-                {usage.client_contacts_used}
-              </p>
+            <div key={usage.id} className="p-4 rounded-xl border bg-muted/20 space-y-2">
               <p className="text-xs text-muted-foreground">
-                Contacts clients utilisés
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
                 {new Date(usage.period_start).toLocaleDateString("fr-FR")} —{" "}
                 {new Date(usage.period_end).toLocaleDateString("fr-FR")}
               </p>
+              <div className="flex gap-4">
+                <div>
+                  <p className="text-2xl font-bold text-primary">{usage.credits_used}</p>
+                  <p className="text-xs text-muted-foreground">crédits utilisés</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-cta">{usage.credits_remaining}</p>
+                  <p className="text-xs text-muted-foreground">
+                    restants / {usage.credits_limit}
+                  </p>
+                </div>
+              </div>
+              {usage.credits_limit > 0 && (
+                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all"
+                    style={{ width: `${Math.min(100, (usage.credits_used / usage.credits_limit) * 100)}%` }}
+                  />
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -661,7 +680,6 @@ function SubscribeDialog({
       },
       {
         onSuccess: (response) => {
-          alert(JSON.stringify(response))
           if (response?.redirect_url) {
             window.location.href = response.redirect_url;
             toast({ title: "Abonnement initié." });
@@ -822,60 +840,107 @@ const Earnings = () => {
               Aucun abonnement actif. Choisissez une formule ci-dessous.
             </p>
           ) : (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <CheckCircle2 size={18} className="text-primary" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-sm">
-                      {subscription.plan.name}
-                    </span>
-                    <TierBadge
-                      planIndex={Math.max(
-                        0,
-                        (TIER_ORDER[subscription.plan.tier] ?? 1) - 1,
-                      )}
-                    />
-                    {subscription.is_active ? (
-                      <span className="text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full font-medium">
-                        Actif
-                      </span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                        Inactif
-                      </span>
-                    )}
-                    {subscription.is_active && !subscription.auto_renew && (
-                      <span className="text-xs text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full font-medium">
-                        Résiliation programmée
-                      </span>
-                    )}
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 size={18} className="text-primary" />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-3 flex-wrap">
-                    {subscription.end_date && (
-                      <span className="flex items-center gap-1">
-                        <Calendar size={10} />
-                        {subscription.auto_renew ? "Expire le" : "Accès jusqu'au"}{" "}
-                        {new Date(subscription.end_date).toLocaleDateString("fr-FR")}
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-sm">
+                        {subscription.plan.name}
                       </span>
-                    )}
-                  </p>
+                      <TierBadge
+                        planIndex={Math.max(
+                          0,
+                          (TIER_ORDER[subscription.plan.tier] ?? 1) - 1,
+                        )}
+                      />
+                      {subscription.is_active ? (
+                        <span className="text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full font-medium">
+                          Actif
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                          Inactif
+                        </span>
+                      )}
+                      {subscription.is_active && !subscription.auto_renew && (
+                        <span className="text-xs text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full font-medium">
+                          Résiliation programmée
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-3 flex-wrap">
+                      {subscription.end_date && (
+                        <span className="flex items-center gap-1">
+                          <Calendar size={10} />
+                          {subscription.auto_renew ? "Expire le" : "Accès jusqu'au"}{" "}
+                          {new Date(subscription.end_date).toLocaleDateString("fr-FR")}
+                        </span>
+                      )}
+                      {(subscription.entitlements?.freejobgn_rank_stars ?? 0) > 0 && (
+                        <span className="flex items-center gap-1">
+                          <StarRating count={subscription.entitlements.freejobgn_rank_stars as number} />
+                          <span className="ml-0.5">Classement</span>
+                        </span>
+                      )}
+                    </p>
+                  </div>
                 </div>
+                {subscription.is_active && subscription.auto_renew && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive border-destructive/40 hover:bg-destructive/5 text-xs"
+                    onClick={() => setShowCancel(true)}
+                  >
+                    <XCircle size={13} className="mr-1.5" />
+                    Annuler l'abonnement
+                  </Button>
+                )}
               </div>
-              {subscription.is_active && subscription.auto_renew && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-destructive border-destructive/40 hover:bg-destructive/5 text-xs"
-                  onClick={() => setShowCancel(true)}
-                >
-                  <XCircle size={13} className="mr-1.5" />
-                  Annuler l'abonnement
-                </Button>
+
+              {/* Credit snapshot */}
+              {subscription.credit_snapshot && (
+                <div className="mt-4 pt-4 border-t border-border grid sm:grid-cols-3 gap-3">
+                  <div className="p-3 rounded-xl bg-muted/30 text-center">
+                    <p className="text-[11px] text-muted-foreground mb-1 flex items-center justify-center gap-1">
+                      <CreditCard size={11} /> Crédits mensuels
+                    </p>
+                    <p className="text-lg font-bold text-primary">
+                      {subscription.credit_snapshot.monthly_remaining ?? "—"}
+                      <span className="text-xs font-normal text-muted-foreground ml-1">
+                        / {subscription.credit_snapshot.monthly_limit ?? "—"}
+                      </span>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">restants</p>
+                  </div>
+                  {subscription.credit_snapshot.annual_limit !== undefined && (
+                    <div className="p-3 rounded-xl bg-muted/30 text-center">
+                      <p className="text-[11px] text-muted-foreground mb-1 flex items-center justify-center gap-1">
+                        <TrendingUp size={11} /> Crédits annuels
+                      </p>
+                      <p className="text-lg font-bold text-primary">
+                        {subscription.credit_snapshot.annual_remaining ?? "—"}
+                        <span className="text-xs font-normal text-muted-foreground ml-1">
+                          / {subscription.credit_snapshot.annual_limit ?? "—"}
+                        </span>
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">restants</p>
+                    </div>
+                  )}
+                  <div className="p-3 rounded-xl bg-muted/30 text-center">
+                    <p className="text-[11px] text-muted-foreground mb-1">Utilisés ce mois</p>
+                    <p className="text-lg font-bold text-cta">
+                      {subscription.credit_snapshot.monthly_used ?? "—"}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">propositions envoyées</p>
+                  </div>
+                </div>
               )}
-            </div>
+            </>
           )}
         </Card>
 
