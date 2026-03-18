@@ -25,6 +25,7 @@ export const ROUTES = {
     MY_PROJECTS: '/dashboard/projects',
     PROPOSALS: '/dashboard/proposals',
     EARNINGS: '/dashboard/earnings',
+    SUBSCRIPTION: '/dashboard/subscription',
     MESSAGES: '/dashboard/messages',
     PROFILE: '/dashboard/profile',
     SETTINGS: '/dashboard/settings',

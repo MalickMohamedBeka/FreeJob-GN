@@ -20,8 +20,10 @@ import {
   ChevronDown,
   ChevronUp,
   CreditCard,
+  Flag,
+  ThumbsUp,
 } from "lucide-react";
-import { useContracts, useContractSummary, useInitiatePayment } from "@/hooks/useContracts";
+import { useContracts, useContractSummary, useInitiatePayment, useRequestCompletion, useConfirmCompletion } from "@/hooks/useContracts";
 import { useToast } from "@/hooks/use-toast";
 import type { ApiContractList } from "@/types";
 
@@ -199,11 +201,29 @@ function PaymentDialog({
 const ClientContracts = () => {
   const { data, isLoading } = useContracts();
   const contracts = data?.results ?? [];
+  const { toast } = useToast();
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [payingContract, setPayingContract] = useState<ApiContractList | null>(null);
 
+  const requestCompletion = useRequestCompletion();
+  const confirmCompletion = useConfirmCompletion();
+
   const toggle = (id: string) => setExpandedId((prev) => (prev === id ? null : id));
+
+  const handleRequestCompletion = (contractId: string) => {
+    requestCompletion.mutate(contractId, {
+      onSuccess: () => toast({ title: "Fin de mission signalée", description: "Le prestataire recevra une notification pour confirmer." }),
+      onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Une erreur est survenue.", variant: "destructive" }),
+    });
+  };
+
+  const handleConfirmCompletion = (contractId: string) => {
+    confirmCompletion.mutate(contractId, {
+      onSuccess: () => toast({ title: "Contrat terminé !", description: "Le contrat a été clôturé avec succès." }),
+      onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Une erreur est survenue.", variant: "destructive" }),
+    });
+  };
 
   return (
     <DashboardLayout userType="client">
@@ -325,6 +345,34 @@ const ClientContracts = () => {
                           <CreditCard size={14} />
                           Payer
                         </Button>
+                      )}
+
+                      {contract.status === "IN_PROGRESS" && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-2 border-primary text-primary hover:bg-primary hover:text-white"
+                            onClick={() => handleRequestCompletion(contract.id)}
+                            disabled={requestCompletion.isPending && requestCompletion.variables === contract.id}
+                          >
+                            {requestCompletion.isPending && requestCompletion.variables === contract.id
+                              ? <Loader2 size={14} className="animate-spin" />
+                              : <Flag size={14} />}
+                            Signaler la fin
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="gap-2"
+                            onClick={() => handleConfirmCompletion(contract.id)}
+                            disabled={confirmCompletion.isPending && confirmCompletion.variables === contract.id}
+                          >
+                            {confirmCompletion.isPending && confirmCompletion.variables === contract.id
+                              ? <Loader2 size={14} className="animate-spin" />
+                              : <ThumbsUp size={14} />}
+                            Confirmer la complétion
+                          </Button>
+                        </>
                       )}
 
                       <Button

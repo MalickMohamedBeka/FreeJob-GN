@@ -13,6 +13,7 @@ import {
   FileCheck,
   Bell,
   Wallet,
+  Crown,
   X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,7 +33,7 @@ const freelancerMenuItems = [
   { icon: Search,          label: "Trouver des Projets", path: "/dashboard/find-projects" },
   { icon: Briefcase,       label: "Mes Projets",         path: "/dashboard/projects" },
   { icon: FileText,        label: "Propositions",        path: "/dashboard/proposals" },
-  { icon: Coins,           label: "Abonnement",          path: "/dashboard/earnings" },
+  { icon: Crown,           label: "Abonnement",          path: "/dashboard/subscription" },
   { icon: Wallet,          label: "Portefeuille",        path: "/dashboard/wallet" },
   { icon: MessageSquare,   label: "Messages",            path: "/dashboard/messages" },
   { icon: Bell,            label: "Notifications",       path: "/dashboard/notifications", badge: true },

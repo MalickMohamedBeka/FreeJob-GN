@@ -36,6 +36,8 @@ export {
   useInitiatePayment,
   useCheckTransactionStatus,
   useConfirmOTP,
+  useRequestCompletion,
+  useConfirmCompletion,
 } from './useContracts';
 export {
   useFreelanceProfile,
@@ -82,6 +84,7 @@ export {
   useProviderRank,
   useProviderRankHistory,
   useProviderReviews,
+  useReviewDetail,
   useCreateReview,
   usePortfolio,
 } from './useRankings';

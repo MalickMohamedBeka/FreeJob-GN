@@ -44,6 +44,7 @@ const Profile = lazy(() => import("./pages/dashboard/Profile"));
 const Settings = lazy(() => import("./pages/dashboard/Settings"));
 const Notifications = lazy(() => import("./pages/dashboard/Notifications"));
 const Wallet = lazy(() => import("./pages/dashboard/Wallet"));
+const Subscriptions = lazy(() => import("./pages/dashboard/Subscriptions"));
 const AccountActivation = lazy(() => import("./pages/AccountActivation"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const CommentCaMarche = lazy(() => import("./pages/CommentCaMarche"));
@@ -163,6 +164,9 @@ const App = () => (
               } />
               <Route path={ROUTES.DASHBOARD.WALLET} element={
                 <ProtectedRoute requiredRole="PROVIDER"><Wallet /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.DASHBOARD.SUBSCRIPTION} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Subscriptions /></ProtectedRoute>
               } />
 
               <Route path="*" element={<NotFound />} />

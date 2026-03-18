@@ -12,8 +12,11 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
+  Flag,
+  ThumbsUp,
 } from "lucide-react";
-import { useContracts, useContractSummary } from "@/hooks/useContracts";
+import { useContracts, useContractSummary, useRequestCompletion, useConfirmCompletion } from "@/hooks/useContracts";
+import { useToast } from "@/hooks/use-toast";
 import type { ApiContractList } from "@/types";
 
 // ── Contract status styling ───────────────────────────────────────────────────
@@ -77,15 +80,50 @@ function ContractSummarySection({ contractId }: { contractId: string }) {
 function ContractCard({
   contract,
   index,
+  userRole,
 }: {
   contract: ApiContractList;
   index: number;
+  userRole: "freelancer" | "client";
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { toast } = useToast();
+  const requestCompletion = useRequestCompletion();
+  const confirmCompletion = useConfirmCompletion();
 
   const config = statusConfig[contract.status] ?? {
     label: contract.status_display,
     badgeClass: "bg-muted text-foreground",
+  };
+
+  const handleRequestCompletion = () => {
+    requestCompletion.mutate(contract.id, {
+      onSuccess: () => {
+        toast({ title: "Fin de mission signalée", description: "Le client recevra une notification pour confirmer." });
+      },
+      onError: (err) => {
+        toast({
+          title: "Erreur",
+          description: err instanceof Error ? err.message : "Une erreur est survenue.",
+          variant: "destructive",
+        });
+      },
+    });
+  };
+
+  const handleConfirmCompletion = () => {
+    confirmCompletion.mutate(contract.id, {
+      onSuccess: () => {
+        toast({ title: "Contrat terminé !", description: "Le contrat a été clôturé avec succès." });
+      },
+      onError: (err) => {
+        toast({
+          title: "Erreur",
+          description: err instanceof Error ? err.message : "Une erreur est survenue.",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   return (
@@ -128,15 +166,41 @@ function ContractCard({
           </div>
         )}
 
-        <Button
-          size="sm"
-          variant="ghost"
-          className="gap-1.5 text-muted-foreground w-full"
-          onClick={() => setIsExpanded((v) => !v)}
-        >
-          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          {isExpanded ? "Masquer le résumé" : "Voir le résumé financier"}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {contract.status === "IN_PROGRESS" && userRole === "freelancer" && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2 border-primary text-primary hover:bg-primary hover:text-white"
+              onClick={handleRequestCompletion}
+              disabled={requestCompletion.isPending}
+            >
+              {requestCompletion.isPending ? <Loader2 size={14} className="animate-spin" /> : <Flag size={14} />}
+              Signaler la fin de mission
+            </Button>
+          )}
+          {contract.status === "IN_PROGRESS" && userRole === "client" && (
+            <Button
+              size="sm"
+              className="gap-2"
+              onClick={handleConfirmCompletion}
+              disabled={confirmCompletion.isPending}
+            >
+              {confirmCompletion.isPending ? <Loader2 size={14} className="animate-spin" /> : <ThumbsUp size={14} />}
+              Confirmer la complétion
+            </Button>
+          )}
+
+          <Button
+            size="sm"
+            variant="ghost"
+            className="gap-1.5 text-muted-foreground ml-auto"
+            onClick={() => setIsExpanded((v) => !v)}
+          >
+            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            {isExpanded ? "Masquer le résumé" : "Voir le résumé financier"}
+          </Button>
+        </div>
       </Card>
     </motion.div>
   );
@@ -229,6 +293,7 @@ const MyProjects = () => {
                         key={contract.id}
                         contract={contract}
                         index={i}
+                        userRole="freelancer"
                       />
                     ))
                   )}

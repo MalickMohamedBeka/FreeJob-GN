@@ -81,6 +81,16 @@ export function useCreateReview() {
   });
 }
 
+export function useReviewDetail(reviewId: number | undefined) {
+  return useQuery({
+    queryKey: ['rankings-review', reviewId],
+    queryFn: () =>
+      apiService.getPublic<ApiProviderReview>(`/rankings/reviews/${reviewId}/`),
+    enabled: !!reviewId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 export function usePortfolio(providerId: number | undefined) {
   return useQuery({
     queryKey: ['portfolio', providerId],

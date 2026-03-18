@@ -11,6 +11,7 @@ import type {
   DjomyConfirmOTPRequest,
 } from '@/types';
 
+
 export function useContracts(page = 1) {
   return useQuery({
     queryKey: ['contracts', page],
@@ -66,6 +67,32 @@ export function useConfirmOTP() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contracts'] });
       queryClient.invalidateQueries({ queryKey: ['transaction-status'] });
+    },
+  });
+}
+
+export function useRequestCompletion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (contractId: string) =>
+      apiService.post<ApiContractDetail>(`/contracts/${contractId}/request_completion/`),
+    onSuccess: (_, contractId) => {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['contract', contractId] });
+    },
+  });
+}
+
+export function useConfirmCompletion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (contractId: string) =>
+      apiService.post<ApiContractDetail>(`/contracts/${contractId}/confirm_completion/`),
+    onSuccess: (_, contractId) => {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['contract', contractId] });
+      queryClient.invalidateQueries({ queryKey: ['wallet'] });
+      queryClient.invalidateQueries({ queryKey: ['rankings-reviews'] });
     },
   });
 }
