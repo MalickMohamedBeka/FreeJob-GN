@@ -38,7 +38,6 @@ const FreelancerDashboard = lazy(() => import("./pages/dashboard/FreelancerDashb
 const FindProjects = lazy(() => import("./pages/dashboard/FindProjects"));
 const MyProjects = lazy(() => import("./pages/dashboard/MyProjects"));
 const Proposals = lazy(() => import("./pages/dashboard/Proposals"));
-const Earnings = lazy(() => import("./pages/dashboard/Earnings"));
 const Messages = lazy(() => import("./pages/dashboard/Messages"));
 const Profile = lazy(() => import("./pages/dashboard/Profile"));
 const Settings = lazy(() => import("./pages/dashboard/Settings"));
@@ -146,9 +145,6 @@ const App = () => (
               } />
               <Route path={ROUTES.DASHBOARD.PROPOSALS} element={
                 <ProtectedRoute requiredRole="PROVIDER"><Proposals /></ProtectedRoute>
-              } />
-              <Route path={ROUTES.DASHBOARD.EARNINGS} element={
-                <ProtectedRoute requiredRole="PROVIDER"><Earnings /></ProtectedRoute>
               } />
               <Route path={ROUTES.DASHBOARD.MESSAGES} element={
                 <ProtectedRoute requiredRole="PROVIDER"><Messages /></ProtectedRoute>

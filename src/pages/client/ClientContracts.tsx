@@ -123,7 +123,6 @@ function PaymentDialog({
       },
       {
         onSuccess: (res) => {
-          alert(JSON.stringify(res))
           if (res.data.transactionId) {
             sessionStorage.setItem(
               PENDING_PAYMENT_KEY,
@@ -131,7 +130,6 @@ function PaymentDialog({
             );
           }
           const redirectUrl = res.data.redirectUrl;
-          alert(JSON.stringify(redirectUrl))
           if (!redirectUrl) {
             toast({
               title: "Erreur de paiement",
