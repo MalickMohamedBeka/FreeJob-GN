@@ -196,34 +196,152 @@ function PaymentDialog({
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Contract Card ─────────────────────────────────────────────────────────────
 
-const ClientContracts = () => {
-  const { data, isLoading } = useContracts();
-  const contracts = data?.results ?? [];
+function ContractCard({
+  contract,
+  index,
+  onPay,
+}: {
+  contract: ApiContractList;
+  index: number;
+  onPay: (contract: ApiContractList) => void;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const { toast } = useToast();
 
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [payingContract, setPayingContract] = useState<ApiContractList | null>(null);
+  // completion_requested_by is the user ID who signaled, or null if nobody has
+  const requestedByClient = contract.completion_requested_by === contract.client.id;
+  const requestedByProvider =
+    contract.completion_requested_by !== null &&
+    contract.completion_requested_by !== contract.client.id;
 
   const requestCompletion = useRequestCompletion();
   const confirmCompletion = useConfirmCompletion();
 
-  const toggle = (id: string) => setExpandedId((prev) => (prev === id ? null : id));
+  const sc = statusConfig[contract.status] ?? { label: contract.status_display, class: "bg-muted text-foreground" };
 
-  const handleRequestCompletion = (contractId: string) => {
-    requestCompletion.mutate(contractId, {
+  const handleRequestCompletion = () => {
+    requestCompletion.mutate(contract.id, {
       onSuccess: () => toast({ title: "Fin de mission signalée", description: "Le prestataire recevra une notification pour confirmer." }),
       onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Une erreur est survenue.", variant: "destructive" }),
     });
   };
 
-  const handleConfirmCompletion = (contractId: string) => {
-    confirmCompletion.mutate(contractId, {
+  const handleConfirmCompletion = () => {
+    confirmCompletion.mutate(contract.id, {
       onSuccess: () => toast({ title: "Contrat terminé !", description: "Le contrat a été clôturé avec succès." }),
       onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Une erreur est survenue.", variant: "destructive" }),
     });
   };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+    >
+      <Card className="p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <h3 className="text-xl font-semibold mb-1">{contract.project.title}</h3>
+            <p className="text-sm text-muted-foreground">
+              Prestataire: {contract.provider.username}
+            </p>
+          </div>
+          <Badge className={sc.class}>{sc.label}</Badge>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg text-sm mb-4">
+          <div>
+            <p className="text-muted-foreground mb-0.5">Montant Total</p>
+            <p className="font-semibold">
+              {parseFloat(contract.total_amount).toLocaleString("fr-FR")} GNF
+            </p>
+          </div>
+          <div>
+            <p className="text-muted-foreground mb-0.5">Plan</p>
+            <p className="font-medium">{contract.funding_plan_display}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground mb-0.5">Début</p>
+            <p className="font-medium">
+              {new Date(contract.start_at).toLocaleDateString("fr-FR")}
+            </p>
+          </div>
+        </div>
+
+        {isExpanded && (
+          <div className="border-t border-border pt-3 mb-4">
+            <ContractSummarySection contractId={contract.id} />
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-2">
+          {contract.status === "PENDING_PAYMENT" && (
+            <Button
+              size="sm"
+              className="gap-2 bg-orange-500 hover:bg-orange-600"
+              onClick={() => onPay(contract)}
+            >
+              <CreditCard size={14} />
+              Payer
+            </Button>
+          )}
+
+          {contract.status === "IN_PROGRESS" && !requestedByClient && !requestedByProvider && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2 border-primary text-primary hover:bg-primary hover:text-white"
+              onClick={handleRequestCompletion}
+              disabled={requestCompletion.isPending}
+            >
+              {requestCompletion.isPending ? <Loader2 size={14} className="animate-spin" /> : <Flag size={14} />}
+              Signaler la fin
+            </Button>
+          )}
+
+          {contract.status === "IN_PROGRESS" && requestedByClient && !requestedByProvider && (
+            <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+              <Clock size={14} />
+              En attente de confirmation du prestataire
+            </span>
+          )}
+
+          {contract.status === "IN_PROGRESS" && requestedByProvider && !requestedByClient && (
+            <Button
+              size="sm"
+              className="gap-2"
+              onClick={handleConfirmCompletion}
+              disabled={confirmCompletion.isPending}
+            >
+              {confirmCompletion.isPending ? <Loader2 size={14} className="animate-spin" /> : <ThumbsUp size={14} />}
+              Confirmer la fin
+            </Button>
+          )}
+
+          <Button
+            size="sm"
+            variant="ghost"
+            className="gap-1.5 text-muted-foreground ml-auto"
+            onClick={() => setIsExpanded((v) => !v)}
+          >
+            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            {isExpanded ? "Masquer le résumé" : "Voir le résumé financier"}
+          </Button>
+        </div>
+      </Card>
+    </motion.div>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+const ClientContracts = () => {
+  const { data, isLoading } = useContracts();
+  const contracts = data?.results ?? [];
+  const [payingContract, setPayingContract] = useState<ApiContractList | null>(null);
 
   return (
     <DashboardLayout userType="client">
@@ -285,110 +403,14 @@ const ClientContracts = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {contracts.map((contract: ApiContractList, index: number) => {
-              const sc = statusConfig[contract.status] ?? {
-                label: contract.status_display,
-                class: "bg-muted text-foreground",
-              };
-              const isExpanded = expandedId === contract.id;
-
-              return (
-                <motion.div
-                  key={contract.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <Card className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-semibold mb-1">{contract.project.title}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Prestataire: {contract.provider.username}
-                        </p>
-                      </div>
-                      <Badge className={sc.class}>{sc.label}</Badge>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg text-sm mb-4">
-                      <div>
-                        <p className="text-muted-foreground mb-0.5">Montant Total</p>
-                        <p className="font-semibold">
-                          {parseFloat(contract.total_amount).toLocaleString("fr-FR")} GNF
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground mb-0.5">Plan</p>
-                        <p className="font-medium">{contract.funding_plan_display}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground mb-0.5">Début</p>
-                        <p className="font-medium">
-                          {new Date(contract.start_at).toLocaleDateString("fr-FR")}
-                        </p>
-                      </div>
-                    </div>
-
-                    {isExpanded && (
-                      <div className="border-t border-border pt-3 mb-4">
-                        <ContractSummarySection contractId={contract.id} />
-                      </div>
-                    )}
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      {contract.status === "PENDING_PAYMENT" && (
-                        <Button
-                          size="sm"
-                          className="gap-2 bg-orange-500 hover:bg-orange-600"
-                          onClick={() => setPayingContract(contract)}
-                        >
-                          <CreditCard size={14} />
-                          Payer
-                        </Button>
-                      )}
-
-                      {contract.status === "IN_PROGRESS" && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="gap-2 border-primary text-primary hover:bg-primary hover:text-white"
-                            onClick={() => handleRequestCompletion(contract.id)}
-                            disabled={requestCompletion.isPending && requestCompletion.variables === contract.id}
-                          >
-                            {requestCompletion.isPending && requestCompletion.variables === contract.id
-                              ? <Loader2 size={14} className="animate-spin" />
-                              : <Flag size={14} />}
-                            Signaler la fin
-                          </Button>
-                          <Button
-                            size="sm"
-                            className="gap-2"
-                            onClick={() => handleConfirmCompletion(contract.id)}
-                            disabled={confirmCompletion.isPending && confirmCompletion.variables === contract.id}
-                          >
-                            {confirmCompletion.isPending && confirmCompletion.variables === contract.id
-                              ? <Loader2 size={14} className="animate-spin" />
-                              : <ThumbsUp size={14} />}
-                            Confirmer la complétion
-                          </Button>
-                        </>
-                      )}
-
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="gap-1.5 text-muted-foreground ml-auto"
-                        onClick={() => toggle(contract.id)}
-                      >
-                        {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                        {isExpanded ? "Masquer le résumé" : "Voir le résumé financier"}
-                      </Button>
-                    </div>
-                  </Card>
-                </motion.div>
-              );
-            })}
+            {contracts.map((contract, index) => (
+              <ContractCard
+                key={contract.id}
+                contract={contract}
+                index={index}
+                onPay={setPayingContract}
+              />
+            ))}
           </div>
         )}
       </div>

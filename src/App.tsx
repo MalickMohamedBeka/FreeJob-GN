@@ -88,18 +88,18 @@ const App = () => (
           <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Public routes — redirect to dashboard when already logged in */}
-              <Route path={ROUTES.HOME} element={<PublicRoute><Index /></PublicRoute>} />
+              <Route path={ROUTES.HOME} element={<Index />} />
               <Route path={ROUTES.LOGIN} element={<PublicRoute><Login /></PublicRoute>} />
               <Route path={ROUTES.SIGNUP} element={<PublicRoute><Signup /></PublicRoute>} />
               <Route path={ROUTES.LOGIN} element={<PublicRoute><FreelancerLogin /></PublicRoute>} />
               <Route path={ROUTES.LOGIN} element={<PublicRoute><ClientLogin /></PublicRoute>} />
 
-              {/* Public browsing pages — redirect to dashboard when logged in */}
-              <Route path={ROUTES.PROJECTS} element={<PublicRoute><Projects /></PublicRoute>} />
-              <Route path={ROUTES.FREELANCERS} element={<PublicRoute><Freelancers /></PublicRoute>} />
-              <Route path={ROUTES.FREELANCER_PROFILE} element={<PublicRoute><FreelancerProfile /></PublicRoute>} />
-              <Route path={ROUTES.ABOUT} element={<PublicRoute><About /></PublicRoute>} />
-              <Route path={ROUTES.HOW_IT_WORKS} element={<PublicRoute><CommentCaMarche /></PublicRoute>} />
+              {/* Public browsing pages — accessible to everyone regardless of auth state */}
+              <Route path={ROUTES.PROJECTS} element={<Projects />} />
+              <Route path={ROUTES.FREELANCERS} element={<Freelancers />} />
+              <Route path={ROUTES.FREELANCER_PROFILE} element={<FreelancerProfile />} />
+              <Route path={ROUTES.ABOUT} element={<About />} />
+              <Route path={ROUTES.HOW_IT_WORKS} element={<CommentCaMarche />} />
               <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLogin />} />
               <Route path="/activate" element={<AccountActivation />} />
               <Route path={ROUTES.ONBOARDING} element={<Onboarding />} />

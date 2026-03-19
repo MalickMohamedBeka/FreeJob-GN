@@ -80,16 +80,20 @@ function ContractSummarySection({ contractId }: { contractId: string }) {
 function ContractCard({
   contract,
   index,
-  userRole,
 }: {
   contract: ApiContractList;
   index: number;
-  userRole: "freelancer" | "client";
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { toast } = useToast();
   const requestCompletion = useRequestCompletion();
   const confirmCompletion = useConfirmCompletion();
+
+  // completion_requested_by is the user ID who signaled, or null if nobody has
+  const requestedByProvider = contract.completion_requested_by === contract.provider.id;
+  const requestedByClient =
+    contract.completion_requested_by !== null &&
+    contract.completion_requested_by !== contract.provider.id;
 
   const config = statusConfig[contract.status] ?? {
     label: contract.status_display,
@@ -167,7 +171,7 @@ function ContractCard({
         )}
 
         <div className="flex flex-wrap items-center gap-2">
-          {contract.status === "IN_PROGRESS" && userRole === "freelancer" && (
+          {contract.status === "IN_PROGRESS" && !requestedByProvider && !requestedByClient && (
             <Button
               size="sm"
               variant="outline"
@@ -179,7 +183,15 @@ function ContractCard({
               Signaler la fin de mission
             </Button>
           )}
-          {contract.status === "IN_PROGRESS" && userRole === "client" && (
+
+          {contract.status === "IN_PROGRESS" && requestedByProvider && !requestedByClient && (
+            <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+              <Clock size={14} />
+              En attente de confirmation du client
+            </span>
+          )}
+
+          {contract.status === "IN_PROGRESS" && requestedByClient && !requestedByProvider && (
             <Button
               size="sm"
               className="gap-2"
@@ -187,7 +199,7 @@ function ContractCard({
               disabled={confirmCompletion.isPending}
             >
               {confirmCompletion.isPending ? <Loader2 size={14} className="animate-spin" /> : <ThumbsUp size={14} />}
-              Confirmer la complétion
+              Confirmer la fin de mission
             </Button>
           )}
 
@@ -293,7 +305,6 @@ const MyProjects = () => {
                         key={contract.id}
                         contract={contract}
                         index={i}
-                        userRole="freelancer"
                       />
                     ))
                   )}

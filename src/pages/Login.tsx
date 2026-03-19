@@ -70,7 +70,7 @@ const Login = () => {
             {/* Right — Form */}
             <div className="w-full">
               <div className="lg:hidden text-center mb-8">
-                <img src="/logo.png" alt="FreeJobGN" className="h-14 w-auto mx-auto mb-4" />
+                <img src="/logo.svg" alt="FreeJobGN" className="h-10 w-auto mx-auto mb-4" />
               </div>
 
               <div className="bg-white rounded-2xl border border-border p-8 shadow-sm">

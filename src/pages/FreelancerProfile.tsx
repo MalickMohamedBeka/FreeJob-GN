@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   MapPin,
@@ -17,6 +18,7 @@ import {
   Clock,
   Tag,
   CheckCircle,
+  FolderPlus,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -25,8 +27,10 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useFreelancer } from "@/hooks/useFreelancers";
 import { useProviderRank, useProviderReviews, usePortfolio } from "@/hooks/useRankings";
+import { useAuth } from "@/contexts/AuthContext";
 import { ROUTES } from "@/constants/routes";
 import type { ApiProviderReview, StarsEnum, ApiPortfolioItem } from "@/types";
+import DirectProjectModal from "@/components/freelancer/DirectProjectModal";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -139,6 +143,10 @@ const FreelancerProfile = () => {
   const { data: rank } = useProviderRank(Number(id));
   const { data: reviewsData } = useProviderReviews(Number(id));
   const { data: portfolioData } = usePortfolio(Number(id));
+  const { isAuthenticated, user } = useAuth();
+  const [showDirectModal, setShowDirectModal] = useState(false);
+
+  const isClient = isAuthenticated && user?.role === "CLIENT";
 
   const reviews = reviewsData?.results ?? [];
   const totalReviews = reviewsData?.count ?? 0;
@@ -238,11 +246,23 @@ const FreelancerProfile = () => {
                             "Prestataire indépendant"}
                         </p>
                       </div>
-                      {/* Availability badge */}
-                      <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-green-100 text-green-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                        Disponible
-                      </span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* Availability badge */}
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-green-100 text-green-700">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                          Disponible
+                        </span>
+                        {isClient && (
+                          <Button
+                            size="sm"
+                            className="gap-1.5"
+                            onClick={() => setShowDirectModal(true)}
+                          >
+                            <FolderPlus size={14} />
+                            Proposer un projet
+                          </Button>
+                        )}
+                      </div>
                     </div>
 
                     {/* Rating row */}
@@ -727,6 +747,14 @@ const FreelancerProfile = () => {
         </div>
       </main>
       <Footer />
+
+      {isClient && profile && (
+        <DirectProjectModal
+          open={showDirectModal}
+          onClose={() => setShowDirectModal(false)}
+          providerUsername={displayName || profile.username}
+        />
+      )}
     </div>
   );
 };

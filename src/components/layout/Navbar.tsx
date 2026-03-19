@@ -46,7 +46,7 @@ const Navbar = () => {
     setIsMobileOpen(false);
     await logout();
     navigate("/login");
-  };
+  };    
 
   const close = () => setIsMobileOpen(false);
 
@@ -61,7 +61,7 @@ const Navbar = () => {
       >
         <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="FreeJobGN" className="h-24 w-auto object-contain" />
+            <img src="/logo.svg" alt="FreeJobGN" className="h-8 w-auto object-contain" />
           </Link>
 
           {/* Desktop Nav */}
@@ -129,7 +129,7 @@ const Navbar = () => {
             {/* Header */}
             <div className="flex items-center justify-between px-5 h-16 border-b border-border flex-shrink-0">
               <Link to="/" onClick={close} className="flex items-center">
-                <img src="/logo.png" alt="FreeJobGN" className="h-20 w-auto object-contain" />
+                <img src="/logo.svg" alt="FreeJobGN" className="h-8 w-auto object-contain" />
               </Link>
               <button
                 onClick={close}

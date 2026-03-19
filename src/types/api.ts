@@ -184,6 +184,8 @@ export interface ApiContractList {
   end_at: string | null;
   created_at: string;
   updated_at: string;
+  completion_requested_by: number | null;
+  completion_requested_at: string | null;
 }
 
 export interface ApiContractDetail extends ApiContractList {

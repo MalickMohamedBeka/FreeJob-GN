@@ -25,7 +25,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src="/logo.png" alt="FreeJobGN" className="h-24 w-auto" />
+              <img src="/logo.svg" alt="FreeJobGN" className="h-10 w-auto" />
             </div>
             <p className="mt-4 text-sm text-background/60 leading-relaxed">
               La première plateforme freelance de Guinée. Connectez les talents locaux avec des opportunités mondiales.

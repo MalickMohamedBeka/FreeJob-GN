@@ -39,7 +39,7 @@ const ClientLogin = () => {
         {/* Logo & Title */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <img src="/logo.png" alt="FreeJobGN" className="h-20 w-auto" />
+            <img src="/logo.svg" alt="FreeJobGN" className="h-12 w-auto" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Espace Client</h1>
           <p className="text-white/80">Publiez vos projets et trouvez les meilleurs talents</p>

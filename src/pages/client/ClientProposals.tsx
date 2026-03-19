@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useMyProjects } from "@/hooks/useProjects";
 import {
+  useProposals,
   useProposalsByProject,
   useShortlistProposal,
   useUnshortlistProposal,
@@ -46,15 +47,22 @@ const statusConfig: Record<string, { label: string; class: string }> = {
 };
 
 const ClientProposals = () => {
-  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
 
   const { user } = useAuth();
   const { data: projectsData } = useMyProjects();
   // Only show the client's own projects — GET /projects/ returns all public projects too
   const projects = (projectsData?.results ?? []).filter((p) => p.client.id === user?.id);
 
-  const { data: proposalsData, isLoading } = useProposalsByProject(selectedProjectId);
-  const proposals = proposalsData?.results ?? [];
+  const isFiltered = selectedProjectId !== "all";
+
+  const { data: allProposalsData, isLoading: allLoading } = useProposals();
+  const { data: filteredData, isLoading: filteredLoading } = useProposalsByProject(isFiltered ? selectedProjectId : "");
+
+  const proposals = isFiltered
+    ? (filteredData?.results ?? [])
+    : (allProposalsData?.results ?? []);
+  const isLoading = isFiltered ? filteredLoading : allLoading;
 
   const shortlist = useShortlistProposal();
   const unshortlist = useUnshortlistProposal();
@@ -77,9 +85,10 @@ const ClientProposals = () => {
             <label className="text-sm font-medium whitespace-nowrap">Filtrer par projet</label>
             <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
               <SelectTrigger className="max-w-xs">
-                <SelectValue placeholder="Choisir un projet…" />
+                <SelectValue placeholder="Tous les projets" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">Tous les projets</SelectItem>
                 {projects.map((p) => (
                   <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
                 ))}
@@ -88,12 +97,7 @@ const ClientProposals = () => {
           </div>
         </Card>
 
-        {!selectedProjectId ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <FileText className="mx-auto mb-4" size={48} />
-            <p>Sélectionnez un projet pour voir ses propositions</p>
-          </div>
-        ) : isLoading ? (
+        {isLoading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="animate-spin text-primary" size={40} />
           </div>

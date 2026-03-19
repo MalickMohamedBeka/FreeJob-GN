@@ -142,7 +142,7 @@ const Onboarding = () => {
           <div className="grid lg:grid-cols-2 gap-12 max-w-5xl mx-auto items-center">
             {/* Left — Branding */}
             <div className="hidden lg:block">
-              <img src="/logo.png" alt="FreeJobGN" className="h-16 w-auto mb-8" />
+              <img src="/logo.svg" alt="FreeJobGN" className="h-10 w-auto mb-8" />
               <h2 className="text-3xl font-bold mb-3">
                 Complétez votre <span className="text-secondary">profil</span>
               </h2>
@@ -167,7 +167,7 @@ const Onboarding = () => {
             {/* Right — Form */}
             <div className="w-full">
               <div className="lg:hidden text-center mb-8">
-                <img src="/logo.png" alt="FreeJobGN" className="h-14 w-auto mx-auto mb-4" />
+                <img src="/logo.svg" alt="FreeJobGN" className="h-10 w-auto mx-auto mb-4" />
                 <h1 className="text-2xl font-bold mb-1">Complétez votre profil</h1>
                 <p className="text-muted-foreground text-sm">Étape {step} sur {totalSteps}</p>
               </div>
