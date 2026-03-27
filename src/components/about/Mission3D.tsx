@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Quote, MapPin, CheckCircle, TrendingUp, Users } from "lucide-react";
 import { team } from "@/data/team";
+import { SITE_STATS } from "@/constants/siteStats";
 
 const AvatarSilhouette = () => (
   <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
@@ -140,7 +141,7 @@ const Mission3D = () => (
               <Users size={18} className="text-secondary" />
             </div>
             <div>
-              <p className="text-lg font-bold leading-none">2 500+</p>
+              <p className="text-lg font-bold leading-none">{SITE_STATS.freelancers.value}{SITE_STATS.freelancers.suffix}</p>
               <p className="text-xs text-muted-foreground mt-0.5">Talents actifs</p>
             </div>
           </motion.div>
@@ -156,7 +157,7 @@ const Mission3D = () => (
               <TrendingUp size={18} className="text-cta" />
             </div>
             <div>
-              <p className="text-lg font-bold leading-none">98%</p>
+              <p className="text-lg font-bold leading-none">{SITE_STATS.satisfaction.value}{SITE_STATS.satisfaction.suffix}</p>
               <p className="text-xs text-muted-foreground mt-0.5">Satisfaction</p>
             </div>
           </motion.div>

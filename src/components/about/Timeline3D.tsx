@@ -17,7 +17,7 @@ const timeline = [
   {
     year: "2025",
     title: "International",
-    description: "Ouverture aux clients internationaux. 2 500+ talents actifs.",
+    description: "Ouverture aux clients internationaux. 50+ talents actifs.",
     icon: Globe,
   },
   {

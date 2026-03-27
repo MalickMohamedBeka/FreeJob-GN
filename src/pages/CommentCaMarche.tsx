@@ -402,7 +402,7 @@ const CommentCaMarche = () => {
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">Budget</p>
-                                  <div className="bg-muted/40 rounded-lg px-3 py-2.5 text-sm border border-border">2 500 000 GNF</div>
+                                  <div className="bg-muted/40 rounded-lg px-3 py-2.5 text-sm border border-border">50 000 GNF</div>
                                 </div>
                                 <div>
                                   <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">Délai</p>
@@ -424,7 +424,7 @@ const CommentCaMarche = () => {
                               </div>
                               <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
                                 <Shield size={12} className="text-secondary" />
-                                Votre projet sera visible par 2 500+ freelancers
+                                Votre projet sera visible par 50+ freelancers
                               </div>
                             </div>
                           ) : (
@@ -432,7 +432,7 @@ const CommentCaMarche = () => {
                             <div className="space-y-3">
                               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Projets disponibles</p>
                               {[
-                                { title: "App mobile e-commerce", budget: "2 500 000 GNF", tags: ["React Native"], hot: true },
+                                { title: "App mobile e-commerce", budget: "50 000 GNF", tags: ["React Native"], hot: true },
                                 { title: "Refonte identité visuelle", budget: "800 000 GNF", tags: ["Figma"], hot: false },
                                 { title: "Stratégie SEO & contenu", budget: "500 000 GNF", tags: ["SEO"], hot: false },
                               ].map((proj, i) => (

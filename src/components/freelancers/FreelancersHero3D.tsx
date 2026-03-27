@@ -48,7 +48,7 @@ const FreelancersHero3D = () => {
             >
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-sm font-semibold mb-6">
                 <Users size={14} />
-                2 500+ Talents Vérifiés
+                50+ Talents Vérifiés
               </div>
             </motion.div>
 
@@ -80,7 +80,7 @@ const FreelancersHero3D = () => {
               className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-3 max-w-lg mx-auto lg:mx-0"
             >
               {[
-                { icon: Users, value: "2 500+", label: "Freelancers" },
+                { icon: Users, value: "50+", label: "Freelancers" },
                 { icon: Globe, value: "50+", label: "Pays" },
                 { icon: Star, value: "4.9/5", label: "Note Moyenne" },
                 { icon: TrendingUp, value: "98%", label: "Succès" },

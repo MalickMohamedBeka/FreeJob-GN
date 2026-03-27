@@ -1,6 +1,7 @@
 import { motion, useInView } from "framer-motion";
 import { Users, Briefcase, Star, TrendingUp } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
+import { SITE_STATS } from "@/constants/siteStats";
 
 const AnimatedCounter = ({ target, suffix = "" }: { target: number; suffix?: string }) => {
   const [count, setCount] = useState(0);
@@ -33,10 +34,10 @@ const AnimatedCounter = ({ target, suffix = "" }: { target: number; suffix?: str
 };
 
 const stats = [
-  { icon: Users, value: 2500, suffix: "+", label: "Freelancers Actifs" },
-  { icon: Briefcase, value: 5000, suffix: "+", label: "Projets Réalisés" },
-  { icon: Star, value: 98, suffix: "%", label: "Satisfaction Client" },
-  { icon: TrendingUp, value: 150, suffix: "+", label: "Nouveaux Projets/Mois" },
+  { icon: Users, ...SITE_STATS.freelancers },
+  { icon: Briefcase, ...SITE_STATS.projects },
+  { icon: Star, ...SITE_STATS.satisfaction },
+  { icon: TrendingUp, ...SITE_STATS.newProjectsPerMonth },
 ];
 
 const Stats3D = () => {

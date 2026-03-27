@@ -93,7 +93,7 @@ const TeamShowcase = () => {
           className="text-center mt-12"
         >
           <p className="text-muted-foreground mb-4">
-            Rejoignez <strong className="text-foreground">2 500+</strong> talents africains
+            Rejoignez <strong className="text-foreground">50+</strong> talents africains
           </p>
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
             <Button variant="default" asChild>

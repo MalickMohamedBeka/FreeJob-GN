@@ -9,6 +9,7 @@ export const ROUTES = {
   PROJECTS: '/projects',
   FREELANCERS: '/freelancers',
   FREELANCER_PROFILE: '/freelancers/:id',
+  RANKINGS: '/classement',
   ABOUT: '/about',
   HOW_IT_WORKS: '/comment-ca-marche',
   
@@ -24,7 +25,6 @@ export const ROUTES = {
     FIND_PROJECTS: '/dashboard/find-projects',
     MY_PROJECTS: '/dashboard/projects',
     PROPOSALS: '/dashboard/proposals',
-    EARNINGS: '/dashboard/earnings',
     SUBSCRIPTION: '/dashboard/subscription',
     MESSAGES: '/dashboard/messages',
     PROFILE: '/dashboard/profile',

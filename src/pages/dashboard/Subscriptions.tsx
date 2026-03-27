@@ -138,10 +138,12 @@ const PAYMENT_STATUS_CONFIG: Record<
 function PlanCard({
   plan,
   isCurrent,
+  hasActiveSubscription,
   onSubscribe,
 }: {
   plan: ApiSubscriptionPlan;
   isCurrent: boolean;
+  hasActiveSubscription: boolean;
   onSubscribe: (plan: ApiSubscriptionPlan) => void;
 }) {
   const contactLimit = getContactLimit(plan);
@@ -222,6 +224,10 @@ function PlanCard({
           {isCurrent ? (
             <div className="w-full py-3 rounded-full bg-muted text-center text-sm text-muted-foreground font-medium">
               Plan actuel
+            </div>
+          ) : hasActiveSubscription ? (
+            <div className="w-full py-3 rounded-full bg-muted/60 text-center text-sm text-muted-foreground font-medium cursor-not-allowed border border-border">
+              Abonnement actif
             </div>
           ) : (
             <Button
@@ -380,10 +386,12 @@ function ComparisonTable({
   plans,
   onSubscribe,
   currentPlanId,
+  hasActiveSubscription,
 }: {
   plans: ApiSubscriptionPlan[];
   onSubscribe: (plan: ApiSubscriptionPlan) => void;
   currentPlanId?: number;
+  hasActiveSubscription: boolean;
 }) {
   const isAnnual = plans[0]?.is_annual ?? false;
   const rows = buildRows(plans);
@@ -466,6 +474,10 @@ function ComparisonTable({
                 {plan.id === currentPlanId ? (
                   <span className="text-xs text-muted-foreground font-medium">
                     Plan actuel
+                  </span>
+                ) : hasActiveSubscription ? (
+                  <span className="text-xs text-muted-foreground font-medium">
+                    Abonnement actif
                   </span>
                 ) : (
                   <div className="flex flex-col items-center gap-1.5">
@@ -1001,6 +1013,7 @@ const Subscription = () => {
                   key={plan.id}
                   plan={plan}
                   isCurrent={subscription?.plan?.id === plan.id}
+                  hasActiveSubscription={!!(subscription?.is_active)}
                   onSubscribe={setSelectedPlan}
                 />
               ))}
@@ -1010,6 +1023,7 @@ const Subscription = () => {
               plans={displayPlans}
               onSubscribe={setSelectedPlan}
               currentPlanId={subscription?.plan?.id}
+              hasActiveSubscription={!!(subscription?.is_active)}
             />
           )}
         </div>

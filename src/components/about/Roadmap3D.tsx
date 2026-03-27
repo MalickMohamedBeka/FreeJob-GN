@@ -10,7 +10,7 @@ const roadmapData = [
     status: "completed",
     items: [
       "Plateforme web lancée",
-      "2 500+ freelancers inscrits",
+      "50+ freelancers inscrits",
       "500+ projets complétés",
       "Système de paiement sécurisé",
     ],

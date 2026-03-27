@@ -6,3 +6,4 @@
 export * from './animations';
 export * from './routes';
 export * from './ui';
+export * from './siteStats';

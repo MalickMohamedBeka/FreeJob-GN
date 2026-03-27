@@ -73,9 +73,9 @@ const AboutHero3D = () => {
             className="flex flex-wrap justify-center gap-4"
           >
             {[
-              { value: "2023", label: "Fondée en" },
-              { value: "50+", label: "Pays représentés" },
-              { value: "10K+", label: "Projets réalisés" },
+              { value: "2026", label: "Fondée en" },
+              { value: "5+", label: "Pays représentés" },
+              { value: "100+", label: "Projets réalisés" },
             ].map((stat, i) => (
               <motion.div
                 key={stat.label}

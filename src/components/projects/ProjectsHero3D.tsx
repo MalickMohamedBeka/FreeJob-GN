@@ -6,7 +6,7 @@ const mockProjects = [
   {
     title: "Développement d'une app mobile e-commerce",
     client: "TechShop GN",
-    budget: "2 500 000 GNF",
+    budget: "50 000 GNF",
     deadline: "30 jours",
     tags: ["React Native", "Node.js"],
     proposals: 8,
@@ -82,7 +82,7 @@ const ProjectsHero3D = () => {
             >
               {[
                 { icon: Rocket, value: "500+", label: "Projets Actifs" },
-                { icon: Zap, value: "2 500+", label: "Freelancers" },
+                { icon: Zap, value: "50+", label: "Freelancers" },
                 { icon: TrendingUp, value: "98%", label: "Satisfaction" },
               ].map((stat, i) => (
                 <motion.div

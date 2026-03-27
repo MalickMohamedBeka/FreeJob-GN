@@ -70,7 +70,7 @@ const Hero = () => {
                 ))}
               </div>
               <span>
-                <strong className="text-foreground">2 500+</strong> freelancers africains actifs
+                <strong className="text-foreground">50+</strong> freelancers africains actifs
               </span>
             </motion.div>
           </div>
