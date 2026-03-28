@@ -3,7 +3,7 @@ import { Rocket, Globe, Award, TrendingUp } from "lucide-react";
 
 const timeline = [
   {
-    year: "2023",
+    year: "2026",
     title: "Lancement",
     description: "FreeJobGN voit le jour avec une vision claire : connecter les talents guinéens.",
     icon: Rocket,

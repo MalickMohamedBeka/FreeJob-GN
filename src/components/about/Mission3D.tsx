@@ -33,7 +33,7 @@ const Mission3D = () => (
           </h2>
 
           <p className="text-muted-foreground leading-relaxed mb-5">
-            FreeJobGN est né en 2023 d'un constat simple : la Guinée regorge de talents
+            FreeJobGN est né en 2026 d'un constat simple : la Guinée regorge de talents
             exceptionnels en technologie, design et marketing, mais peu d'entre eux ont accès
             à des opportunités de travail à la hauteur de leurs compétences.
           </p>
