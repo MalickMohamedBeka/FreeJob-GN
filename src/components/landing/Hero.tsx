@@ -3,7 +3,7 @@ import { ArrowRight, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Spotlight } from "@/components/ui/spotlight";
-import heroImage from "@/assets/hero-illustration.jpg";
+import heroImage from "@/assets/hero-image.jpeg";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
