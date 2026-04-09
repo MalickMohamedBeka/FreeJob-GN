@@ -248,10 +248,22 @@ const FreelancerProfile = () => {
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
                         {/* Availability badge */}
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-green-100 text-green-700">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                          Disponible
-                        </span>
+                        {profile.is_available ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-green-100 text-green-700">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                            Disponible
+                            {profile.available_from && new Date(profile.available_from) > new Date() && (
+                              <span className="text-green-600 ml-0.5">
+                                {" "}à partir du {new Date(profile.available_from).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}
+                              </span>
+                            )}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-muted text-muted-foreground">
+                            <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
+                            Indisponible
+                          </span>
+                        )}
                         {isClient && (
                           <Button
                             size="sm"

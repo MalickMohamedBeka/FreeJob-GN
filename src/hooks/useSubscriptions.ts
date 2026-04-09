@@ -6,6 +6,7 @@ import type {
   ApiSubscription,
   ApiSubscriptionPayment,
   ApiSubscriptionUsage,
+  ApiMonthlyUsage,
   SubscribeRequest,
   SubscribeResponse,
 } from '@/types';
@@ -44,6 +45,25 @@ export function useSubscribe() {
   return useMutation({
     mutationFn: (data: SubscribeRequest) =>
       apiService.post<SubscribeResponse>('/subscriptions/subscribe/', data),
+  });
+}
+
+export function useChangePlan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: SubscribeRequest) =>
+      apiService.post<SubscribeResponse>('/subscriptions/change-plan/', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-subscription'] });
+    },
+  });
+}
+
+export function useMonthlyUsage() {
+  return useQuery({
+    queryKey: ['monthly-usage'],
+    queryFn: () =>
+      apiService.get<DjangoPaginatedResponse<ApiMonthlyUsage>>('/subscriptions/monthly-usage/'),
   });
 }
 

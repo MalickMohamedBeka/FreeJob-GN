@@ -158,6 +158,8 @@ interface EditProfileDialogProps {
     phone: string;
     skill_ids: number[];
     speciality_id: number | null;
+    is_available: boolean;
+    available_from: string;
   };
 }
 
@@ -204,6 +206,8 @@ function EditProfileDialog({ open, onOpenChange, initialValues }: EditProfileDia
       phone: form.phone || undefined,
       skill_ids: form.skill_ids,
       speciality_id: form.speciality_id,
+      is_available: form.is_available,
+      available_from: form.available_from || null,
       freelance: {
         first_name: form.first_name,
         last_name: form.last_name,
@@ -292,6 +296,30 @@ function EditProfileDialog({ open, onOpenChange, initialValues }: EditProfileDia
                 placeholder="Ex: 15000"
               />
             </div>
+            <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/20">
+              <div>
+                <p className="text-sm font-medium">Disponible pour de nouveaux projets</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Visible sur votre profil public</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, is_available: !prev.is_available }))}
+                className={`relative inline-flex h-5 w-9 rounded-full transition-colors focus:outline-none ${form.is_available ? "bg-primary" : "bg-muted-foreground/30"}`}
+              >
+                <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform mt-0.5 ${form.is_available ? "translate-x-4" : "translate-x-0.5"}`} />
+              </button>
+            </div>
+            {form.is_available && (
+              <div className="space-y-1.5">
+                <Label htmlFor="available_from">Disponible à partir du <span className="text-muted-foreground text-xs">(optionnel)</span></Label>
+                <Input
+                  id="available_from"
+                  type="date"
+                  value={form.available_from}
+                  onChange={(e) => set("available_from", e.target.value)}
+                />
+              </div>
+            )}
           </TabsContent>
 
           {/* ── Location ── */}
@@ -741,6 +769,8 @@ const Profile = () => {
     phone: profile.phone ?? "",
     skill_ids: profile.skills?.map((s) => s.id) ?? [],
     speciality_id: profile.speciality?.id ?? null,
+    is_available: profile.is_available ?? true,
+    available_from: profile.available_from ?? "",
   };
 
   return (

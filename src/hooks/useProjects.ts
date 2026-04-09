@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '@/services/api.service';
 import { projectService } from '@/services/project.service';
 import type { ProjectFilters } from '@/services/project.service';
-import type { ApiProjectDetail, ApiProjectCreateRequest, ApiProjectPatchRequest, ApiProjectDocument, ProjectDocumentType } from '@/types';
+import type { ApiProjectDetail, ApiProjectCreateRequest, ApiProjectPatchRequest, ApiProjectDocument, ProjectDocumentType, DjangoPaginatedResponse, ApiProjectHistoryItem } from '@/types';
 
 export function useProjects(filters?: ProjectFilters) {
   return useQuery({
@@ -68,6 +68,28 @@ export function useSubmitProjectForReview() {
       queryClient.invalidateQueries({ queryKey: ['my-projects'] });
     },
   });
+}
+
+// ── Project History ────────────────────────────────────────────────────────────
+
+export function useProjectHistory(page = 1) {
+  return useQuery({
+    queryKey: ['project-history', page],
+    queryFn: () =>
+      apiService.get<DjangoPaginatedResponse<ApiProjectHistoryItem>>('/projects/history/', {
+        page: String(page),
+      }),
+  });
+}
+
+export async function downloadProjectHistoryCsv() {
+  const blob = await apiService.getBlob('/projects/history-export/');
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'projets-archives.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ── Project Documents ──────────────────────────────────────────────────────────

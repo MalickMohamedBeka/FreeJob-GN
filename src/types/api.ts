@@ -128,6 +128,22 @@ export interface ApiProjectMini {
   status: ProjectStatusEnum;
 }
 
+export interface ApiProjectHistoryItem {
+  id: string;
+  title: string;
+  description: string;
+  status: 'CLOSED' | 'CANCELLED';
+  status_display: string;
+  budget_band: BudgetBandEnum;
+  budget_band_display: string;
+  budget_amount: string;
+  created_at: string;
+  closed_at: string | null;
+  total_proposals: number;
+  final_cost: string | null;
+  duration_days: number | null;
+}
+
 // ── Proposals ──
 
 export type ProposalStatusEnum =
@@ -317,6 +333,11 @@ export interface ApiFreelancerProfile {
   available_from: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface ApiProviderDiscovery extends ApiFreelancerProfile {
+  stars: number | null;
+  provider_kind: 'FREELANCE' | 'AGENCY';
 }
 
 // ── Conversations & Messages ──
@@ -647,6 +668,15 @@ export interface ApiSubscriptionUsage {
   credits_limit: number;
   credits_remaining: number;
   last_reset_at: string;
+}
+
+export interface ApiMonthlyUsage {
+  id: number;
+  period_start: string;
+  period_end: string;
+  proposals_used: number;
+  proposals_limit: number | null;
+  proposals_remaining: number | null;
 }
 
 export interface SubscribeRequest {

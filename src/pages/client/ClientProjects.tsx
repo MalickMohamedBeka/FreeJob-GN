@@ -42,6 +42,8 @@ import {
   FileText,
   X,
   Upload,
+  Download,
+  Archive,
 } from "lucide-react";
 import {
   useProjects,
@@ -53,6 +55,8 @@ import {
   useProjectDocuments,
   useUploadProjectDocument,
   useDeleteProjectDocument,
+  useProjectHistory,
+  downloadProjectHistoryCsv,
 } from "@/hooks/useProjects";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/services/api.service";
@@ -451,8 +455,11 @@ const ClientProjects = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [editProject, setEditProject] = useState<ApiProjectList | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"active" | "history">("active");
+  const [historyPage, setHistoryPage] = useState(1);
 
   const { data, isLoading } = useMyProjects();
+  const { data: historyData, isLoading: historyLoading } = useProjectHistory(historyPage);
   const { user } = useAuth();
   const { toast } = useToast();
   const deleteProject = useDeleteProject();
@@ -461,6 +468,8 @@ const ClientProjects = () => {
   // The API returns both published projects from everyone AND the client's own projects.
   // Filter to only show the current user's own projects.
   const projects = (data?.results ?? []).filter((p) => p.client.id === user?.id);
+  const historyItems = historyData?.results ?? [];
+  const historyTotal = historyData?.count ?? 0;
 
   return (
     <DashboardLayout userType="client">
@@ -470,17 +479,128 @@ const ClientProjects = () => {
             <h1 className="text-3xl font-bold mb-2">Mes Projets</h1>
             <p className="text-muted-foreground">Créez et gérez vos offres de projets</p>
           </div>
-          <Button className="gap-2" onClick={() => setShowCreate(true)}>
-            <Plus size={18} />
-            Nouveau Projet
-          </Button>
+          {activeTab === "active" && (
+            <Button className="gap-2" onClick={() => setShowCreate(true)}>
+              <Plus size={18} />
+              Nouveau Projet
+            </Button>
+          )}
         </div>
 
-        {isLoading ? (
+        {/* Tabs */}
+        <div className="flex items-center gap-1 bg-muted rounded-lg p-1 w-fit">
+          <button
+            onClick={() => setActiveTab("active")}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              activeTab === "active" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"
+            }`}
+          >
+            Projets actifs
+          </button>
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${
+              activeTab === "history" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"
+            }`}
+          >
+            <Archive size={13} />
+            Archivés
+          </button>
+        </div>
+
+        {/* History tab */}
+        {activeTab === "history" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">{historyTotal} projet{historyTotal !== 1 ? "s" : ""} archivé{historyTotal !== 1 ? "s" : ""}</p>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => downloadProjectHistoryCsv()}>
+                <Download size={14} />
+                Exporter CSV
+              </Button>
+            </div>
+            {historyLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="animate-spin text-primary" size={40} />
+              </div>
+            ) : historyItems.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Archive className="mx-auto mb-4" size={48} />
+                <p className="text-lg font-medium">Aucun projet archivé</p>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-4">
+                  {historyItems.map((item, index) => (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.04 }}
+                    >
+                      <Card className="p-6">
+                        <div className="flex items-start justify-between mb-3">
+                          <h3 className="text-lg font-semibold">{item.title}</h3>
+                          <Badge className={item.status === "CLOSED" ? "bg-muted text-foreground" : "bg-red-100 text-red-700"}>
+                            {item.status_display}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{item.description}</p>
+                        <div className="grid sm:grid-cols-4 gap-3 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Budget</p>
+                            <p className="font-medium">{item.budget_band_display}</p>
+                          </div>
+                          {item.final_cost && (
+                            <div>
+                              <p className="text-muted-foreground">Coût final</p>
+                              <p className="font-medium">{Number(item.final_cost).toLocaleString("fr-FR")} GNF</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-muted-foreground">Propositions</p>
+                            <p className="font-medium">{item.total_proposals}</p>
+                          </div>
+                          {item.duration_days !== null && (
+                            <div>
+                              <p className="text-muted-foreground">Durée</p>
+                              <p className="font-medium">{item.duration_days} jours</p>
+                            </div>
+                          )}
+                        </div>
+                        {item.closed_at && (
+                          <p className="text-xs text-muted-foreground mt-3">
+                            Archivé le {new Date(item.closed_at).toLocaleDateString("fr-FR")}
+                          </p>
+                        )}
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+                {/* Pagination */}
+                {historyTotal > 10 && (
+                  <div className="flex justify-center gap-2 pt-2">
+                    <Button variant="outline" size="sm" disabled={historyPage === 1} onClick={() => setHistoryPage(p => p - 1)}>
+                      Précédent
+                    </Button>
+                    <span className="flex items-center text-sm text-muted-foreground px-2">
+                      Page {historyPage}
+                    </span>
+                    <Button variant="outline" size="sm" disabled={historyItems.length < 10} onClick={() => setHistoryPage(p => p + 1)}>
+                      Suivant
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Active projects tab */}
+        {activeTab === "active" && isLoading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="animate-spin text-primary" size={40} />
           </div>
-        ) : projects.length === 0 ? (
+        ) : activeTab === "active" && projects.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">
             <Briefcase className="mx-auto mb-4" size={48} />
             <p className="text-lg font-medium mb-4">Aucun projet pour le moment</p>

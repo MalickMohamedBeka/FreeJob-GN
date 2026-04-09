@@ -36,6 +36,8 @@ import {
   useSubscriptionUsage,
   useSubscriptionPayments,
   useSubscribe,
+  useChangePlan,
+  useMonthlyUsage,
   useCancelSubscription,
 } from "@/hooks/useSubscriptions";
 import { useToast } from "@/hooks/use-toast";
@@ -140,11 +142,13 @@ function PlanCard({
   isCurrent,
   hasActiveSubscription,
   onSubscribe,
+  onChangePlan,
 }: {
   plan: ApiSubscriptionPlan;
   isCurrent: boolean;
   hasActiveSubscription: boolean;
   onSubscribe: (plan: ApiSubscriptionPlan) => void;
+  onChangePlan: (plan: ApiSubscriptionPlan) => void;
 }) {
   const contactLimit = getContactLimit(plan);
   const price = parseFloat(plan.price);
@@ -226,9 +230,13 @@ function PlanCard({
               Plan actuel
             </div>
           ) : hasActiveSubscription ? (
-            <div className="w-full py-3 rounded-full bg-muted/60 text-center text-sm text-muted-foreground font-medium cursor-not-allowed border border-border">
-              Abonnement actif
-            </div>
+            <Button
+              variant="outline"
+              className="w-full rounded-full"
+              onClick={() => onChangePlan(plan)}
+            >
+              Changer de plan
+            </Button>
           ) : (
             <Button
               variant="cta"
@@ -385,11 +393,13 @@ function TableCell({
 function ComparisonTable({
   plans,
   onSubscribe,
+  onChangePlan,
   currentPlanId,
   hasActiveSubscription,
 }: {
   plans: ApiSubscriptionPlan[];
   onSubscribe: (plan: ApiSubscriptionPlan) => void;
+  onChangePlan: (plan: ApiSubscriptionPlan) => void;
   currentPlanId?: number;
   hasActiveSubscription: boolean;
 }) {
@@ -476,9 +486,14 @@ function ComparisonTable({
                     Plan actuel
                   </span>
                 ) : hasActiveSubscription ? (
-                  <span className="text-xs text-muted-foreground font-medium">
-                    Abonnement actif
-                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full px-6"
+                    onClick={() => onChangePlan(plan)}
+                  >
+                    Changer de plan
+                  </Button>
                 ) : (
                   <div className="flex flex-col items-center gap-1.5">
                     <Button
@@ -765,6 +780,103 @@ function SubscribeDialog({
   );
 }
 
+// ── Change Plan Dialog ─────────────────────────────────────────────────────────
+
+function ChangePlanDialog({
+  plan,
+  open,
+  onClose,
+}: {
+  plan: ApiSubscriptionPlan | null;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const [phone, setPhone] = useState("");
+  const { toast } = useToast();
+  const changePlan = useChangePlan();
+
+  const handleClose = () => {
+    setPhone("");
+    onClose();
+  };
+
+  const handleSubmit = () => {
+    if (!plan) return;
+    if (!phone.trim()) {
+      toast({ title: "Numéro requis", description: "Saisissez votre numéro Mobile Money.", variant: "destructive" });
+      return;
+    }
+    const origin = import.meta.env.VITE_APP_URL || window.location.origin;
+    changePlan.mutate(
+      {
+        plan_id: plan.id,
+        payer_number: phone.trim(),
+        country_code: "GN",
+        return_url: `${origin}/dashboard/subscription`,
+      },
+      {
+        onSuccess: (response) => {
+          if (response?.redirect_url) {
+            window.location.href = response.redirect_url;
+            toast({ title: "Changement de plan initié." });
+            handleClose();
+          }
+        },
+        onError: (err) => {
+          toast({
+            title: "Erreur",
+            description: err instanceof ApiError ? err.message : "Une erreur est survenue.",
+            variant: "destructive",
+          });
+        },
+      },
+    );
+  };
+
+  if (!plan) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Changer de plan — {plan.name}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <p className="text-sm text-muted-foreground">
+            Votre abonnement actuel sera annulé et un nouveau sera initié. Vous conserverez l'accès jusqu'à confirmation du paiement.
+          </p>
+          <div className="p-4 bg-primary/5 rounded-xl border border-primary/15 text-center">
+            <p className="text-2xl font-extrabold text-cta">
+              {parseFloat(plan.price).toLocaleString("fr-FR")} {plan.currency}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {plan.is_annual ? "par an (360 jours)" : "par mois (30 jours)"}
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Numéro de téléphone (Mobile Money)</label>
+            <Input
+              placeholder="ex: 620000000"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              disabled={changePlan.isPending}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose} disabled={changePlan.isPending}>
+            Annuler
+          </Button>
+          <Button variant="cta" onClick={handleSubmit} disabled={changePlan.isPending}>
+            {changePlan.isPending && <Loader2 size={15} className="animate-spin mr-1.5" />}
+            Confirmer
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
 const Subscription = () => {
@@ -777,6 +889,7 @@ const Subscription = () => {
   const { data: usageData, isLoading: usageLoading } = useSubscriptionUsage();
   const { data: paymentsData, isLoading: paymentsLoading } =
     useSubscriptionPayments();
+  const { data: monthlyUsageData } = useMonthlyUsage();
   const cancelSub = useCancelSubscription();
   const { toast } = useToast();
 
@@ -787,6 +900,7 @@ const Subscription = () => {
   const [selectedPlan, setSelectedPlan] = useState<ApiSubscriptionPlan | null>(
     null,
   );
+  const [changePlanTarget, setChangePlanTarget] = useState<ApiSubscriptionPlan | null>(null);
   const [showCancel, setShowCancel] = useState(false);
 
   const allPlans = plansData?.results ?? [];
@@ -807,6 +921,7 @@ const Subscription = () => {
     (!subscription || (subError as { status?: number })?.status === 404);
   const usageList = usageData?.results ?? [];
   const payments = paymentsData?.results ?? [];
+  const latestMonthlyUsage = (monthlyUsageData?.results ?? [])[0] ?? null;
 
   const handleCancelConfirm = () => {
     cancelSub.mutate(undefined, {
@@ -914,6 +1029,28 @@ const Subscription = () => {
                 )}
               </div>
 
+              {/* Monthly proposals usage */}
+              {latestMonthlyUsage && latestMonthlyUsage.proposals_limit !== null && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-xs font-medium mb-2 flex items-center gap-1.5">
+                    <TrendingUp size={12} className="text-primary" />
+                    Propositions ce mois
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                    <span>{latestMonthlyUsage.proposals_used} utilisées</span>
+                    <span>{latestMonthlyUsage.proposals_remaining ?? 0} restantes / {latestMonthlyUsage.proposals_limit}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all"
+                      style={{
+                        width: `${Math.min(100, ((latestMonthlyUsage.proposals_used) / (latestMonthlyUsage.proposals_limit || 1)) * 100)}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Credit snapshot */}
               {subscription.credit_snapshot && (
                 <div className="mt-4 pt-4 border-t border-border grid sm:grid-cols-3 gap-3">
@@ -1015,6 +1152,7 @@ const Subscription = () => {
                   isCurrent={subscription?.plan?.id === plan.id}
                   hasActiveSubscription={!!(subscription?.is_active)}
                   onSubscribe={setSelectedPlan}
+                  onChangePlan={setChangePlanTarget}
                 />
               ))}
             </div>
@@ -1022,6 +1160,7 @@ const Subscription = () => {
             <ComparisonTable
               plans={displayPlans}
               onSubscribe={setSelectedPlan}
+              onChangePlan={setChangePlanTarget}
               currentPlanId={subscription?.plan?.id}
               hasActiveSubscription={!!(subscription?.is_active)}
             />
@@ -1042,6 +1181,12 @@ const Subscription = () => {
         plan={selectedPlan}
         open={selectedPlan !== null}
         onClose={() => setSelectedPlan(null)}
+      />
+
+      <ChangePlanDialog
+        plan={changePlanTarget}
+        open={changePlanTarget !== null}
+        onClose={() => setChangePlanTarget(null)}
       />
 
       <AlertDialog open={showCancel} onOpenChange={setShowCancel}>
