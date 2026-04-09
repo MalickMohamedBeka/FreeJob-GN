@@ -33,6 +33,7 @@ export const ROUTES = {
     SETTINGS: '/dashboard/settings',
     NOTIFICATIONS: '/dashboard/notifications',
     WALLET: '/dashboard/wallet',
+    INVOICES: '/dashboard/invoices',
   },
   
   // Admin routes
@@ -53,6 +54,7 @@ export const ROUTES = {
     PROFILE: '/client/profile',
     PAYMENT_RETURN: '/client/payment/return',
     NOTIFICATIONS: '/client/notifications',
+    INVOICES: '/client/invoices',
   },
 } as const;
 

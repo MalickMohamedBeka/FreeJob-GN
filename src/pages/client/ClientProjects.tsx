@@ -38,6 +38,10 @@ import {
   Trash2,
   SendHorizonal,
   Briefcase,
+  Paperclip,
+  FileText,
+  X,
+  Upload,
 } from "lucide-react";
 import {
   useProjects,
@@ -46,11 +50,14 @@ import {
   useUpdateProject,
   useDeleteProject,
   useSubmitProjectForReview,
+  useProjectDocuments,
+  useUploadProjectDocument,
+  useDeleteProjectDocument,
 } from "@/hooks/useProjects";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/services/api.service";
 import { useToast } from "@/hooks/use-toast";
-import type { ApiProjectList, ApiProjectCreateRequest, BudgetBandEnum } from "@/types";
+import type { ApiProjectList, ApiProjectCreateRequest, BudgetBandEnum, ProjectDocumentType } from "@/types";
 
 const budgetBands: { value: BudgetBandEnum; label: string }[] = [
   { value: "BAND_25_50", label: "2.5M – 5M GNF" },
@@ -311,6 +318,133 @@ function ProjectFormDialog({
   );
 }
 
+// ── Project Documents Section ─────────────────────────────────────────────────
+
+const DOC_TYPE_LABELS: Record<ProjectDocumentType, string> = {
+  CAHIER_DE_CHARGE: "Cahier de charge",
+  OTHER: "Autre",
+};
+
+function ProjectDocumentsSection({ projectId }: { projectId: string }) {
+  const { data: docs, isLoading } = useProjectDocuments(projectId);
+  const upload = useUploadProjectDocument(projectId);
+  const deleteMutation = useDeleteProjectDocument(projectId);
+  const { toast } = useToast();
+
+  const [docType, setDocType] = useState<ProjectDocumentType>("CAHIER_DE_CHARGE");
+  const [docTitle, setDocTitle] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async () => {
+    if (!file || !docTitle.trim()) {
+      toast({ title: "Titre et fichier obligatoires", variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    try {
+      await upload.mutateAsync({ file, doc_type: docType, title: docTitle.trim() });
+      setDocTitle("");
+      setFile(null);
+      toast({ title: "Document ajouté" });
+    } catch {
+      toast({ title: "Erreur lors de l'upload", variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="mt-4 border-t border-border pt-4 space-y-3">
+      <p className="text-sm font-medium flex items-center gap-1.5">
+        <Paperclip size={14} />
+        Documents du projet
+      </p>
+
+      {isLoading ? (
+        <Loader2 size={16} className="animate-spin text-muted-foreground" />
+      ) : (docs ?? []).length === 0 ? (
+        <p className="text-xs text-muted-foreground">Aucun document joint.</p>
+      ) : (
+        <div className="space-y-1.5">
+          {(docs ?? []).map((doc) => (
+            <div key={doc.id} className="flex items-center justify-between gap-2 text-sm">
+              <a
+                href={doc.file}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-primary hover:underline min-w-0"
+              >
+                <FileText size={13} className="flex-shrink-0" />
+                <span className="truncate">{doc.title}</span>
+                <span className="text-muted-foreground text-xs flex-shrink-0">
+                  ({doc.doc_type_display})
+                </span>
+              </a>
+              <button
+                onClick={() => deleteMutation.mutate(doc.id)}
+                disabled={deleteMutation.isPending}
+                className="text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
+                aria-label="Supprimer"
+              >
+                <X size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Upload form */}
+      <div className="flex flex-wrap gap-2 items-end">
+        <div className="space-y-1">
+          <Label className="text-xs">Type</Label>
+          <Select value={docType} onValueChange={(v) => setDocType(v as ProjectDocumentType)}>
+            <SelectTrigger className="h-8 w-[160px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(DOC_TYPE_LABELS) as ProjectDocumentType[]).map((k) => (
+                <SelectItem key={k} value={k} className="text-xs">
+                  {DOC_TYPE_LABELS[k]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1 flex-1 min-w-[140px]">
+          <Label className="text-xs">Titre</Label>
+          <Input
+            className="h-8 text-xs"
+            placeholder="Ex: Cahier des charges v1"
+            value={docTitle}
+            onChange={(e) => setDocTitle(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-xs">Fichier</Label>
+          <Input
+            type="file"
+            className="h-8 text-xs w-[180px]"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
+        </div>
+
+        <Button
+          size="sm"
+          className="h-8 gap-1.5 text-xs"
+          onClick={handleUpload}
+          disabled={uploading || !file || !docTitle.trim()}
+        >
+          {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+          Ajouter
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 const ClientProjects = () => {
@@ -403,6 +537,9 @@ const ClientProjects = () => {
                         </div>
                       )}
                     </div>
+
+                    {/* Documents section */}
+                    <ProjectDocumentsSection projectId={project.id} />
 
                     <div className="flex flex-wrap gap-2 pt-4 border-t border-border">
                       {/* Submit for review — DRAFT only */}

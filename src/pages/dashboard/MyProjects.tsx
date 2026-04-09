@@ -23,11 +23,130 @@ import {
   ThumbsUp,
   AlertTriangle,
   Upload,
+  Star,
 } from "lucide-react";
 import { useContracts, useContractSummary, useRequestCompletion, useConfirmCompletion, useSubmitDeliverable } from "@/hooks/useContracts";
+import { useCreateClientReview } from "@/hooks/useRankings";
 import { useToast } from "@/hooks/use-toast";
 import { DisputeModal } from "@/components/contracts/DisputeModal";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import type { ApiContractList } from "@/types";
+
+// ── Star Rating Input ─────────────────────────────────────────────────────────
+
+function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [hovered, setHovered] = useState(0);
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange(star)}
+          onMouseEnter={() => setHovered(star)}
+          onMouseLeave={() => setHovered(0)}
+        >
+          <Star
+            size={24}
+            className={`transition-colors ${
+              star <= (hovered || value)
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-muted-foreground"
+            }`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── Client Review Dialog ──────────────────────────────────────────────────────
+
+function ClientReviewDialog({
+  contractId,
+  clientUsername,
+  open,
+  onOpenChange,
+  onSuccess,
+}: {
+  contractId: string;
+  clientUsername: string;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onSuccess?: () => void;
+}) {
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const createReview = useCreateClientReview();
+  const { toast } = useToast();
+
+  const handleClose = () => {
+    setRating(0);
+    setComment("");
+    onOpenChange(false);
+  };
+
+  const handleSubmit = async () => {
+    if (rating === 0) {
+      toast({ title: "Sélectionnez une note", variant: "destructive" });
+      return;
+    }
+    try {
+      await createReview.mutateAsync({ contract: contractId, rating, comment: comment.trim() || undefined });
+      toast({ title: "Avis envoyé", description: `Votre évaluation de ${clientUsername} a été soumise.` });
+      onSuccess?.();
+      handleClose();
+    } catch (err) {
+      toast({
+        title: "Erreur",
+        description: err instanceof Error ? err.message : "Une erreur est survenue.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Star size={16} className="text-yellow-400" />
+            Évaluer le client
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <p className="text-sm text-muted-foreground">
+            Comment s'est passée votre collaboration avec <strong>{clientUsername}</strong> ?
+          </p>
+          <div className="space-y-1.5">
+            <Label>Note *</Label>
+            <StarRating value={rating} onChange={setRating} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="review-comment">Commentaire</Label>
+            <Textarea
+              id="review-comment"
+              rows={3}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Décrivez votre expérience avec ce client…"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose} disabled={createReview.isPending}>
+            Annuler
+          </Button>
+          <Button onClick={handleSubmit} disabled={createReview.isPending || rating === 0} className="gap-2">
+            {createReview.isPending ? <Loader2 size={14} className="animate-spin" /> : <Star size={14} />}
+            Envoyer
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 // ── Contract status styling ───────────────────────────────────────────────────
 
@@ -97,6 +216,8 @@ function ContractCard({
   const [isExpanded, setIsExpanded] = useState(false);
   const [disputeOpen, setDisputeOpen] = useState(false);
   const [submitOpen, setSubmitOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewDone, setReviewDone] = useState(false);
   const [delivFile, setDelivFile] = useState<File | null>(null);
   const [delivDesc, setDelivDesc] = useState("");
   const { toast } = useToast();
@@ -265,6 +386,25 @@ function ContractCard({
             </Button>
           )}
 
+          {contract.status === "COMPLETED" && !reviewDone && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2 border-yellow-400 text-yellow-600 hover:bg-yellow-50"
+              onClick={() => setReviewOpen(true)}
+            >
+              <Star size={14} />
+              Évaluer le client
+            </Button>
+          )}
+
+          {contract.status === "COMPLETED" && reviewDone && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <CheckCircle2 size={13} className="text-primary" />
+              Avis envoyé
+            </span>
+          )}
+
           <Button
             size="sm"
             variant="ghost"
@@ -323,6 +463,14 @@ function ContractCard({
         contractTitle={contract.project.title}
         open={disputeOpen}
         onClose={() => setDisputeOpen(false)}
+      />
+
+      <ClientReviewDialog
+        contractId={contract.id}
+        clientUsername={contract.client.username}
+        open={reviewOpen}
+        onOpenChange={setReviewOpen}
+        onSuccess={() => setReviewDone(true)}
       />
     </motion.div>
   );

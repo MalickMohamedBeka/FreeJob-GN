@@ -184,6 +184,32 @@ class ApiService {
     return this.handleResponse<T>(response);
   }
 
+  /** GET as Blob — for binary downloads (PDF, etc.) requiring auth */
+  async getBlob(endpoint: string): Promise<Blob> {
+    const token = localStorage.getItem('access_token');
+    const headers: HeadersInit = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: 'GET',
+      headers,
+      credentials: 'include',
+    });
+
+    if (response.status === 401) {
+      const refreshed = await this.tryRefresh();
+      if (refreshed) return this.getBlob(endpoint);
+      this.clearAuth();
+      throw new ApiError(401, 'Session expirée');
+    }
+
+    if (!response.ok) {
+      throw new ApiError(response.status, `Erreur ${response.status}`);
+    }
+
+    return response.blob();
+  }
+
   /** POST with multipart/form-data — for file uploads (documents) */
   async postFormData<T>(endpoint: string, formData: FormData): Promise<T> {
     const token = localStorage.getItem('access_token');

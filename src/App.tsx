@@ -43,6 +43,7 @@ const Profile = lazy(() => import("./pages/dashboard/Profile"));
 const Settings = lazy(() => import("./pages/dashboard/Settings"));
 const Notifications = lazy(() => import("./pages/dashboard/Notifications"));
 const Wallet = lazy(() => import("./pages/dashboard/Wallet"));
+const Invoices = lazy(() => import("./pages/dashboard/Invoices"));
 const Subscriptions = lazy(() => import("./pages/dashboard/Subscriptions"));
 const AccountActivation = lazy(() => import("./pages/AccountActivation"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
@@ -138,6 +139,9 @@ const App = () => (
               <Route path={ROUTES.CLIENT.NOTIFICATIONS} element={
                 <ProtectedRoute requiredRole="CLIENT"><Notifications /></ProtectedRoute>
               } />
+              <Route path={ROUTES.CLIENT.INVOICES} element={
+                <ProtectedRoute requiredRole="CLIENT"><Invoices /></ProtectedRoute>
+              } />
 
               {/* Freelancer dashboard (protected) */}
               <Route path={ROUTES.DASHBOARD.ROOT} element={
@@ -166,6 +170,9 @@ const App = () => (
               } />
               <Route path={ROUTES.DASHBOARD.WALLET} element={
                 <ProtectedRoute requiredRole="PROVIDER"><Wallet /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.DASHBOARD.INVOICES} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Invoices /></ProtectedRoute>
               } />
               <Route path={ROUTES.DASHBOARD.SUBSCRIPTION} element={
                 <ProtectedRoute requiredRole="PROVIDER"><Subscriptions /></ProtectedRoute>

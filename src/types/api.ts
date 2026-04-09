@@ -134,6 +134,7 @@ export type ProposalStatusEnum =
   | 'PENDING'
   | 'SHORTLISTED'
   | 'SELECTED'
+  | 'SELECTION_EXPIRED'
   | 'CONFIRMED'
   | 'DECLINED_BY_PROVIDER'
   | 'REFUSED'
@@ -212,6 +213,60 @@ export interface ApiDeliverable {
   revision_note: string;
   created_at: string;
   updated_at: string;
+}
+
+// ── PaymentTransaction ──
+
+export interface ApiPaymentTransaction {
+  id: number;
+  provider: string;
+  reference: string;
+  transaction_id: string;
+  status: string;
+  amount: string | null;
+  currency: string;
+  event_type: string;
+  payer_identifier: string;
+  processed_at: string | null;
+  created_at: string;
+}
+
+// ── Invoice ──
+
+export type InvoiceType = 'CONTRACT' | 'CONTRACT_PROVIDER' | 'SUBSCRIPTION';
+export type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PAID' | 'CANCELLED';
+
+export interface ApiInvoice {
+  id: string;
+  invoice_number: string;
+  invoice_type: InvoiceType;
+  invoice_type_display: string;
+  status: InvoiceStatus;
+  status_display: string;
+  amount: string;
+  fee_amount: string;
+  net_amount: string;
+  issued_at: string;
+}
+
+export interface ApiInvoiceDetail extends ApiInvoice {
+  tax_amount: string;
+  contract_id: string | null;
+  recipient_username: string;
+}
+
+// ── ProjectDocument ──
+
+export type ProjectDocumentType = 'CAHIER_DE_CHARGE' | 'OTHER';
+
+export interface ApiProjectDocument {
+  id: string;
+  project: string;
+  doc_type: ProjectDocumentType;
+  doc_type_display: string;
+  file: string;
+  title: string;
+  created_at: string;
 }
 
 // ── Dispute ──
@@ -789,6 +844,25 @@ export interface ApiProviderReview {
 }
 
 export interface ApiProviderReviewCreateRequest {
+  contract: string;
+  rating: number;
+  comment?: string;
+}
+
+export interface ApiClientReview {
+  id: string;
+  contract: string;
+  client: number;
+  client_username: string;
+  provider: number;
+  provider_username: string;
+  rating: number;
+  comment: string;
+  project_budget: string;
+  created_at: string;
+}
+
+export interface ApiClientReviewCreateRequest {
   contract: string;
   rating: number;
   comment?: string;

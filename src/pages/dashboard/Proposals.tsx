@@ -4,20 +4,81 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Coins, FileText, Trash2, Loader2, CheckCircle2, ExternalLink } from "lucide-react";
+import { Clock, Coins, FileText, Trash2, Loader2, CheckCircle2, ExternalLink, AlertTriangle } from "lucide-react";
 import { useProposals, useWithdrawProposal, useConfirmProposal } from "@/hooks/useProposals";
 import { ROUTES } from "@/constants/routes";
+import { useState, useEffect } from "react";
 
 const statusColorMap: Record<string, string> = {
   PENDING: "bg-yellow-500",
   SHORTLISTED: "bg-blue-500",
   SELECTED: "bg-orange-500",
+  SELECTION_EXPIRED: "bg-red-500",
   CONFIRMED: "bg-primary",
   REFUSED: "bg-muted text-foreground",
   WITHDRAWN: "bg-muted text-foreground",
   REFUSED_AUTOCLOSE: "bg-muted text-foreground",
   DECLINED_BY_PROVIDER: "bg-muted text-foreground",
 };
+
+// ── Expiry Countdown ──────────────────────────────────────────────────────────
+
+function useCountdown(expiresAt: string | null) {
+  const getRemaining = () => {
+    if (!expiresAt) return null;
+    const diff = new Date(expiresAt).getTime() - Date.now();
+    if (diff <= 0) return null;
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    return { h, m, diff };
+  };
+
+  const [remaining, setRemaining] = useState(getRemaining);
+
+  useEffect(() => {
+    if (!expiresAt) return;
+    const id = setInterval(() => setRemaining(getRemaining()), 60000);
+    return () => clearInterval(id);
+  }, [expiresAt]);
+
+  return remaining;
+}
+
+function ExpiryCountdown({ expiresAt }: { expiresAt: string }) {
+  const remaining = useCountdown(expiresAt);
+
+  if (!remaining) {
+    return (
+      <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+        <AlertTriangle size={15} />
+        <span>Délai de confirmation expiré.</span>
+      </div>
+    );
+  }
+
+  const urgent = remaining.diff < 3 * 3600000; // moins de 3h
+  return (
+    <div className={`flex items-center gap-2 mb-4 p-3 rounded-lg border text-sm ${
+      urgent
+        ? "bg-red-50 border-red-200 text-red-700"
+        : "bg-orange-50 border-orange-200 text-orange-700"
+    }`}>
+      <Clock size={15} />
+      <span>
+        Confirmez avant le{" "}
+        <strong>
+          {new Date(expiresAt).toLocaleDateString("fr-FR", {
+            day: "2-digit", month: "long", year: "numeric",
+          })}
+        </strong>
+        {" "}—{" "}
+        {remaining.h > 0
+          ? `${remaining.h}h ${remaining.m}min restantes`
+          : `${remaining.m} min restantes`}
+      </span>
+    </div>
+  );
+}
 
 const Proposals = () => {
   const { data, isLoading } = useProposals();
@@ -113,20 +174,16 @@ const Proposals = () => {
                     <p className="text-sm line-clamp-3">{proposal.message}</p>
                   </div>
 
-                  {/* Selection expiry notice */}
+                  {/* Selection expiry countdown */}
                   {proposal.status === "SELECTED" && proposal.selection_expires_at && (
-                    <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-orange-50 border border-orange-200 text-sm text-orange-700">
-                      <Clock size={16} />
-                      <span>
-                        Offre expire le{" "}
-                        {new Date(proposal.selection_expires_at).toLocaleDateString("fr-FR", {
-                          day: "2-digit",
-                          month: "long",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
+                    <ExpiryCountdown expiresAt={proposal.selection_expires_at} />
+                  )}
+
+                  {/* Expired notice */}
+                  {proposal.status === "SELECTION_EXPIRED" && (
+                    <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+                      <AlertTriangle size={15} />
+                      <span>Vous n'avez pas confirmé dans le délai imparti — la sélection a expiré.</span>
                     </div>
                   )}
 

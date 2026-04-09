@@ -15,6 +15,7 @@ import {
   Wallet,
   Crown,
   X,
+  Receipt,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFreelanceProfile } from "@/hooks/useProfile";
@@ -35,6 +36,7 @@ const freelancerMenuItems = [
   { icon: FileText,        label: "Propositions",        path: "/dashboard/proposals" },
   { icon: Crown,           label: "Abonnement",          path: "/dashboard/subscription" },
   { icon: Wallet,          label: "Portefeuille",        path: "/dashboard/wallet" },
+  { icon: FileCheck,       label: "Factures",            path: "/dashboard/invoices" },
   { icon: MessageSquare,   label: "Messages",            path: "/dashboard/messages" },
   { icon: Bell,            label: "Notifications",       path: "/dashboard/notifications", badge: true },
   { icon: User,            label: "Mon Profil",          path: "/dashboard/profile" },
@@ -47,6 +49,7 @@ const clientMenuItems = [
   { icon: FileText,        label: "Propositions",  path: "/client/proposals" },
   { icon: FileCheck,       label: "Contrats",      path: "/client/contracts" },
   { icon: MessageSquare,   label: "Messages",      path: "/client/messages" },
+  { icon: Receipt,         label: "Factures",      path: "/client/invoices" },
   { icon: Bell,            label: "Notifications", path: "/client/notifications", badge: true },
   { icon: User,            label: "Mon Profil",    path: "/client/profile" },
 ];
