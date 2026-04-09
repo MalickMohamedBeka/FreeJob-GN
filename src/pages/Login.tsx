@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useAuth } from "@/contexts/AuthContext";
+import { ROUTES } from "@/constants";
 
 const features = [
   { icon: Shield, text: "Connexion sécurisée" },
@@ -135,7 +136,7 @@ const Login = () => {
                       <input type="checkbox" className="rounded border-border" />
                       <span className="text-muted-foreground">Se souvenir de moi</span>
                     </label>
-                    <Link to="#" className="text-primary hover:underline font-medium">
+                    <Link to={ROUTES.FORGOT_PASSWORD} className="text-primary hover:underline font-medium">
                       Mot de passe oublié ?
                     </Link>
                   </div>

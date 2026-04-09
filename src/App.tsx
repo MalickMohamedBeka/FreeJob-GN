@@ -45,6 +45,8 @@ const Notifications = lazy(() => import("./pages/dashboard/Notifications"));
 const Wallet = lazy(() => import("./pages/dashboard/Wallet"));
 const Subscriptions = lazy(() => import("./pages/dashboard/Subscriptions"));
 const AccountActivation = lazy(() => import("./pages/AccountActivation"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const CommentCaMarche = lazy(() => import("./pages/CommentCaMarche"));
 const Rankings = lazy(() => import("./pages/Rankings"));
@@ -103,6 +105,8 @@ const App = () => (
               <Route path={ROUTES.HOW_IT_WORKS} element={<CommentCaMarche />} />
               <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLogin />} />
               <Route path="/activate" element={<AccountActivation />} />
+              <Route path={ROUTES.FORGOT_PASSWORD} element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+              <Route path={ROUTES.RESET_PASSWORD} element={<PublicRoute><ResetPassword /></PublicRoute>} />
               <Route path={ROUTES.ONBOARDING} element={<Onboarding />} />
 
               {/* Admin */}

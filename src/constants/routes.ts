@@ -16,6 +16,8 @@ export const ROUTES = {
   // Auth routes
   LOGIN: '/login',
   SIGNUP: '/signup',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
   ADMIN_LOGIN: '/admin',
   ONBOARDING: '/onboarding',
   
