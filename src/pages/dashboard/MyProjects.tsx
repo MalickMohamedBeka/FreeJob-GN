@@ -6,6 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   Clock,
   CheckCircle2,
   AlertCircle,
@@ -14,9 +21,12 @@ import {
   ChevronUp,
   Flag,
   ThumbsUp,
+  AlertTriangle,
+  Upload,
 } from "lucide-react";
-import { useContracts, useContractSummary, useRequestCompletion, useConfirmCompletion } from "@/hooks/useContracts";
+import { useContracts, useContractSummary, useRequestCompletion, useConfirmCompletion, useSubmitDeliverable } from "@/hooks/useContracts";
 import { useToast } from "@/hooks/use-toast";
+import { DisputeModal } from "@/components/contracts/DisputeModal";
 import type { ApiContractList } from "@/types";
 
 // ── Contract status styling ───────────────────────────────────────────────────
@@ -85,7 +95,35 @@ function ContractCard({
   index: number;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [disputeOpen, setDisputeOpen] = useState(false);
+  const [submitOpen, setSubmitOpen] = useState(false);
+  const [delivFile, setDelivFile] = useState<File | null>(null);
+  const [delivDesc, setDelivDesc] = useState("");
   const { toast } = useToast();
+
+  const submitDeliverable = useSubmitDeliverable();
+
+  const handleSubmitDeliverable = () => {
+    if (!delivFile) {
+      toast({ title: "Fichier requis", description: "Sélectionnez un fichier à soumettre.", variant: "destructive" });
+      return;
+    }
+    const formData = new FormData();
+    formData.append("file", delivFile);
+    formData.append("description", delivDesc.trim());
+    submitDeliverable.mutate(
+      { contractId: contract.id, formData },
+      {
+        onSuccess: () => {
+          toast({ title: "Livrable soumis !", description: "Le client a été notifié." });
+          setDelivFile(null);
+          setDelivDesc("");
+          setSubmitOpen(false);
+        },
+        onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Une erreur est survenue.", variant: "destructive" }),
+      }
+    );
+  };
   const requestCompletion = useRequestCompletion();
   const confirmCompletion = useConfirmCompletion();
 
@@ -171,6 +209,18 @@ function ContractCard({
         )}
 
         <div className="flex flex-wrap items-center gap-2">
+          {(contract.status === "IN_PROGRESS" || contract.status === "ON_HOLD") && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2 border-secondary text-secondary hover:bg-secondary hover:text-white"
+              onClick={() => setSubmitOpen(true)}
+            >
+              <Upload size={14} />
+              Soumettre un livrable
+            </Button>
+          )}
+
           {contract.status === "IN_PROGRESS" && !requestedByProvider && !requestedByClient && (
             <Button
               size="sm"
@@ -203,6 +253,18 @@ function ContractCard({
             </Button>
           )}
 
+          {(contract.status === "IN_PROGRESS" || contract.status === "ON_HOLD") && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2 border-destructive/50 text-destructive hover:bg-destructive hover:text-white"
+              onClick={() => setDisputeOpen(true)}
+            >
+              <AlertTriangle size={14} />
+              {contract.status === "ON_HOLD" ? "Litige en cours" : "Ouvrir un litige"}
+            </Button>
+          )}
+
           <Button
             size="sm"
             variant="ghost"
@@ -214,6 +276,54 @@ function ContractCard({
           </Button>
         </div>
       </Card>
+
+      {/* Submit Deliverable Dialog */}
+      <Dialog open={submitOpen} onOpenChange={(v) => !v && setSubmitOpen(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload size={16} /> Soumettre un livrable
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="block text-sm font-semibold mb-2">Fichier <span className="text-destructive">*</span></label>
+              <input
+                type="file"
+                onChange={(e) => setDelivFile(e.target.files?.[0] ?? null)}
+                className="w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+              />
+              {delivFile && <p className="text-xs text-muted-foreground mt-1">{delivFile.name}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2">Description</label>
+              <textarea
+                value={delivDesc}
+                onChange={(e) => setDelivDesc(e.target.value)}
+                placeholder="Décrivez ce que vous livrez…"
+                rows={3}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors resize-none text-sm"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSubmitOpen(false)} disabled={submitDeliverable.isPending}>
+              Annuler
+            </Button>
+            <Button onClick={handleSubmitDeliverable} disabled={submitDeliverable.isPending || !delivFile} className="gap-2">
+              {submitDeliverable.isPending ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+              Soumettre
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <DisputeModal
+        contractId={contract.id}
+        contractTitle={contract.project.title}
+        open={disputeOpen}
+        onClose={() => setDisputeOpen(false)}
+      />
     </motion.div>
   );
 }

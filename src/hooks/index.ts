@@ -88,3 +88,9 @@ export {
   useCreateReview,
   usePortfolio,
 } from './useRankings';
+export {
+  useJobAlerts,
+  useCreateJobAlert,
+  useUpdateJobAlert,
+  useDeleteJobAlert,
+} from './useJobAlerts';

@@ -186,11 +186,54 @@ export interface ApiContractList {
   updated_at: string;
   completion_requested_by: number | null;
   completion_requested_at: string | null;
+  revisions_included: number;
+  revisions_used: number;
 }
 
 export interface ApiContractDetail extends ApiContractList {
   proposal: { id: string; status: ProposalStatusEnum; price: string };
   provider_kind_snapshot: string;
+}
+
+// ── Deliverable ──
+
+export type DeliverableStatus = 'SUBMITTED' | 'ACCEPTED' | 'REVISION_REQUESTED';
+
+export interface ApiDeliverable {
+  id: string;
+  contract: string;
+  submitted_by: number;
+  submitted_by_username: string;
+  file: string;
+  description: string;
+  status: DeliverableStatus;
+  status_display: string;
+  revision_count: number;
+  revision_note: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// ── Dispute ──
+
+export type DisputeStatus =
+  | 'OPEN'
+  | 'UNDER_REVIEW'
+  | 'RESOLVED_CLIENT'
+  | 'RESOLVED_PROVIDER'
+  | 'CLOSED';
+
+export interface ApiDispute {
+  id: string;
+  contract: string;
+  opened_by: ApiUserMini;
+  reason: string;
+  status: DisputeStatus;
+  status_display: string;
+  resolution: string | null;
+  resolution_note: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // ── Freelancer Profile ──
@@ -215,6 +258,8 @@ export interface ApiFreelancerProfile {
   skills: ApiSkill[];
   speciality: ApiSpeciality;
   freelance_details: FreelanceDetails;
+  is_available: boolean;
+  available_from: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -399,11 +444,28 @@ export interface FreelanceProfilePatchRequest {
   phone?: string;
   skill_ids?: number[];
   speciality_id?: number | null;
+  is_available?: boolean;
+  available_from?: string | null;
   freelance?: {
     first_name?: string;
     last_name?: string;
     business_name?: string;
   };
+}
+
+// ── Job Alerts ──
+
+export type JobAlertFrequency = 'INSTANT' | 'DAILY' | 'WEEKLY';
+
+export interface ApiJobAlert {
+  id: string;
+  filters: Record<string, unknown>;
+  frequency: JobAlertFrequency;
+  frequency_display: string;
+  is_active: boolean;
+  last_sent_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // ── Freelance Documents ──
