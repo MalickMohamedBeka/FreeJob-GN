@@ -161,6 +161,10 @@ class ApiService {
     return this.request<T>('DELETE', endpoint);
   }
 
+  async deleteWithBody<T>(endpoint: string, body: unknown): Promise<T> {
+    return this.request<T>('DELETE', endpoint, body);
+  }
+
   /** PATCH with multipart/form-data — for file uploads (profile picture, documents) */
   async patchFormData<T>(endpoint: string, formData: FormData): Promise<T> {
     const token = localStorage.getItem('access_token');

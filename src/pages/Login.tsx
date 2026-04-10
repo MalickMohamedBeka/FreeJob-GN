@@ -30,7 +30,13 @@ const Login = () => {
       await login({ email, password });
       const stored = localStorage.getItem("user");
       const user = stored ? JSON.parse(stored) : null;
-      navigate(user?.role === "CLIENT" ? "/client/dashboard" : "/dashboard");
+      navigate(
+        user?.role === "CLIENT"
+          ? "/client/dashboard"
+          : user?.provider_kind === "AGENCY"
+          ? "/agency/dashboard"
+          : "/dashboard"
+      );
     } catch (err: any) {
       setError(err?.message || "Email ou mot de passe incorrect");
     } finally {

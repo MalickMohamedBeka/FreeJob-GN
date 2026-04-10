@@ -51,6 +51,11 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const CommentCaMarche = lazy(() => import("./pages/CommentCaMarche"));
 const Rankings = lazy(() => import("./pages/Rankings"));
+const Agencies = lazy(() => import("./pages/Agencies"));
+const AgencyDetail = lazy(() => import("./pages/AgencyDetail"));
+const AgencyOnboarding = lazy(() => import("./pages/agency/AgencyOnboarding"));
+const AgencyDashboard = lazy(() => import("./pages/agency/AgencyDashboard"));
+const AgencyProfilePage = lazy(() => import("./pages/agency/AgencyProfile"));
 
 /**
  * Normalises URLs with consecutive slashes (e.g. //activate → /activate).
@@ -101,6 +106,8 @@ const App = () => (
               <Route path={ROUTES.PROJECTS} element={<Projects />} />
               <Route path={ROUTES.FREELANCERS} element={<Freelancers />} />
               <Route path={ROUTES.FREELANCER_PROFILE} element={<FreelancerProfile />} />
+              <Route path={ROUTES.AGENCIES} element={<Agencies />} />
+              <Route path={ROUTES.AGENCY_PROFILE} element={<AgencyDetail />} />
               <Route path={ROUTES.RANKINGS} element={<Rankings />} />
               <Route path={ROUTES.ABOUT} element={<About />} />
               <Route path={ROUTES.HOW_IT_WORKS} element={<CommentCaMarche />} />
@@ -141,6 +148,43 @@ const App = () => (
               } />
               <Route path={ROUTES.CLIENT.INVOICES} element={
                 <ProtectedRoute requiredRole="CLIENT"><Invoices /></ProtectedRoute>
+              } />
+
+              {/* Agency routes */}
+              <Route path={ROUTES.AGENCY.ONBOARDING} element={<AgencyOnboarding />} />
+              <Route path={ROUTES.AGENCY.DASHBOARD} element={
+                <ProtectedRoute requiredRole="PROVIDER"><AgencyDashboard /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.AGENCY.PROFILE} element={
+                <ProtectedRoute requiredRole="PROVIDER"><AgencyProfilePage /></ProtectedRoute>
+              } />
+              {/* Agency reuses freelancer dashboard pages (find-projects, proposals, messages, etc.) */}
+              <Route path={ROUTES.AGENCY.FIND_PROJECTS} element={
+                <ProtectedRoute requiredRole="PROVIDER"><FindProjects /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.AGENCY.MY_PROJECTS} element={
+                <ProtectedRoute requiredRole="PROVIDER"><MyProjects /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.AGENCY.PROPOSALS} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Proposals /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.AGENCY.MESSAGES} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Messages /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.AGENCY.NOTIFICATIONS} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Notifications /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.AGENCY.WALLET} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Wallet /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.AGENCY.INVOICES} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Invoices /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.AGENCY.SUBSCRIPTION} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Subscriptions /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.AGENCY.SETTINGS} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Settings /></ProtectedRoute>
               } />
 
               {/* Freelancer dashboard (protected) */}

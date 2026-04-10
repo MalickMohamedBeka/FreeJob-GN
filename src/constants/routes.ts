@@ -9,6 +9,8 @@ export const ROUTES = {
   PROJECTS: '/projects',
   FREELANCERS: '/freelancers',
   FREELANCER_PROFILE: '/freelancers/:id',
+  AGENCIES: '/agencies',
+  AGENCY_PROFILE: '/agencies/:id',
   RANKINGS: '/classement',
   ABOUT: '/about',
   HOW_IT_WORKS: '/comment-ca-marche',
@@ -36,6 +38,23 @@ export const ROUTES = {
     INVOICES: '/dashboard/invoices',
   },
   
+  // Agency routes
+  AGENCY: {
+    ROOT: '/agency',
+    ONBOARDING: '/agency/onboarding',
+    DASHBOARD: '/agency/dashboard',
+    PROFILE: '/agency/profile',
+    FIND_PROJECTS: '/agency/find-projects',
+    MY_PROJECTS: '/agency/projects',
+    PROPOSALS: '/agency/proposals',
+    MESSAGES: '/agency/messages',
+    NOTIFICATIONS: '/agency/notifications',
+    WALLET: '/agency/wallet',
+    INVOICES: '/agency/invoices',
+    SUBSCRIPTION: '/agency/subscription',
+    SETTINGS: '/agency/settings',
+  },
+
   // Admin routes
   ADMIN: {
     ROOT: '/admin',

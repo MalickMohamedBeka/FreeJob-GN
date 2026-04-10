@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   Briefcase,
   FileText,
-  Coins,
   MessageSquare,
   Settings,
   User,
@@ -16,14 +15,16 @@ import {
   Crown,
   X,
   Receipt,
+  Building2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFreelanceProfile } from "@/hooks/useProfile";
 import { useClientProfile } from "@/hooks/useProfile";
+import { useMyAgencyProfile } from "@/hooks/useAgency";
 import { useUnreadCount } from "@/hooks/useNotifications";
 
 interface DashboardSidebarProps {
-  userType: "freelancer" | "client";
+  userType: "freelancer" | "client" | "agency";
   mobileOpen: boolean;
   onCloseMobile: () => void;
   desktopOpen: boolean;
@@ -41,6 +42,20 @@ const freelancerMenuItems = [
   { icon: Bell,            label: "Notifications",       path: "/dashboard/notifications", badge: true },
   { icon: User,            label: "Mon Profil",          path: "/dashboard/profile" },
   { icon: Settings,        label: "Paramètres",          path: "/dashboard/settings" },
+];
+
+const agencyMenuItems = [
+  { icon: LayoutDashboard, label: "Dashboard",         path: "/agency/dashboard" },
+  { icon: Building2,       label: "Mon Agence",        path: "/agency/profile" },
+  { icon: Search,          label: "Trouver des Projets", path: "/agency/find-projects" },
+  { icon: Briefcase,       label: "Mes Projets",       path: "/agency/projects" },
+  { icon: FileText,        label: "Propositions",      path: "/agency/proposals" },
+  { icon: Crown,           label: "Abonnement",        path: "/agency/subscription" },
+  { icon: Wallet,          label: "Portefeuille",      path: "/agency/wallet" },
+  { icon: FileCheck,       label: "Factures",          path: "/agency/invoices" },
+  { icon: MessageSquare,   label: "Messages",          path: "/agency/messages" },
+  { icon: Bell,            label: "Notifications",     path: "/agency/notifications", badge: true },
+  { icon: Settings,        label: "Paramètres",        path: "/agency/settings" },
 ];
 
 const clientMenuItems = [
@@ -85,13 +100,18 @@ function ClientAvatar({ username }: { username: string }) {
 
 // ── Shared sidebar content ─────────────────────────────────────────────────────
 
+function AgencyAvatar({ username }: { username: string }) {
+  const { data } = useMyAgencyProfile();
+  return <AvatarDisplay src={data?.profile_picture} username={username} />;
+}
+
 function SidebarContent({
   userType,
   onItemClick,
   showClose,
   onClose,
 }: {
-  userType: "freelancer" | "client";
+  userType: "freelancer" | "client" | "agency";
   onItemClick?: () => void;
   showClose?: boolean;
   onClose?: () => void;
@@ -101,7 +121,12 @@ function SidebarContent({
   const { user, logout } = useAuth();
   const unreadCount = useUnreadCount();
 
-  const menuItems = userType === "freelancer" ? freelancerMenuItems : clientMenuItems;
+  const menuItems =
+    userType === "agency"
+      ? agencyMenuItems
+      : userType === "freelancer"
+      ? freelancerMenuItems
+      : clientMenuItems;
   const username = user?.username || "Utilisateur";
 
   const handleLogout = async () => {
@@ -160,7 +185,9 @@ function SidebarContent({
       {/* User section */}
       <div className="p-3 border-t border-border flex-shrink-0">
         <div className="flex items-center gap-2.5 px-2 py-2 mb-1">
-          {userType === "freelancer" ? (
+          {userType === "agency" ? (
+            <AgencyAvatar username={username} />
+          ) : userType === "freelancer" ? (
             <FreelancerAvatar username={username} />
           ) : (
             <ClientAvatar username={username} />
@@ -168,7 +195,7 @@ function SidebarContent({
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm truncate">{username}</p>
             <p className="text-xs text-muted-foreground truncate">
-              {userType === "freelancer" ? "Freelancer" : "Client"}
+              {userType === "agency" ? "Agence" : userType === "freelancer" ? "Freelancer" : "Client"}
             </p>
           </div>
         </div>

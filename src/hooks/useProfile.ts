@@ -10,6 +10,9 @@ import type {
   ClientProfileCreateRequest,
   PatchedClientProfileUpdateRequest,
   ApiClientCompanyDocument,
+  ApiPortfolioItemCustom,
+  ApiCertification,
+  ApiFavorite,
 } from '@/types';
 
 export function useFreelanceProfile() {
@@ -215,5 +218,151 @@ export function usePatchClientDocument() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-company-documents'] });
     },
+  });
+}
+
+// ── Portfolio items personnels ─────────────────────────────────────────────────
+
+export function usePortfolioItems(providerId: number | undefined) {
+  return useQuery({
+    queryKey: ['portfolio-items', providerId],
+    queryFn: () =>
+      apiService.get<DjangoPaginatedResponse<ApiPortfolioItemCustom>>(
+        `/users/providers/${providerId}/portfolio-items/`,
+      ),
+    enabled: !!providerId,
+  });
+}
+
+export function useCreatePortfolioItem(providerId: number | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (formData: FormData) =>
+      apiService.postFormData<ApiPortfolioItemCustom>(
+        `/users/providers/${providerId}/portfolio-items/`,
+        formData,
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['portfolio-items', providerId] });
+    },
+  });
+}
+
+export function usePatchPortfolioItem(providerId: number | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, formData }: { id: number; formData: FormData }) =>
+      apiService.patchFormData<ApiPortfolioItemCustom>(
+        `/users/providers/${providerId}/portfolio-items/${id}/`,
+        formData,
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['portfolio-items', providerId] });
+    },
+  });
+}
+
+export function useDeletePortfolioItem(providerId: number | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      apiService.delete<void>(`/users/providers/${providerId}/portfolio-items/${id}/`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['portfolio-items', providerId] });
+    },
+  });
+}
+
+// ── Certifications ─────────────────────────────────────────────────────────────
+
+export function useCertifications(providerId: number | undefined) {
+  return useQuery({
+    queryKey: ['certifications', providerId],
+    queryFn: () =>
+      apiService.get<DjangoPaginatedResponse<ApiCertification>>(
+        `/users/providers/${providerId}/certifications/`,
+      ),
+    enabled: !!providerId,
+  });
+}
+
+export function useCreateCertification(providerId: number | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (formData: FormData) =>
+      apiService.postFormData<ApiCertification>(
+        `/users/providers/${providerId}/certifications/`,
+        formData,
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['certifications', providerId] });
+    },
+  });
+}
+
+export function usePatchCertification(providerId: number | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, formData }: { id: number; formData: FormData }) =>
+      apiService.patchFormData<ApiCertification>(
+        `/users/providers/${providerId}/certifications/${id}/`,
+        formData,
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['certifications', providerId] });
+    },
+  });
+}
+
+export function useDeleteCertification(providerId: number | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      apiService.delete<void>(`/users/providers/${providerId}/certifications/${id}/`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['certifications', providerId] });
+    },
+  });
+}
+
+// ── Favoris providers (clients uniquement) ────────────────────────────────────
+
+export function useFavorites(enabled = true) {
+  return useQuery({
+    queryKey: ['favorites'],
+    queryFn: () =>
+      apiService.get<DjangoPaginatedResponse<ApiFavorite>>('/users/me/favorites/'),
+    enabled,
+  });
+}
+
+export function useAddFavorite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: number) =>
+      apiService.post<ApiFavorite>(`/users/${userId}/favorite/`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+    },
+  });
+}
+
+export function useRemoveFavorite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: number) =>
+      apiService.delete<void>(`/users/${userId}/favorite/`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+    },
+  });
+}
+
+// ── Signalement utilisateur ───────────────────────────────────────────────────
+
+export function useReportUser() {
+  return useMutation({
+    mutationFn: ({ userId, reason, details }: { userId: number; reason: string; details?: string }) =>
+      apiService.post<void>(`/users/${userId}/report/`, { reason, details: details ?? '' }),
   });
 }

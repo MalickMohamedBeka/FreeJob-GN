@@ -19,14 +19,43 @@ import {
   Tag,
   CheckCircle,
   FolderPlus,
+  Award,
+  Link as LinkIcon,
+  FileText,
+  Heart,
+  MoreVertical,
+  Flag,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useFreelancer } from "@/hooks/useFreelancers";
 import { useProviderRank, useProviderReviews, usePortfolio } from "@/hooks/useRankings";
+import { usePortfolioItems, useCertifications, useFavorites, useAddFavorite, useRemoveFavorite, useReportUser } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROUTES } from "@/constants/routes";
 import type { ApiProviderReview, StarsEnum, ApiPortfolioItem } from "@/types";
@@ -143,10 +172,32 @@ const FreelancerProfile = () => {
   const { data: rank } = useProviderRank(Number(id));
   const { data: reviewsData } = useProviderReviews(Number(id));
   const { data: portfolioData } = usePortfolio(Number(id));
+  const { data: portfolioItemsData } = usePortfolioItems(Number(id));
+  const { data: certificationsData } = useCertifications(Number(id));
+  const portfolioItems = portfolioItemsData?.results ?? [];
+  const certifications = certificationsData?.results ?? [];
   const { isAuthenticated, user } = useAuth();
   const [showDirectModal, setShowDirectModal] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const isClient = isAuthenticated && user?.role === "CLIENT";
+  const isOwner = isAuthenticated && user?.id === Number(id);
+  const canReport = isAuthenticated && !isOwner;
+
+  const { data: favoritesData } = useFavorites(isClient);
+  const addFavorite = useAddFavorite();
+  const removeFavorite = useRemoveFavorite();
+  const isFavorite = (favoritesData?.results ?? []).some(
+    (f) => f.provider_id === Number(id),
+  );
+  const toggleFavorite = () => {
+    if (isFavorite) {
+      removeFavorite.mutate(Number(id));
+    } else {
+      addFavorite.mutate(Number(id));
+    }
+  };
+  const favPending = addFavorite.isPending || removeFavorite.isPending;
 
   const reviews = reviewsData?.results ?? [];
   const totalReviews = reviewsData?.count ?? 0;
@@ -265,14 +316,49 @@ const FreelancerProfile = () => {
                           </span>
                         )}
                         {isClient && (
-                          <Button
-                            size="sm"
-                            className="gap-1.5"
-                            onClick={() => setShowDirectModal(true)}
-                          >
-                            <FolderPlus size={14} />
-                            Proposer un projet
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className={`gap-1.5 transition-colors ${isFavorite ? "border-red-300 text-red-500 hover:bg-red-50" : "hover:border-red-300 hover:text-red-500"}`}
+                              onClick={toggleFavorite}
+                              disabled={favPending}
+                              title={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+                            >
+                              <Heart
+                                size={14}
+                                className={isFavorite ? "fill-red-500 text-red-500" : ""}
+                              />
+                              {isFavorite ? "Favori" : "Favori"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="gap-1.5"
+                              onClick={() => setShowDirectModal(true)}
+                            >
+                              <FolderPlus size={14} />
+                              Proposer un projet
+                            </Button>
+                          </div>
+                        )}
+
+                        {canReport && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-muted-foreground">
+                                <MoreVertical size={15} />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive gap-2 cursor-pointer"
+                                onClick={() => setReportOpen(true)}
+                              >
+                                <Flag size={13} />
+                                Signaler ce profil
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         )}
                       </div>
                     </div>
@@ -515,6 +601,101 @@ const FreelancerProfile = () => {
                                 "{item.review.comment}"
                               </blockquote>
                             )}
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  )}
+
+                  {/* Portfolio items personnels */}
+                  {portfolioItems.length > 0 && (
+                    <Card className="p-6">
+                      <div className="flex items-center justify-between mb-5">
+                        <h2 className="font-semibold text-base flex items-center gap-2">
+                          <FolderPlus size={16} className="text-primary" />
+                          Réalisations personnelles
+                        </h2>
+                        <span className="text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                          {portfolioItems.length} item{portfolioItems.length > 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      <div className="space-y-3">
+                        {portfolioItems.map((item) => (
+                          <div
+                            key={item.id}
+                            className="p-4 rounded-xl border border-border hover:border-primary/30 hover:bg-muted/30 transition-colors"
+                          >
+                            <p className="font-medium text-sm leading-snug">{item.title}</p>
+                            {item.description && (
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-3">{item.description}</p>
+                            )}
+                            {item.skills.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {item.skills.map((s) => (
+                                  <span key={s.id} className="text-[10px] px-2 py-0.5 bg-primary/8 text-primary rounded-full font-medium">{s.name}</span>
+                                ))}
+                              </div>
+                            )}
+                            <div className="flex flex-wrap gap-4 mt-2 text-xs text-muted-foreground">
+                              {item.url && (
+                                <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors">
+                                  <LinkIcon size={10} /> Voir le projet
+                                </a>
+                              )}
+                              {item.file && (
+                                <a href={item.file} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors">
+                                  <FileText size={10} /> Fichier joint
+                                </a>
+                              )}
+                              <span className="flex items-center gap-1">
+                                <Calendar size={10} />
+                                {new Date(item.created_at).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  )}
+
+                  {/* Certifications */}
+                  {certifications.length > 0 && (
+                    <Card className="p-6">
+                      <div className="flex items-center justify-between mb-5">
+                        <h2 className="font-semibold text-base flex items-center gap-2">
+                          <Award size={16} className="text-primary" />
+                          Certifications
+                        </h2>
+                        <span className="text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                          {certifications.length}
+                        </span>
+                      </div>
+                      <div className="space-y-3">
+                        {certifications.map((cert) => (
+                          <div
+                            key={cert.id}
+                            className="flex items-start gap-3 p-3 rounded-xl border border-border hover:border-primary/30 hover:bg-muted/20 transition-colors"
+                          >
+                            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <Award size={16} className="text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm">{cert.name}</p>
+                              <p className="text-xs text-muted-foreground">{cert.issuer}</p>
+                              <div className="flex flex-wrap gap-3 mt-1 text-[10px] text-muted-foreground">
+                                {cert.issued_at && (
+                                  <span>Obtenue : {new Date(cert.issued_at).toLocaleDateString("fr-FR", { month: "short", year: "numeric" })}</span>
+                                )}
+                                {cert.expires_at && (
+                                  <span>Expire : {new Date(cert.expires_at).toLocaleDateString("fr-FR", { month: "short", year: "numeric" })}</span>
+                                )}
+                                {cert.file && (
+                                  <a href={cert.file} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors">
+                                    <FileText size={9} /> Voir le certificat
+                                  </a>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -767,8 +948,137 @@ const FreelancerProfile = () => {
           providerUsername={displayName || profile.username}
         />
       )}
+
+      {canReport && profile && (
+        <ReportUserDialog
+          open={reportOpen}
+          onOpenChange={setReportOpen}
+          userId={Number(id)}
+          username={displayName || profile.username}
+        />
+      )}
     </div>
   );
 };
+
+// ── Report Dialog ─────────────────────────────────────────────────────────────
+
+const REPORT_REASONS: { value: string; label: string }[] = [
+  { value: "SPAM", label: "Spam" },
+  { value: "FRAUD", label: "Fraude" },
+  { value: "INAPPROPRIATE", label: "Contenu inapproprié" },
+  { value: "OTHER", label: "Autre" },
+];
+
+function ReportUserDialog({
+  open,
+  onOpenChange,
+  userId,
+  username,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  userId: number;
+  username: string;
+}) {
+  const [reason, setReason] = useState("");
+  const [details, setDetails] = useState("");
+  const [done, setDone] = useState(false);
+  const { mutate, isPending } = useReportUser();
+
+  const handleClose = () => {
+    onOpenChange(false);
+    setTimeout(() => { setReason(""); setDetails(""); setDone(false); }, 200);
+  };
+
+  const handleSubmit = () => {
+    if (!reason) return;
+    mutate(
+      { userId, reason, details },
+      {
+        onSuccess: () => setDone(true),
+      },
+    );
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Flag size={15} className="text-destructive" />
+            Signaler @{username}
+          </DialogTitle>
+        </DialogHeader>
+
+        {done ? (
+          <div className="py-6 text-center space-y-2">
+            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto">
+              <Flag size={20} className="text-green-600" />
+            </div>
+            <p className="font-semibold text-sm">Signalement envoyé</p>
+            <p className="text-xs text-muted-foreground">
+              Notre équipe examinera votre signalement dans les plus brefs délais.
+            </p>
+            <Button size="sm" variant="outline" className="mt-2" onClick={handleClose}>
+              Fermer
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4 py-1">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Raison *
+                </Label>
+                <Select value={reason} onValueChange={setReason}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Choisir une raison…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {REPORT_REASONS.map((r) => (
+                      <SelectItem key={r.value} value={r.value}>
+                        {r.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Détails (optionnel)
+                </Label>
+                <Textarea
+                  rows={3}
+                  value={details}
+                  onChange={(e) => setDetails(e.target.value)}
+                  placeholder="Décrivez le problème…"
+                  className="resize-none"
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={handleClose} disabled={isPending}>
+                Annuler
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleSubmit}
+                disabled={isPending || !reason}
+                className="gap-2"
+              >
+                {isPending && <Loader2 size={13} className="animate-spin" />}
+                <Flag size={13} />
+                Envoyer le signalement
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default FreelancerProfile;

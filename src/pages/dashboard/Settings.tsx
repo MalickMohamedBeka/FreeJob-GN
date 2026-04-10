@@ -45,7 +45,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useNotificationPreferences, useUpdateNotificationPreferences } from "@/hooks/useNotifications";
 import { useUpdateFreelanceProfile, useFreelanceProfile } from "@/hooks/useProfile";
-import { useJobAlerts, useCreateJobAlert, useUpdateJobAlert, useDeleteJobAlert } from "@/hooks/useJobAlerts";
+import { useJobAlerts, useCreateJobAlert, useUpdateJobAlert, useToggleJobAlert, useDeleteJobAlert } from "@/hooks/useJobAlerts";
 import type { JobAlertFrequency } from "@/types";
 
 // ── Toggle Switch helper ──────────────────────────────────────────────────────
@@ -215,7 +215,7 @@ const FREQ_LABELS: Record<JobAlertFrequency, string> = {
 function JobAlertsSection() {
   const { data: alerts, isLoading } = useJobAlerts();
   const { mutate: createAlert, isPending: isCreating } = useCreateJobAlert();
-  const { mutate: updateAlert } = useUpdateJobAlert();
+  const { mutate: toggleAlert } = useToggleJobAlert();
   const { mutate: deleteAlert } = useDeleteJobAlert();
   const [newFreq, setNewFreq] = useState<JobAlertFrequency>("INSTANT");
 
@@ -245,7 +245,7 @@ function JobAlertsSection() {
               <div className="flex items-center gap-3">
                 <Toggle
                   checked={alert.is_active}
-                  onChange={(v) => updateAlert({ id: alert.id, data: { is_active: v } })}
+                  onChange={() => toggleAlert(alert.id)}
                 />
                 <div>
                   <p className="text-sm font-medium">Fréquence : {FREQ_LABELS[alert.frequency]}</p>

@@ -4,7 +4,7 @@ import DashboardHeader from "./DashboardHeader";
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  userType: "freelancer" | "client";
+  userType: "freelancer" | "client" | "agency";
 }
 
 const DashboardLayout = ({ children, userType }: DashboardLayoutProps) => {

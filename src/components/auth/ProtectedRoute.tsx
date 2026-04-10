@@ -15,11 +15,16 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   if (requiredRole && user?.role !== requiredRole) {
-    const redirect = user?.role === 'CLIENT' ? '/client/dashboard' : '/dashboard';
+    const redirect =
+      user?.role === 'CLIENT'
+        ? '/client/dashboard'
+        : user?.provider_kind === 'AGENCY'
+        ? '/agency/dashboard'
+        : '/dashboard';
     return <Navigate to={redirect} replace />;
   }
 
-  // Freelancer profile check
+  // Freelancer profile check (FREELANCE only — agencies manage init in their own dashboard)
   if (user?.role === 'PROVIDER' && user?.provider_kind === 'FREELANCE') {
     if (profileInitialized === null) return <PageLoader />;
     if (profileInitialized === false) return <Navigate to="/onboarding" replace />;

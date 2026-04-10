@@ -929,3 +929,107 @@ export interface ApiPortfolioResponse {
   summary: ApiPortfolioSummary;
   results: ApiPortfolioItem[];
 }
+
+// ── Agency Profile ──
+
+export type AgencyDocTypeEnum = 'RCCM' | 'STATUTES' | 'TAX' | 'OTHER';
+
+export interface AgencyDetails {
+  agency_name: string;
+  founded_at: string | null;
+}
+
+export interface ApiAgencyProfile {
+  id: number;
+  username: string;
+  email: string;
+  profile_picture: string | null;
+  bio: string;
+  hourly_rate: string | null;
+  city_or_region: string;
+  country: string;
+  postal_code: string;
+  phone: string;
+  skills: ApiSkill[];
+  speciality: ApiSpeciality | null;
+  agency_details: AgencyDetails;
+  is_available: boolean;
+  available_from: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiAgencyDocument {
+  id: number;
+  doc_type: AgencyDocTypeEnum;
+  doc_type_display: string;
+  file: string;
+  reference_number: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AgencyProfileInitRequest {
+  bio?: string;
+  city_or_region: string;
+  country: string;
+  postal_code?: string;
+  phone?: string;
+  hourly_rate?: string | null;
+  skill_ids?: number[];
+  speciality_id?: number | null;
+  agency: {
+    agency_name: string;
+    founded_at?: string | null;
+  };
+}
+
+export interface AgencyProfilePatchRequest {
+  bio?: string;
+  city_or_region?: string;
+  country?: string;
+  postal_code?: string;
+  phone?: string;
+  hourly_rate?: string | null;
+  skill_ids?: number[];
+  speciality_id?: number | null;
+  is_available?: boolean;
+  available_from?: string | null;
+  agency?: {
+    agency_name?: string;
+    founded_at?: string | null;
+  };
+}
+
+// ── Portfolio items personnels (hors contrats) ──
+
+export interface ApiPortfolioItemCustom {
+  id: number;
+  title: string;
+  description: string;
+  url: string | null;
+  file: string | null;
+  skills: { id: number; name: string }[];
+  created_at: string;
+}
+
+// ── Certifications ──
+
+export interface ApiCertification {
+  id: number;
+  name: string;
+  issuer: string;
+  issued_at: string | null;
+  expires_at: string | null;
+  file: string | null;
+}
+
+// ── Favoris providers ──
+
+export interface ApiFavorite {
+  id: number;
+  provider_id: number;
+  provider_username: string;
+  provider_role: string;
+  created_at: string;
+}

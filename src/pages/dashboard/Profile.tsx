@@ -51,6 +51,10 @@ import {
   Star,
   BarChart2,
   Eye,
+  Plus,
+  Link as LinkIcon,
+  Award,
+  X,
 } from "lucide-react";
 import {
   useFreelanceProfile,
@@ -60,11 +64,19 @@ import {
   useUploadDocument,
   useDeleteDocument,
   usePatchFreelanceDocument,
+  usePortfolioItems,
+  useCreatePortfolioItem,
+  usePatchPortfolioItem,
+  useDeletePortfolioItem,
+  useCertifications,
+  useCreateCertification,
+  usePatchCertification,
+  useDeleteCertification,
 } from "@/hooks/useProfile";
 import { useSkills, useSpecialities, useSkillsBySpeciality } from "@/hooks/useSkills";
 import { useProviderRank, useProviderReviews, usePortfolio } from "@/hooks/useRankings";
 import { PublicProfileSheet } from "@/components/dashboard/PublicProfileSheet";
-import type { FreelanceProfilePatchRequest, FreelanceDocTypeEnum, ApiFreelanceDocument, StarsEnum } from "@/types";
+import type { FreelanceProfilePatchRequest, FreelanceDocTypeEnum, ApiFreelanceDocument, StarsEnum, ApiPortfolioItemCustom, ApiCertification } from "@/types";
 import { ApiError } from "@/services/api.service";
 import { toast } from "@/hooks";
 
@@ -714,8 +726,25 @@ const Profile = () => {
   const { data: rank } = useProviderRank(profile?.id);
   const { data: reviewsData } = useProviderReviews(profile?.id);
   const { data: portfolioData } = usePortfolio(profile?.id);
+  const { data: portfolioItemsData } = usePortfolioItems(profile?.id);
+  const { data: certificationsData } = useCertifications(profile?.id);
   const updatePicture = useUpdateProfilePicture();
   const deleteDoc = useDeleteDocument();
+
+  const createPortfolioItem = useCreatePortfolioItem(profile?.id);
+  const patchPortfolioItem = usePatchPortfolioItem(profile?.id);
+  const deletePortfolioItem = useDeletePortfolioItem(profile?.id);
+  const createCertification = useCreateCertification(profile?.id);
+  const patchCertification = usePatchCertification(profile?.id);
+  const deleteCertification = useDeleteCertification(profile?.id);
+
+  const [portfolioDialogOpen, setPortfolioDialogOpen] = useState(false);
+  const [portfolioEditing, setPortfolioEditing] = useState<ApiPortfolioItemCustom | null>(null);
+  const [certDialogOpen, setCertDialogOpen] = useState(false);
+  const [certEditing, setCertEditing] = useState<ApiCertification | null>(null);
+
+  const portfolioItems = portfolioItemsData?.results ?? [];
+  const certifications = certificationsData?.results ?? [];
 
   const totalReviews = reviewsData?.count ?? 0;
   const avgRating = totalReviews > 0
@@ -896,6 +925,162 @@ const Profile = () => {
                 </div>
               </Card>
             )}
+
+            {/* Portfolio items personnels */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-semibold flex items-center gap-2">
+                  <Briefcase size={16} className="text-primary" />
+                  Portfolio personnel
+                </h3>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => { setPortfolioEditing(null); setPortfolioDialogOpen(true); }}
+                >
+                  <Plus size={14} />
+                  Ajouter
+                </Button>
+              </div>
+
+              {portfolioItems.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  <Briefcase size={32} className="mx-auto mb-2 opacity-30" />
+                  <p>Aucun item de portfolio personnel.</p>
+                  <p className="text-xs mt-1 opacity-70">Ajoutez des projets, réalisations ou travaux personnels.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {portfolioItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-start gap-3 p-3 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{item.title}</p>
+                        {item.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{item.description}</p>
+                        )}
+                        {item.skills.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {item.skills.map((s) => (
+                              <span key={s.id} className="text-[10px] px-1.5 py-0.5 bg-primary/8 text-primary rounded-full">{s.name}</span>
+                            ))}
+                          </div>
+                        )}
+                        <div className="flex items-center gap-3 mt-1.5 text-[10px] text-muted-foreground">
+                          {item.url && (
+                            <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary">
+                              <LinkIcon size={9} /> Lien
+                            </a>
+                          )}
+                          {item.file && (
+                            <a href={item.file} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary">
+                              <FileText size={9} /> Fichier
+                            </a>
+                          )}
+                          <span>{new Date(item.created_at).toLocaleDateString("fr-FR", { month: "short", year: "numeric" })}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => { setPortfolioEditing(item); setPortfolioDialogOpen(true); }}
+                          className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                          title="Modifier"
+                        >
+                          <Pencil size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deletePortfolioItem.mutate(item.id, {
+                            onSuccess: () => toast({ title: "Item supprimé." }),
+                          })}
+                          className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            {/* Certifications */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-semibold flex items-center gap-2">
+                  <Award size={16} className="text-primary" />
+                  Certifications
+                </h3>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => { setCertEditing(null); setCertDialogOpen(true); }}
+                >
+                  <Plus size={14} />
+                  Ajouter
+                </Button>
+              </div>
+
+              {certifications.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  <Award size={32} className="mx-auto mb-2 opacity-30" />
+                  <p>Aucune certification renseignée.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {certifications.map((cert) => (
+                    <div
+                      key={cert.id}
+                      className="flex items-start gap-3 p-3 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{cert.name}</p>
+                        <p className="text-xs text-muted-foreground">{cert.issuer}</p>
+                        <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
+                          {cert.issued_at && (
+                            <span>Obtenue : {new Date(cert.issued_at).toLocaleDateString("fr-FR", { month: "short", year: "numeric" })}</span>
+                          )}
+                          {cert.expires_at && (
+                            <span>Expire : {new Date(cert.expires_at).toLocaleDateString("fr-FR", { month: "short", year: "numeric" })}</span>
+                          )}
+                          {cert.file && (
+                            <a href={cert.file} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary">
+                              <FileText size={9} /> Certificat
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => { setCertEditing(cert); setCertDialogOpen(true); }}
+                          className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                          title="Modifier"
+                        >
+                          <Pencil size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteCertification.mutate(cert.id, {
+                            onSuccess: () => toast({ title: "Certification supprimée." }),
+                          })}
+                          className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
 
             {/* Documents */}
             <Card className="p-6">
@@ -1203,8 +1388,222 @@ const Profile = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* ── Portfolio item dialog ── */}
+      <PortfolioItemDialog
+        open={portfolioDialogOpen}
+        onOpenChange={setPortfolioDialogOpen}
+        item={portfolioEditing}
+        onCreate={(fd) => createPortfolioItem.mutate(fd, {
+          onSuccess: () => { toast({ title: "Item ajouté." }); setPortfolioDialogOpen(false); },
+        })}
+        onUpdate={(id, fd) => patchPortfolioItem.mutate({ id, formData: fd }, {
+          onSuccess: () => { toast({ title: "Item mis à jour." }); setPortfolioDialogOpen(false); },
+        })}
+        isPending={createPortfolioItem.isPending || patchPortfolioItem.isPending}
+      />
+
+      {/* ── Certification dialog ── */}
+      <CertificationDialog
+        open={certDialogOpen}
+        onOpenChange={setCertDialogOpen}
+        cert={certEditing}
+        onCreate={(fd) => createCertification.mutate(fd, {
+          onSuccess: () => { toast({ title: "Certification ajoutée." }); setCertDialogOpen(false); },
+        })}
+        onUpdate={(id, fd) => patchCertification.mutate({ id, formData: fd }, {
+          onSuccess: () => { toast({ title: "Certification mise à jour." }); setCertDialogOpen(false); },
+        })}
+        isPending={createCertification.isPending || patchCertification.isPending}
+      />
     </DashboardLayout>
   );
 };
+
+// ── Portfolio item dialog ──────────────────────────────────────────────────────
+
+function PortfolioItemDialog({
+  open,
+  onOpenChange,
+  item,
+  onCreate,
+  onUpdate,
+  isPending,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  item: ApiPortfolioItemCustom | null;
+  onCreate: (fd: FormData) => void;
+  onUpdate: (id: number, fd: FormData) => void;
+  isPending: boolean;
+}) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [url, setUrl] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setTitle(item?.title ?? "");
+      setDescription(item?.description ?? "");
+      setUrl(item?.url ?? "");
+      setFile(null);
+    }
+  }, [open, item]);
+
+  const handleSubmit = () => {
+    const fd = new FormData();
+    fd.append("title", title.trim());
+    fd.append("description", description.trim());
+    if (url.trim()) fd.append("url", url.trim());
+    if (file) fd.append("file", file);
+    if (item) {
+      onUpdate(item.id, fd);
+    } else {
+      onCreate(fd);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Briefcase size={15} className="text-primary" />
+            {item ? "Modifier l'item" : "Ajouter un item de portfolio"}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 py-1">
+          <div className="space-y-1.5">
+            <Label>Titre *</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nom du projet ou réalisation" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Description</Label>
+            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Décrivez ce projet…" className="resize-none" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>URL (lien)</Label>
+            <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Fichier</Label>
+            <Input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="cursor-pointer" />
+            {item?.file && !file && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <FileText size={11} />
+                Fichier actuel — laissez vide pour conserver.
+              </p>
+            )}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>Annuler</Button>
+          <Button onClick={handleSubmit} disabled={isPending || !title.trim()} className="gap-2">
+            {isPending && <Loader2 size={13} className="animate-spin" />}
+            {item ? "Mettre à jour" : "Ajouter"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ── Certification dialog ───────────────────────────────────────────────────────
+
+function CertificationDialog({
+  open,
+  onOpenChange,
+  cert,
+  onCreate,
+  onUpdate,
+  isPending,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  cert: ApiCertification | null;
+  onCreate: (fd: FormData) => void;
+  onUpdate: (id: number, fd: FormData) => void;
+  isPending: boolean;
+}) {
+  const [name, setName] = useState("");
+  const [issuer, setIssuer] = useState("");
+  const [issuedAt, setIssuedAt] = useState("");
+  const [expiresAt, setExpiresAt] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setName(cert?.name ?? "");
+      setIssuer(cert?.issuer ?? "");
+      setIssuedAt(cert?.issued_at ?? "");
+      setExpiresAt(cert?.expires_at ?? "");
+      setFile(null);
+    }
+  }, [open, cert]);
+
+  const handleSubmit = () => {
+    const fd = new FormData();
+    fd.append("name", name.trim());
+    fd.append("issuer", issuer.trim());
+    if (issuedAt) fd.append("issued_at", issuedAt);
+    if (expiresAt) fd.append("expires_at", expiresAt);
+    if (file) fd.append("file", file);
+    if (cert) {
+      onUpdate(cert.id, fd);
+    } else {
+      onCreate(fd);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Award size={15} className="text-primary" />
+            {cert ? "Modifier la certification" : "Ajouter une certification"}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 py-1">
+          <div className="space-y-1.5">
+            <Label>Nom de la certification *</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: AWS Cloud Practitioner" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Organisme émetteur *</Label>
+            <Input value={issuer} onChange={(e) => setIssuer(e.target.value)} placeholder="Ex: Amazon Web Services" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Date d'obtention</Label>
+              <Input type="date" value={issuedAt} onChange={(e) => setIssuedAt(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Date d'expiration</Label>
+              <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Fichier (certificat PDF/image)</Label>
+            <Input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="cursor-pointer" />
+            {cert?.file && !file && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <FileText size={11} />
+                Fichier actuel — laissez vide pour conserver.
+              </p>
+            )}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>Annuler</Button>
+          <Button onClick={handleSubmit} disabled={isPending || !name.trim() || !issuer.trim()} className="gap-2">
+            {isPending && <Loader2 size={13} className="animate-spin" />}
+            {cert ? "Mettre à jour" : "Ajouter"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default Profile;

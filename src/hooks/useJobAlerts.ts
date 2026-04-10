@@ -51,3 +51,13 @@ export function useDeleteJobAlert() {
     },
   });
 }
+
+export function useToggleJobAlert() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiService.post<ApiJobAlert>(`/job-alerts/${id}/toggle/`, {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+    },
+  });
+}
