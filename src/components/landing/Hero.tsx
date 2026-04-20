@@ -3,6 +3,7 @@ import { ArrowRight, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Spotlight } from "@/components/ui/spotlight";
+import { usePublicStats } from "@/hooks/useAuth";
 import heroImage from "@/assets/hero-image.jpeg";
 
 const fadeUp = (delay = 0) => ({
@@ -12,6 +13,9 @@ const fadeUp = (delay = 0) => ({
 });
 
 const Hero = () => {
+  const { data: stats } = usePublicStats();
+  const freelancersCount = stats?.freelances_count ?? null;
+
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-white">
       {/* Subtle Spotlight */}
@@ -70,7 +74,12 @@ const Hero = () => {
                 ))}
               </div>
               <span>
-                <strong className="text-foreground">50+</strong> freelancers africains actifs
+                {freelancersCount !== null ? (
+                  <strong className="text-foreground">{freelancersCount}+</strong>
+                ) : (
+                  <span className="inline-block w-8 h-4 bg-muted rounded animate-pulse align-middle" />
+                )}{" "}
+                freelancers africains actifs
               </span>
             </motion.div>
           </div>

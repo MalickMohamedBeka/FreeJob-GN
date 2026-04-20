@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Star, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { usePublicStats } from "@/hooks/useAuth";
 
 const teamMembers = [
   { name: "Amadou Diallo", role: "Développeur Full-Stack", skill: "React · Node.js", rating: 5, reviews: 38, color: "bg-primary" },
@@ -17,6 +18,9 @@ function getInitials(name: string) {
 }
 
 const TeamShowcase = () => {
+  const { data: stats } = usePublicStats();
+  const providersCount = stats?.providers_count ?? null;
+
   return (
     <section className="py-20 lg:py-28 bg-muted/40">
       <div className="container mx-auto px-4 lg:px-8">
@@ -93,7 +97,13 @@ const TeamShowcase = () => {
           className="text-center mt-12"
         >
           <p className="text-muted-foreground mb-4">
-            Rejoignez <strong className="text-foreground">50+</strong> talents africains
+            Rejoignez{" "}
+            {providersCount !== null ? (
+              <strong className="text-foreground">{providersCount}+</strong>
+            ) : (
+              <span className="inline-block w-8 h-4 bg-muted rounded animate-pulse align-middle" />
+            )}{" "}
+            talents africains
           </p>
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
             <Button variant="default" asChild>
