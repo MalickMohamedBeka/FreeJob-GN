@@ -137,7 +137,7 @@ function SidebarContent({
       {/* Logo */}
       <div className="flex items-center justify-between h-16 px-4 border-b border-border flex-shrink-0">
         <Link to="/" className="flex items-center gap-2.5" onClick={onItemClick}>
-          <img src="/logo.svg" alt="FreeJobGN" className="h-8 w-auto" />
+          <img src="/logo.svg" alt="FreeJobGN" className="h-12 w-auto" />
         </Link>
         {showClose && (
           <button
