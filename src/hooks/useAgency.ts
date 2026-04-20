@@ -21,11 +21,12 @@ interface AgencyFilters {
 
 // ── My agency profile (authenticated) ─────────────────────────────────────────
 
-export function useMyAgencyProfile() {
+export function useMyAgencyProfile(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: PROFILE_KEY,
     queryFn: () => apiService.get<ApiAgencyProfile>('/users/agency/profile/'),
     retry: false,
+    enabled: options?.enabled ?? true,
   });
 }
 

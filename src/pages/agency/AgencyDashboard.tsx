@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -238,14 +238,14 @@ export default function AgencyDashboard() {
     hourly_rate: "",
   });
 
+  const apiError = isError ? (error as ApiError | null) : null;
+
   // Redirect to onboarding if profile not found
-  if (isError) {
-    const apiErr = error as ApiError | null;
-    if (apiErr?.status === 404) {
+  useEffect(() => {
+    if (apiError?.status === 404) {
       navigate("/agency/onboarding", { replace: true });
-      return null;
     }
-  }
+  }, [apiError, navigate]);
 
   const docs = docsData?.results ?? [];
   const projects = (projectsData?.results ?? []).filter((p) => p.client.id === user?.id);

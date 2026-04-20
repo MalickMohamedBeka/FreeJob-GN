@@ -5,29 +5,39 @@ import { PageLoader } from '@/components/common';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: 'CLIENT' | 'PROVIDER';
+  requiredProviderKind?: 'FREELANCE' | 'AGENCY';
 }
 
-export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+function getDashboard(role?: string, providerKind?: string | null) {
+  if (role === 'CLIENT') return '/client/dashboard';
+  if (providerKind === 'AGENCY') return '/agency/dashboard';
+  return '/dashboard';
+}
+
+export default function ProtectedRoute({ children, requiredRole, requiredProviderKind }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, user, profileInitialized } = useAuth();
 
   if (isLoading) return <PageLoader />;
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
+  // Wrong role → send to their own dashboard
   if (requiredRole && user?.role !== requiredRole) {
-    const redirect =
-      user?.role === 'CLIENT'
-        ? '/client/dashboard'
-        : user?.provider_kind === 'AGENCY'
-        ? '/agency/dashboard'
-        : '/dashboard';
-    return <Navigate to={redirect} replace />;
+    return <Navigate to={getDashboard(user?.role, user?.provider_kind)} replace />;
   }
 
-  // Freelancer profile check (FREELANCE only — agencies manage init in their own dashboard)
-  if (user?.role === 'PROVIDER' && user?.provider_kind === 'FREELANCE') {
+  // Wrong provider kind (e.g. FREELANCE trying to access AGENCY routes)
+  if (requiredProviderKind && user?.provider_kind !== requiredProviderKind) {
+    return <Navigate to={getDashboard(user?.role, user?.provider_kind)} replace />;
+  }
+
+  // Provider profile check — redirect to onboarding if profile not yet created
+  if (user?.role === 'PROVIDER') {
     if (profileInitialized === null) return <PageLoader />;
-    if (profileInitialized === false) return <Navigate to="/onboarding" replace />;
+    if (profileInitialized === false) {
+      const onboarding = user.provider_kind === 'AGENCY' ? '/agency/onboarding' : '/onboarding';
+      return <Navigate to={onboarding} replace />;
+    }
   }
 
   return <>{children}</>;

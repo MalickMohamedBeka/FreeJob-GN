@@ -122,12 +122,9 @@ function SidebarContent({
   const unreadCount = useUnreadCount();
 
   const menuItems =
-    userType === "agency"
-      ? agencyMenuItems
-      : userType === "freelancer"
-      ? freelancerMenuItems
-      : clientMenuItems;
+    userType === "client" ? clientMenuItems : freelancerMenuItems;
   const username = user?.username || "Utilisateur";
+  const isAgency = user?.provider_kind === "AGENCY";
 
   const handleLogout = async () => {
     onItemClick?.();
@@ -185,17 +182,17 @@ function SidebarContent({
       {/* User section */}
       <div className="p-3 border-t border-border flex-shrink-0">
         <div className="flex items-center gap-2.5 px-2 py-2 mb-1">
-          {userType === "agency" ? (
-            <AgencyAvatar username={username} />
-          ) : userType === "freelancer" ? (
-            <FreelancerAvatar username={username} />
-          ) : (
+          {userType === "client" ? (
             <ClientAvatar username={username} />
+          ) : isAgency ? (
+            <AgencyAvatar username={username} />
+          ) : (
+            <FreelancerAvatar username={username} />
           )}
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm truncate">{username}</p>
             <p className="text-xs text-muted-foreground truncate">
-              {userType === "agency" ? "Agence" : userType === "freelancer" ? "Freelancer" : "Client"}
+              {userType === "client" ? "Client" : isAgency ? "Agence" : "Freelancer"}
             </p>
           </div>
         </div>

@@ -31,11 +31,7 @@ const Login = () => {
       const stored = localStorage.getItem("user");
       const user = stored ? JSON.parse(stored) : null;
       navigate(
-        user?.role === "CLIENT"
-          ? "/client/dashboard"
-          : user?.provider_kind === "AGENCY"
-          ? "/agency/dashboard"
-          : "/dashboard"
+        user?.role === "CLIENT" ? "/client/dashboard" : "/dashboard"
       );
     } catch (err: any) {
       setError(err?.message || "Email ou mot de passe incorrect");

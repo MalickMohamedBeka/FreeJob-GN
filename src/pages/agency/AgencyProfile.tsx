@@ -1,9 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Building2, MapPin, Phone, Mail, Loader2, Camera, Pencil, Save,
-  FileText, Trash2, Upload, ExternalLink, CalendarDays, Globe, X, Plus,
+  FileText, Trash2, Upload, ExternalLink, CalendarDays, Globe, X, Plus, AlertCircle,
 } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
@@ -153,10 +153,49 @@ export default function AgencyProfilePage() {
   const availableSkills = specialityData?.skills ?? [];
   const allSpecialities = specialitiesData?.results ?? [];
 
-  if (isError) {
-    const e = error as ApiError | null;
-    if (e?.status === 404) { navigate("/agency/onboarding", { replace: true }); return null; }
+  const apiError = isError ? (error as ApiError | null) : null;
+
+  // Redirect to onboarding if profile doesn't exist yet
+  useEffect(() => {
+    if (apiError?.status === 404) {
+      navigate("/agency/onboarding", { replace: true });
+    }
+  }, [apiError, navigate]);
+
+  if (isLoading) {
+    return (
+      <DashboardLayout userType="freelancer">
+        <div className="flex items-center justify-center py-32">
+          <Loader2 className="animate-spin text-secondary" size={36} />
+        </div>
+      </DashboardLayout>
+    );
   }
+
+  // Non-404 error (network, server error, etc.)
+  if (isError && apiError?.status !== 404) {
+    return (
+      <DashboardLayout userType="freelancer">
+        <div className="flex flex-col items-center justify-center py-32 text-center gap-4">
+          <AlertCircle size={40} className="text-destructive opacity-60" />
+          <p className="text-muted-foreground text-sm">
+            Impossible de charger votre profil.
+            {apiError?.status && <span className="font-mono ml-1">(erreur {apiError.status})</span>}
+          </p>
+          <p className="text-xs text-muted-foreground max-w-xs">{apiError?.message}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="text-sm text-secondary underline underline-offset-2"
+          >
+            Réessayer
+          </button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Waiting for redirect to onboarding (404 case)
+  if (!profile) return null;
 
   const docs = docsData?.results ?? [];
   const agencyName = profile?.agency_details?.agency_name || user?.username || "Agence";
@@ -225,18 +264,8 @@ export default function AgencyProfilePage() {
     });
   };
 
-  if (isLoading) {
-    return (
-      <DashboardLayout userType="agency">
-        <div className="flex items-center justify-center py-32">
-          <Loader2 className="animate-spin text-secondary" size={36} />
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   return (
-    <DashboardLayout userType="agency">
+    <DashboardLayout userType="freelancer">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>

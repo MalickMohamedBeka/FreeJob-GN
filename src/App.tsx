@@ -54,8 +54,7 @@ const Rankings = lazy(() => import("./pages/Rankings"));
 const Agencies = lazy(() => import("./pages/Agencies"));
 const AgencyDetail = lazy(() => import("./pages/AgencyDetail"));
 const AgencyOnboarding = lazy(() => import("./pages/agency/AgencyOnboarding"));
-const AgencyDashboard = lazy(() => import("./pages/agency/AgencyDashboard"));
-const AgencyProfilePage = lazy(() => import("./pages/agency/AgencyProfile"));
+const ProviderProfile = lazy(() => import("./pages/dashboard/ProviderProfile"));
 
 /**
  * Normalises URLs with consecutive slashes (e.g. //activate → /activate).
@@ -150,44 +149,10 @@ const App = () => (
                 <ProtectedRoute requiredRole="CLIENT"><Invoices /></ProtectedRoute>
               } />
 
-              {/* Agency routes */}
+              {/* Agency onboarding (accessed before profile is created) */}
               <Route path={ROUTES.AGENCY.ONBOARDING} element={<AgencyOnboarding />} />
-              <Route path={ROUTES.AGENCY.DASHBOARD} element={
-                <ProtectedRoute requiredRole="PROVIDER"><AgencyDashboard /></ProtectedRoute>
-              } />
-              <Route path={ROUTES.AGENCY.PROFILE} element={
-                <ProtectedRoute requiredRole="PROVIDER"><AgencyProfilePage /></ProtectedRoute>
-              } />
-              {/* Agency reuses freelancer dashboard pages (find-projects, proposals, messages, etc.) */}
-              <Route path={ROUTES.AGENCY.FIND_PROJECTS} element={
-                <ProtectedRoute requiredRole="PROVIDER"><FindProjects /></ProtectedRoute>
-              } />
-              <Route path={ROUTES.AGENCY.MY_PROJECTS} element={
-                <ProtectedRoute requiredRole="PROVIDER"><MyProjects /></ProtectedRoute>
-              } />
-              <Route path={ROUTES.AGENCY.PROPOSALS} element={
-                <ProtectedRoute requiredRole="PROVIDER"><Proposals /></ProtectedRoute>
-              } />
-              <Route path={ROUTES.AGENCY.MESSAGES} element={
-                <ProtectedRoute requiredRole="PROVIDER"><Messages /></ProtectedRoute>
-              } />
-              <Route path={ROUTES.AGENCY.NOTIFICATIONS} element={
-                <ProtectedRoute requiredRole="PROVIDER"><Notifications /></ProtectedRoute>
-              } />
-              <Route path={ROUTES.AGENCY.WALLET} element={
-                <ProtectedRoute requiredRole="PROVIDER"><Wallet /></ProtectedRoute>
-              } />
-              <Route path={ROUTES.AGENCY.INVOICES} element={
-                <ProtectedRoute requiredRole="PROVIDER"><Invoices /></ProtectedRoute>
-              } />
-              <Route path={ROUTES.AGENCY.SUBSCRIPTION} element={
-                <ProtectedRoute requiredRole="PROVIDER"><Subscriptions /></ProtectedRoute>
-              } />
-              <Route path={ROUTES.AGENCY.SETTINGS} element={
-                <ProtectedRoute requiredRole="PROVIDER"><Settings /></ProtectedRoute>
-              } />
 
-              {/* Freelancer dashboard (protected) */}
+              {/* Provider dashboard — shared by FREELANCE and AGENCY */}
               <Route path={ROUTES.DASHBOARD.ROOT} element={
                 <ProtectedRoute requiredRole="PROVIDER"><FreelancerDashboard /></ProtectedRoute>
               } />
@@ -204,7 +169,7 @@ const App = () => (
                 <ProtectedRoute requiredRole="PROVIDER"><Messages /></ProtectedRoute>
               } />
               <Route path={ROUTES.DASHBOARD.PROFILE} element={
-                <ProtectedRoute requiredRole="PROVIDER"><Profile /></ProtectedRoute>
+                <ProtectedRoute requiredRole="PROVIDER"><ProviderProfile /></ProtectedRoute>
               } />
               <Route path={ROUTES.DASHBOARD.SETTINGS} element={
                 <ProtectedRoute requiredRole="PROVIDER"><Settings /></ProtectedRoute>

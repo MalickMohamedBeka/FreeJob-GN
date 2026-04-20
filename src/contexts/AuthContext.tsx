@@ -16,10 +16,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-function isFreelanceProvider(user: ApiUser | null): boolean {
-  return user?.role === 'PROVIDER' && user?.provider_kind === 'FREELANCE';
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<ApiUser | null>(() => {
     const stored = localStorage.getItem('user');
@@ -29,18 +25,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profileInitialized, setProfileInitialized] = useState<boolean | null>(null);
 
   const checkProfileStatus = useCallback(async (u: ApiUser) => {
-    if (!isFreelanceProvider(u)) {
+    if (u.role !== 'PROVIDER') {
       setProfileInitialized(true);
       return;
     }
+    const endpoint =
+      u.provider_kind === 'AGENCY' ? '/users/agency/profile/' : '/users/freelance/profile/';
     try {
-      await apiService.get('/users/freelance/profile/');
+      await apiService.get(endpoint);
       setProfileInitialized(true);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setProfileInitialized(false);
       } else {
-        // Fail-open: don't block on unexpected errors
         setProfileInitialized(true);
       }
     }

@@ -15,10 +15,15 @@ import type {
   ApiFavorite,
 } from '@/types';
 
-export function useFreelanceProfile() {
+export function useFreelanceProfile(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['freelance-profile'],
     queryFn: () => apiService.get<ApiFreelancerProfile>('/users/freelance/profile/'),
+    enabled: options?.enabled ?? true,
+    retry: (count, err) => {
+      const status = (err as { status?: number })?.status;
+      return status !== 403 && status !== 404 && count < 2;
+    },
   });
 }
 

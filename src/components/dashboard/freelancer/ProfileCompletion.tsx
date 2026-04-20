@@ -4,10 +4,15 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useFreelanceProfile } from "@/hooks/useProfile";
+import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 
 const ProfileCompletion = () => {
-  const { data: profile, isLoading } = useFreelanceProfile();
+  const { user } = useAuth();
+  const isAgency = user?.provider_kind === 'AGENCY';
+  const { data: profile, isLoading } = useFreelanceProfile({ enabled: !isAgency });
+
+  if (isAgency) return null;
 
   if (isLoading) {
     return (

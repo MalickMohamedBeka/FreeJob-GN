@@ -206,7 +206,7 @@ function AgencyHeaderSection({ username }: { username: string }) {
           </div>
           <p className="text-sm font-semibold leading-tight">{username}</p>
         </div>
-        <Link to="/agency/profile">
+        <Link to="/dashboard/profile">
           <AvatarDisplay src={profile?.profile_picture} username={username} />
         </Link>
       </div>
