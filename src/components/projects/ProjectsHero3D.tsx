@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Rocket, TrendingUp, Zap, Clock, Tag, ArrowRight } from "lucide-react";
 import { Spotlight } from "@/components/ui/spotlight";
+import { usePublicStats } from "@/hooks/useAuth";
 
 const mockProjects = [
   {
@@ -33,6 +34,11 @@ const mockProjects = [
 ];
 
 const ProjectsHero3D = () => {
+  const { data: stats } = usePublicStats();
+
+  const stat = (val: number | undefined, suffix = "+") =>
+    val != null ? `${val}${suffix}` : "…";
+
   return (
     <div className="relative bg-primary py-16 lg:py-20 overflow-hidden">
       <Spotlight className="-top-40 -right-40 md:-top-20 md:-right-20" fill="white" />
@@ -48,7 +54,7 @@ const ProjectsHero3D = () => {
             >
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-sm font-semibold mb-6">
                 <Zap size={14} />
-                +150 Nouveaux Projets ce Mois
+                +{stats?.projects_this_month ?? "…"} Nouveaux Projets ce Mois
                 <TrendingUp size={14} />
               </div>
             </motion.div>
@@ -81,9 +87,9 @@ const ProjectsHero3D = () => {
               className="grid grid-cols-3 gap-3 max-w-sm mx-auto lg:mx-0"
             >
               {[
-                { icon: Rocket, value: "500+", label: "Projets Actifs" },
-                { icon: Zap, value: "50+", label: "Freelancers" },
-                { icon: TrendingUp, value: "98%", label: "Satisfaction" },
+                { icon: Rocket, value: stat(stats?.projects_count), label: "Projets Publiés" },
+                { icon: Zap, value: stat(stats?.freelances_count), label: "Freelancers" },
+                { icon: TrendingUp, value: stat(stats?.clients_count), label: "Clients" },
               ].map((stat, i) => (
                 <motion.div
                   key={stat.label}

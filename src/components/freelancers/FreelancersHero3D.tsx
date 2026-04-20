@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { Users, Globe, Star, TrendingUp, CheckCircle } from "lucide-react";
+import { Users, Globe, Star, TrendingUp, CheckCircle, Building2 } from "lucide-react";
 import { Spotlight } from "@/components/ui/spotlight";
+import { usePublicStats } from "@/hooks/useAuth";
 
 const mockProfiles = [
   {
@@ -33,6 +34,9 @@ const mockProfiles = [
 ];
 
 const FreelancersHero3D = () => {
+  const { data: stats } = usePublicStats();
+  const s = (val: number | undefined) => val != null ? `${val}+` : "…";
+
   return (
     <div className="relative bg-primary py-16 lg:py-20 overflow-hidden">
       <Spotlight className="-top-40 -right-40 md:-top-20 md:-right-20" fill="white" />
@@ -48,7 +52,7 @@ const FreelancersHero3D = () => {
             >
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-sm font-semibold mb-6">
                 <Users size={14} />
-                50+ Talents Vérifiés
+                {s(stats?.freelances_count)} Talents Vérifiés
               </div>
             </motion.div>
 
@@ -80,10 +84,10 @@ const FreelancersHero3D = () => {
               className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-3 max-w-lg mx-auto lg:mx-0"
             >
               {[
-                { icon: Users, value: "50+", label: "Freelancers" },
-                { icon: Globe, value: "50+", label: "Pays" },
-                { icon: Star, value: "4.9/5", label: "Note Moyenne" },
-                { icon: TrendingUp, value: "98%", label: "Succès" },
+                { icon: Users,      value: s(stats?.freelances_count), label: "Freelancers" },
+                { icon: Globe,      value: s(stats?.clients_count),    label: "Clients" },
+                { icon: Star,       value: "4.9/5",                    label: "Note Moyenne" },
+                { icon: Building2,  value: s(stats?.agencies_count),   label: "Agences" },
               ].map((stat, i) => (
                 <motion.div
                   key={stat.label}
@@ -161,7 +165,7 @@ const FreelancersHero3D = () => {
               className="self-start ml-4 bg-white/20 border border-white/30 text-white rounded-full px-4 py-2 text-xs font-semibold flex items-center gap-2"
             >
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              247 freelancers en ligne maintenant
+              {stats?.providers_count ?? "…"} prestataires inscrits
             </motion.div>
           </motion.div>
 

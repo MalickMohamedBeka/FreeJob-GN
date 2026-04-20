@@ -367,6 +367,8 @@ export interface PublicStats {
   providers_count: number;
   freelances_count: number;
   agencies_count: number;
+  projects_count: number;
+  projects_this_month: number;
 }
 
 export interface ChoiceItem {

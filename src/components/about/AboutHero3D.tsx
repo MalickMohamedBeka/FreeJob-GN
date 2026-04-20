@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Heart, Rocket, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Spotlight } from "@/components/ui/spotlight";
+import { usePublicStats } from "@/hooks/useAuth";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -10,6 +11,8 @@ const fadeUp = (delay = 0) => ({
 });
 
 const AboutHero3D = () => {
+  const { data: stats } = usePublicStats();
+
   return (
     <section className="relative py-14 lg:py-20 bg-primary overflow-hidden">
       <Spotlight className="-top-40 left-0 md:-top-20 md:left-60" fill="white" />
@@ -74,8 +77,8 @@ const AboutHero3D = () => {
           >
             {[
               { value: "2026", label: "Fondée en" },
-              { value: "5+", label: "Pays représentés" },
-              { value: "100+", label: "Projets réalisés" },
+              { value: `${stats?.providers_count ?? "…"}+`, label: "Prestataires inscrits" },
+              { value: `${stats?.projects_count ?? "…"}+`, label: "Projets publiés" },
             ].map((stat, i) => (
               <motion.div
                 key={stat.label}
