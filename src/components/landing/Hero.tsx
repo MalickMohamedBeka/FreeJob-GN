@@ -128,48 +128,77 @@ const Hero = () => {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.75, delay: 0.2, ease: "easeOut" as const }}
-            className="hidden lg:flex items-start justify-center relative h-full pt-6"
+            className="hidden lg:flex items-center justify-center relative h-full min-h-[560px] xl:min-h-[620px]"
           >
-            {/* Image container — portrait ratio, natural width */}
-            <div className="relative" style={{ width: "min(420px, 100%)" }}> 
-
-              {/* Badge ⭐ — haut droite, hors zone visage */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.9, duration: 0.45 }}
-                className="absolute -right-10 top-16 z-20 bg-white rounded-2xl shadow-xl border border-gray-100 px-3.5 py-2.5 flex items-center gap-2"
-              >
-                <div className="w-8 h-8 rounded-xl bg-yellow-400 flex items-center justify-center flex-shrink-0">
-                  <Star size={13} className="fill-white text-white" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-800 leading-none">4.9 / 5</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">Note moyenne</p>
-                </div>
-              </motion.div>
-
-              {/* Badge 🛡 — bas gauche, hors zone téléphone */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1.1, duration: 0.45 }}
-                className="absolute -left-10 bottom-20 z-20 bg-green-500 text-white rounded-2xl shadow-xl px-3.5 py-2.5 flex items-center gap-2"
-              >
-                <Shield size={13} className="flex-shrink-0" />
-                <div>
-                  <p className="text-xs font-bold leading-none">Paiement sécurisé</p>
-                  <p className="text-[10px] opacity-80 mt-0.5">Fonds en séquestre</p>
-                </div>
-              </motion.div>
-
-              {/* Image — fond supprimé via multiply, proportions naturelles */}
-              <img
-                src={heroImg}
-                alt="Talent freelance FreeJobGN"
-                className="w-full h-auto block"
-                style={{ mixBlendMode: "multiply" }}
+            <div className="relative flex w-full max-w-[580px] items-center justify-center">
+              <div
+                aria-hidden="true"
+                className="absolute inset-x-14 top-10 bottom-8 opacity-90 blur-2xl"
+                style={{
+                  borderRadius: "46% 54% 58% 42% / 42% 40% 60% 58%",
+                  background:
+                    "radial-gradient(circle at 50% 24%, hsla(231, 68%, 96%, 0.95) 0%, hsla(231, 68%, 94%, 0.78) 34%, hsla(180, 54%, 92%, 0.38) 58%, transparent 80%)",
+                }}
               />
+
+              <div
+                aria-hidden="true"
+                className="absolute left-14 top-28 h-52 w-52 rounded-full bg-primary/12 blur-3xl"
+              />
+              <div
+                aria-hidden="true"
+                className="absolute right-10 top-20 h-44 w-44 rounded-full bg-secondary/10 blur-3xl"
+              />
+              <div
+                aria-hidden="true"
+                className="absolute bottom-16 left-20 h-28 w-48 rounded-full blur-3xl"
+                style={{ background: "hsla(28, 78%, 80%, 0.34)" }}
+              />
+
+              {/* Image container — portrait ratio, natural width */}
+              <div className="relative z-10 w-full max-w-[460px] translate-x-4 -translate-y-16 xl:max-w-[500px] xl:translate-x-6 xl:-translate-y-[4.5rem]">
+                {/* Badge ⭐ — haut droite, hors zone visage */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.9, duration: 0.45 }}
+                  className="absolute -right-6 top-24 z-20 rounded-2xl border border-gray-100 bg-white/95 px-3.5 py-2.5 shadow-xl backdrop-blur-sm xl:-right-8 xl:top-28"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-yellow-400">
+                      <Star size={13} className="fill-white text-white" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold leading-none text-gray-800">4.9 / 5</p>
+                      <p className="mt-0.5 text-[10px] text-gray-400">Note moyenne</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Badge 🛡 — bas gauche, hors zone téléphone */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.1, duration: 0.45 }}
+                  className="absolute -left-4 bottom-28 z-20 rounded-2xl bg-green-500 px-3.5 py-2.5 text-white shadow-xl xl:-left-8 xl:bottom-32"
+                >
+                  <div className="flex items-center gap-2">
+                    <Shield size={13} className="flex-shrink-0" />
+                    <div>
+                      <p className="text-xs font-bold leading-none">Paiement sécurisé</p>
+                      <p className="mt-0.5 text-[10px] opacity-80">Fonds en séquestre</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Image — fond supprimé via multiply, proportions naturelles */}
+                <img
+                  src={heroImg}
+                  alt="Talent freelance FreeJobGN"
+                  className="block h-auto w-full drop-shadow-[0_36px_64px_rgba(15,23,42,0.08)]"
+                  style={{ mixBlendMode: "multiply" }}
+                />
+              </div>
             </div>
           </motion.div>
 
