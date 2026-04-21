@@ -840,13 +840,17 @@ export type StarsEnum = 0 | 1 | 2 | 3;
 export interface ApiProviderRank {
   provider_id: number;
   provider_username: string;
+  provider_kind: 'FREELANCE' | 'AGENCY';
+  provider_profile_id: number | null;
+  profile_picture: string | null;
   score: string;
-  computed_score: string;
-  manual_adjustment: string;
+  computed_score?: string;
+  manual_adjustment?: string;
   position: number;
   stars: StarsEnum;
   tier: TierEnum;
-  breakdown: Record<string, unknown>;
+  is_suggested?: boolean;
+  breakdown?: Record<string, unknown>;
   computed_at: string;
 }
 
