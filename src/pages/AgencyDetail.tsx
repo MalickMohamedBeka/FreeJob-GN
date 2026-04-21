@@ -5,6 +5,7 @@ import {
   Calendar, CheckCircle2, Building2, MessageSquare, Hash, Briefcase,
   Clock, Tag, CheckCircle, FolderPlus, Award, Link as LinkIcon,
   FileText, Heart, MoreVertical, Flag, Phone, Mail,
+  ShieldCheck, Globe, Linkedin, BadgeCheck, Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -22,8 +23,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { useAgency } from "@/hooks/useAgency";
+import { useAgency, useAgencies } from "@/hooks/useAgency";
 import { useProviderRank, useProviderReviews, usePortfolio } from "@/hooks/useRankings";
+import { ROUTES } from "@/constants/routes";
 import { usePortfolioItems, useCertifications, useFavorites, useAddFavorite, useRemoveFavorite, useReportUser } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import type { ApiProviderReview, StarsEnum, ApiPortfolioItem } from "@/types";
@@ -197,6 +199,12 @@ export default function AgencyDetail() {
 
   const reviews = reviewsData?.results ?? [];
   const totalReviews = reviewsData?.count ?? 0;
+
+  const specialityId = agency?.speciality?.id;
+  const { data: similarData } = useAgencies({ speciality_id: specialityId ?? undefined });
+  const similarAgencies = (similarData?.results ?? [])
+    .filter((a) => a.id !== agencyId)
+    .slice(0, 3);
   const avg = avgRating(reviews);
   const dist = ratingDistribution(reviews);
 
@@ -263,6 +271,12 @@ export default function AgencyDetail() {
                     <div>
                       <div className="flex items-center gap-2 flex-wrap mb-0.5">
                         <h1 className="text-2xl font-bold">{displayName}</h1>
+                        {agency.is_kyc_verified && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                            <ShieldCheck size={11} />
+                            Vérifié
+                          </span>
+                        )}
                         {rank?.tier && rank.tier !== "FREE" && (
                           <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${TIER_COLORS[rank.tier]}`}>
                             {TIER_LABELS[rank.tier]}
@@ -339,42 +353,78 @@ export default function AgencyDetail() {
                     {memberSince && <span className="flex items-center gap-1.5"><Calendar size={13} />Membre depuis {memberSince}</span>}
                     {rank && <span className="flex items-center gap-1.5"><Hash size={13} />Classée #{rank.position}</span>}
                     {foundedYear && <span className="flex items-center gap-1.5"><Building2 size={13} />Fondée en {foundedYear}</span>}
+                    {agency.years_of_experience != null && (
+                      <span className="flex items-center gap-1.5">
+                        <Briefcase size={13} />
+                        {agency.years_of_experience} an{agency.years_of_experience > 1 ? "s" : ""} d'expérience
+                      </span>
+                    )}
+                    {agency.linkedin_url && (
+                      <a href={agency.linkedin_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors">
+                        <Linkedin size={13} />LinkedIn
+                      </a>
+                    )}
+                    {agency.website_url && (
+                      <a href={agency.website_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors">
+                        <Globe size={13} />Site web
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Stats strip */}
-              {(totalReviews > 0 || rank || agency.hourly_rate) && (
-                <div className="mt-6 pt-5 border-t border-border grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {agency.hourly_rate && (
-                    <div>
-                      <p className="text-xl font-bold text-primary">
-                        {Number(agency.hourly_rate).toLocaleString("fr-FR")}
-                        <span className="text-sm font-normal text-muted-foreground ml-1">GNF/h</span>
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Tarif horaire</p>
-                    </div>
-                  )}
-                  {totalReviews > 0 && (
-                    <div>
-                      <p className="text-xl font-bold text-foreground">{totalReviews}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Avis clients</p>
-                    </div>
-                  )}
-                  {rank && (
-                    <>
-                      <div>
-                        <p className="text-xl font-bold text-cta">{parseFloat(rank.score).toFixed(1)}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Score FreeJobGN</p>
-                      </div>
-                      <div>
-                        <p className="text-xl font-bold text-foreground">#{rank.position}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Position classement</p>
-                      </div>
-                    </>
-                  )}
+              <div className="mt-6 pt-5 border-t border-border grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {agency.hourly_rate && (
+                  <div>
+                    <p className="text-xl font-bold text-primary">
+                      {Number(agency.hourly_rate).toLocaleString("fr-FR")}
+                      <span className="text-sm font-normal text-muted-foreground ml-1">GNF/h</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Tarif horaire</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xl font-bold text-foreground flex items-center gap-1">
+                    <BadgeCheck size={16} className="text-primary" />
+                    {agency.projects_completed ?? 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Projets terminés</p>
                 </div>
-              )}
+                {(agency.success_rate ?? 0) > 0 && (
+                  <div>
+                    <p className="text-xl font-bold text-green-600">{agency.success_rate}%</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Taux de succès</p>
+                  </div>
+                )}
+                {parseFloat(agency.total_budget_realized ?? "0") > 0 && (
+                  <div>
+                    <p className="text-xl font-bold text-foreground">
+                      {parseFloat(agency.total_budget_realized).toLocaleString("fr-FR")}
+                      <span className="text-sm font-normal text-muted-foreground ml-1">GNF</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">CA réalisé</p>
+                  </div>
+                )}
+                {totalReviews > 0 && (
+                  <div>
+                    <p className="text-xl font-bold text-foreground">{totalReviews}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Avis clients</p>
+                  </div>
+                )}
+                {rank && (
+                  <>
+                    <div>
+                      <p className="text-xl font-bold text-cta">{parseFloat(rank.score).toFixed(1)}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Score FreeJobGN</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-foreground">#{rank.position}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Position classement</p>
+                    </div>
+                  </>
+                )}
+              </div>
             </Card>
 
             {/* ── Two-column body ── */}
@@ -484,18 +534,25 @@ export default function AgencyDetail() {
                     </div>
                     <div className="space-y-3">
                       {portfolioItems.map((item) => (
-                        <div key={item.id} className="p-4 rounded-xl border border-border hover:border-primary/30 hover:bg-muted/30 transition-colors">
-                          <p className="font-medium text-sm leading-snug">{item.title}</p>
-                          {item.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-3">{item.description}</p>}
-                          {item.skills.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {item.skills.map((s) => <span key={s.id} className="text-[10px] px-2 py-0.5 bg-primary/8 text-primary rounded-full font-medium">{s.name}</span>)}
-                            </div>
+                        <div key={item.id} className="rounded-xl border border-border hover:border-primary/30 hover:bg-muted/30 transition-colors overflow-hidden">
+                          {item.image && (
+                            <a href={item.image} target="_blank" rel="noopener noreferrer">
+                              <img src={item.image} alt={item.title} className="w-full h-40 object-cover hover:opacity-90 transition-opacity" />
+                            </a>
                           )}
-                          <div className="flex flex-wrap gap-4 mt-2 text-xs text-muted-foreground">
-                            {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors"><LinkIcon size={10} /> Voir le projet</a>}
-                            {item.file && <a href={item.file} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors"><FileText size={10} /> Fichier joint</a>}
-                            <span className="flex items-center gap-1"><Calendar size={10} />{new Date(item.created_at).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}</span>
+                          <div className="p-4">
+                            <p className="font-medium text-sm leading-snug">{item.title}</p>
+                            {item.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-3">{item.description}</p>}
+                            {item.tech_stack?.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {item.tech_stack.map((t: string) => <span key={t} className="text-[10px] px-2 py-0.5 bg-primary/8 text-primary rounded-full font-medium">{t}</span>)}
+                              </div>
+                            )}
+                            <div className="flex flex-wrap gap-4 mt-2 text-xs text-muted-foreground">
+                              {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors"><LinkIcon size={10} /> Voir le projet</a>}
+                              {item.file && <a href={item.file} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors"><FileText size={10} /> Fichier joint</a>}
+                              <span className="flex items-center gap-1"><Calendar size={10} />{new Date(item.created_at).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}</span>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -661,6 +718,18 @@ export default function AgencyDetail() {
                         <span>Fondée en {foundedYear}</span>
                       </div>
                     )}
+                    {agency.years_of_experience != null && (
+                      <div className="flex items-start gap-2.5 text-muted-foreground">
+                        <Briefcase size={14} className="mt-0.5 flex-shrink-0 text-primary/60" />
+                        <span>{agency.years_of_experience} an{agency.years_of_experience > 1 ? "s" : ""} d'expérience</span>
+                      </div>
+                    )}
+                    <div className="flex items-start gap-2.5">
+                      <ShieldCheck size={14} className={`mt-0.5 flex-shrink-0 ${agency.is_kyc_verified ? "text-green-600" : "text-primary/60"}`} />
+                      <span className={agency.is_kyc_verified ? "text-green-700 font-medium" : "text-muted-foreground"}>
+                        {agency.is_kyc_verified ? "Identité vérifiée" : "Identité non vérifiée"}
+                      </span>
+                    </div>
                     {agency.phone && (
                       <div className="flex items-start gap-2.5 text-muted-foreground">
                         <Phone size={14} className="mt-0.5 flex-shrink-0 text-primary/60" />
@@ -673,6 +742,18 @@ export default function AgencyDetail() {
                         <span className="truncate">{agency.email}</span>
                       </div>
                     )}
+                    {agency.linkedin_url && (
+                      <div className="flex items-start gap-2.5">
+                        <Linkedin size={14} className="mt-0.5 flex-shrink-0 text-primary/60" />
+                        <a href={agency.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate">LinkedIn</a>
+                      </div>
+                    )}
+                    {agency.website_url && (
+                      <div className="flex items-start gap-2.5">
+                        <Globe size={14} className="mt-0.5 flex-shrink-0 text-primary/60" />
+                        <a href={agency.website_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate">Site web</a>
+                      </div>
+                    )}
                     <div className="flex items-start gap-2.5 text-muted-foreground">
                       <CheckCircle2 size={14} className="mt-0.5 flex-shrink-0 text-primary/60" />
                       <span>Paiement sécurisé Mobile Money</span>
@@ -680,6 +761,45 @@ export default function AgencyDetail() {
                   </div>
                 </Card>
               </div>
+
+              {/* ── Agences similaires ── */}
+              {similarAgencies.length > 0 && (
+                <div className="lg:col-span-3">
+                  <Card className="p-6">
+                    <h2 className="font-semibold text-base flex items-center gap-2 mb-5">
+                      <Users size={16} className="text-primary" />
+                      Agences similaires
+                    </h2>
+                    <div className="grid sm:grid-cols-3 gap-4">
+                      {similarAgencies.map((a) => {
+                        const name = a.agency_details?.agency_name || a.username;
+                        return (
+                          <Link
+                            key={a.id}
+                            to={ROUTES.AGENCY_PROFILE.replace(":id", String(a.id))}
+                            className="flex flex-col items-center text-center p-4 rounded-xl border border-border hover:border-primary/30 hover:shadow-sm transition-all group"
+                          >
+                            {a.profile_picture ? (
+                              <img src={a.profile_picture} alt={name} className="w-14 h-14 rounded-full object-cover mb-2" />
+                            ) : (
+                              <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg mb-2">
+                                {name.slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                            <p className="font-semibold text-sm group-hover:text-primary transition-colors truncate w-full">{name}</p>
+                            <p className="text-xs text-muted-foreground">{a.speciality?.name ?? "Agence"}</p>
+                            {a.hourly_rate && (
+                              <p className="text-xs text-primary font-medium mt-1">
+                                {Number(a.hourly_rate).toLocaleString("fr-FR")} GNF/h
+                              </p>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </Card>
+                </div>
+              )}
             </div>
           </div>
         </div>

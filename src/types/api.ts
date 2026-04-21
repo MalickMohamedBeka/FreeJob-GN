@@ -331,6 +331,18 @@ export interface ApiFreelancerProfile {
   freelance_details: FreelanceDetails;
   is_available: boolean;
   available_from: string | null;
+  // F1 — KYC
+  is_kyc_verified: boolean;
+  kyc_status: string;
+  // F2 — Stats
+  projects_completed: number;
+  success_rate: number;
+  total_budget_realized: string;
+  // F3 — Expérience
+  years_of_experience: number | null;
+  // F4 — Liens
+  linkedin_url: string;
+  website_url: string;
   created_at: string;
   updated_at: string;
 }
@@ -961,6 +973,18 @@ export interface ApiAgencyProfile {
   agency_details: AgencyDetails;
   is_available: boolean;
   available_from: string | null;
+  // F1 — KYC
+  is_kyc_verified: boolean;
+  kyc_status: string;
+  // F2 — Stats
+  projects_completed: number;
+  success_rate: number;
+  total_budget_realized: string;
+  // F3 — Expérience
+  years_of_experience: number | null;
+  // F4 — Liens
+  linkedin_url: string;
+  website_url: string;
   created_at: string;
   updated_at: string;
 }
@@ -1015,6 +1039,8 @@ export interface ApiPortfolioItemCustom {
   description: string;
   url: string | null;
   file: string | null;
+  image: string | null;
+  tech_stack: string[];
   skills: { id: number; name: string }[];
   created_at: string;
 }
