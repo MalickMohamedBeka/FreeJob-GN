@@ -29,7 +29,7 @@ const CardSkeleton = () => (
 const TeamShowcase = () => {
   const { data: stats } = usePublicStats();
   const providersCount = stats?.providers_count ?? null;
-  const { data: providersData, isLoading } = useProviders();
+  const { data: providersData, isLoading } = useProviders({ provider_kind: 'FREELANCE' });
 
   const topProviders = [...(providersData?.results ?? [])]
     .sort((a, b) => (b.stars ?? 0) - (a.stars ?? 0))

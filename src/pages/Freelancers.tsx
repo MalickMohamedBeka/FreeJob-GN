@@ -81,6 +81,7 @@ const Freelancers = () => {
 
   const { data, isLoading } = useProviders({
     page,
+    provider_kind: 'FREELANCE',
     skill_id: selectedSkillId ?? undefined,
     speciality_id: selectedSpeciality ?? undefined,
     available: availableOnly ? true : undefined,

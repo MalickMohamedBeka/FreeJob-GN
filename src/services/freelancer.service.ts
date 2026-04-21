@@ -14,6 +14,7 @@ interface FreelancerFilters {
   page?: number;
   available?: boolean;
   min_stars?: number;
+  provider_kind?: 'FREELANCE' | 'AGENCY';
 }
 
 class FreelancerService {
@@ -37,6 +38,7 @@ class FreelancerService {
     if (filters?.page) params.page = String(filters.page);
     if (filters?.available) params.available = 'true';
     if (filters?.min_stars !== undefined) params.min_stars = String(filters.min_stars);
+    if (filters?.provider_kind) params.provider_kind = filters.provider_kind;
     return apiService.get<DjangoPaginatedResponse<ApiProviderDiscovery>>('/users/providers/', params);
   }
 

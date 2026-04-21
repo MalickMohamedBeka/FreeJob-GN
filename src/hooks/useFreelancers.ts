@@ -8,6 +8,7 @@ interface FreelancerFilters {
   city?: string;
   available?: boolean;
   min_stars?: number;
+  provider_kind?: 'FREELANCE' | 'AGENCY';
 }
 
 export function useFreelancers(filters?: FreelancerFilters) {

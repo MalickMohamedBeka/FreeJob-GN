@@ -148,7 +148,7 @@ const Agencies = () => {
 
               {/* Results count */}
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Building2 size={14} className="text-secondary" />
+                <Building2 size={14} className="text-primary" />
                 <span>
                   <strong className="text-foreground">{data?.count ?? 0}</strong>{" "}
                   {(data?.count ?? 0) === 1 ? "agence trouvée" : "agences trouvées"}
@@ -264,7 +264,7 @@ const Agencies = () => {
           {/* ── Results ── */}
           {isLoading ? (
             <div className="flex justify-center py-20">
-              <Loader2 className="animate-spin text-secondary" size={36} />
+              <Loader2 className="animate-spin text-primary" size={36} />
             </div>
           ) : filtered.length > 0 ? (
             <>
@@ -283,14 +283,14 @@ const Agencies = () => {
               <PagePagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
               {/* CTA banner */}
-              <div className="mt-16 bg-secondary rounded-2xl p-10 text-center">
+              <div className="mt-16 bg-primary rounded-2xl p-10 text-center">
                 <h2 className="text-2xl font-bold text-white mb-3">
                   Vous êtes une Agence ?
                 </h2>
                 <p className="text-white/80 mb-6 max-w-xl mx-auto">
                   Rejoignez notre réseau d'agences et accédez à des projets de qualité pour développer votre activité.
                 </p>
-                <Button variant="outline" className="bg-white text-secondary hover:bg-white/90 border-white" asChild>
+                <Button variant="cta" asChild>
                   <Link to="/signup">Inscrire votre Agence Gratuitement</Link>
                 </Button>
               </div>

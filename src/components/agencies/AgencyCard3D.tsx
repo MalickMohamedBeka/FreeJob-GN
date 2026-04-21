@@ -24,7 +24,7 @@ const AgencyCard3D = memo(({ agency, index }: { agency: ApiAgencyProfile; index:
       className="bg-white rounded-xl border border-border hover:shadow-md transition-shadow overflow-hidden"
     >
       {/* Header band */}
-      <div className="bg-secondary/5 pt-8 pb-12" />
+      <div className="bg-primary/5 pt-8 pb-12" />
 
       {/* Avatar */}
       <div className="flex justify-center -mt-8 mb-3">
@@ -35,7 +35,7 @@ const AgencyCard3D = memo(({ agency, index }: { agency: ApiAgencyProfile; index:
             className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-sm"
           />
         ) : (
-          <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center text-white font-bold text-lg border-4 border-white shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg border-4 border-white shadow-sm">
             {initials}
           </div>
         )}
@@ -63,7 +63,7 @@ const AgencyCard3D = memo(({ agency, index }: { agency: ApiAgencyProfile; index:
           {agency.skills.slice(0, 4).map((skill) => (
             <span
               key={skill.id}
-              className="px-2.5 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-medium"
+              className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium"
             >
               {skill.name}
             </span>
@@ -78,7 +78,7 @@ const AgencyCard3D = memo(({ agency, index }: { agency: ApiAgencyProfile; index:
         {/* Stats */}
         <div className="grid grid-cols-2 gap-2 mb-4 text-sm">
           <div className="flex items-center gap-1.5 text-muted-foreground bg-muted/50 rounded-lg p-2">
-            <Building2 size={13} className="text-secondary shrink-0" />
+            <Building2 size={13} className="text-primary shrink-0" />
             <span className="text-xs">
               {foundedYear ? `Fondée ${foundedYear}` : "Agence"}
             </span>
@@ -91,7 +91,7 @@ const AgencyCard3D = memo(({ agency, index }: { agency: ApiAgencyProfile; index:
           </div>
         </div>
 
-        <Button className="w-full bg-secondary hover:bg-secondary/90" size="sm" asChild>
+        <Button className="w-full bg-primary hover:bg-primary/90" size="sm" asChild>
           <Link to={`/agencies/${agency.id}`}>Voir le profil</Link>
         </Button>
       </div>
