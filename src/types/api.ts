@@ -120,6 +120,9 @@ export interface ApiProjectList {
 
 export interface ApiProjectDetail extends ApiProjectList {
   review_note: string;
+  proposals_count: number;
+  views_count: number;
+  interactions_count: number;
 }
 
 export interface ApiProjectMini {

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Clock, Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useProposals } from "@/hooks/useProposals";
@@ -54,7 +55,12 @@ const RecentProposals = () => {
                   className="p-3 rounded-lg border border-border hover:border-primary/50 transition-colors"
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-medium text-sm">{proposal.project.title}</h4>
+                    <Link
+                      to={`/dashboard/find-projects/${proposal.project.id}`}
+                      className="font-medium text-sm hover:text-primary transition-colors"
+                    >
+                      {proposal.project.title}
+                    </Link>
                     <Badge
                       variant="secondary"
                       className={`${config.color} text-white text-xs`}

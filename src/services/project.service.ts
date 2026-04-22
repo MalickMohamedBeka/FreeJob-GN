@@ -44,6 +44,10 @@ class ProjectService {
       page_size: '3',
     });
   }
+
+  async trackInteraction(id: string): Promise<void> {
+    await apiService.post<{ status: string }>(`/projects/${id}/track_interaction/`);
+  }
 }
 
 export const projectService = new ProjectService();

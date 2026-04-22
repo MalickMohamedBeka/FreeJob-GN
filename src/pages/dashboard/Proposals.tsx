@@ -144,7 +144,12 @@ const Proposals = () => {
                 <Card className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold mb-1">{proposal.project.title}</h3>
+                      <Link
+                        to={`/dashboard/find-projects/${proposal.project.id}`}
+                        className="text-xl font-semibold mb-1 hover:text-primary transition-colors block"
+                      >
+                        {proposal.project.title}
+                      </Link>
                       <p className="text-sm text-muted-foreground">Projet #{proposal.project.id.slice(0, 8)}</p>
                     </div>
                     <Badge className={`${statusColorMap[proposal.status] ?? "bg-muted"} text-white`}>

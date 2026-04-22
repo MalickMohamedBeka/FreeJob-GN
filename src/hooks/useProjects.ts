@@ -134,6 +134,12 @@ export function useUploadProjectDocument(projectId: string) {
   });
 }
 
+export function useTrackInteraction() {
+  return useMutation({
+    mutationFn: (id: string) => projectService.trackInteraction(id),
+  });
+}
+
 export function useDeleteProjectDocument(projectId: string) {
   const queryClient = useQueryClient();
   return useMutation({
