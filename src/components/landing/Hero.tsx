@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import { ArrowRight, Briefcase, Star, Shield, Zap } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight, Briefcase, CheckCircle2, Shield, Star, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Spotlight } from "@/components/ui/spotlight";
@@ -11,6 +11,132 @@ const fadeUp = (delay = 0) => ({
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.55, ease: "easeOut" as const, delay },
 });
+
+const floatingHeroCards = [
+  {
+    id: "proposals",
+    title: "12 propositions reçues",
+    subtitle: "Profils qualifiés en revue",
+    icon: Briefcase,
+    iconClassName: "bg-[hsla(231,68%,32%,0.18)] text-[hsl(231,68%,28%)] ring-1 ring-[hsla(231,68%,32%,0.08)]",
+    surfaceClassName: "border-[hsla(231,68%,32%,0.18)]",
+    desktopPositionClassName: "-left-12 top-32 xl:-left-16 xl:top-36",
+    mobilePositionClassName: "left-3 top-5 sm:left-4 sm:top-5",
+    enterX: -20,
+    enterDelay: 0.82,
+    floatKeyframes: [0, -7, 0, 4, 0],
+    floatDuration: 7.4,
+    floatDelay: 1.15,
+  },
+  {
+    id: "payment",
+    title: "Paiement sécurisé",
+    subtitle: "Fonds en séquestre",
+    icon: Shield,
+    iconClassName: "bg-emerald-500/16 text-emerald-700 ring-1 ring-emerald-500/10",
+    surfaceClassName: "border-emerald-500/16",
+    desktopPositionClassName: "-left-8 bottom-28 xl:-left-12 xl:bottom-32",
+    mobilePositionClassName: "left-3 -bottom-4 sm:left-4",
+    enterX: -16,
+    enterDelay: 1.02,
+    floatKeyframes: [0, -5, 0, 3, 0],
+    floatDuration: 8.2,
+    floatDelay: 1.55,
+  },
+  {
+    id: "contract",
+    title: "Contrat accepté",
+    subtitle: "Projet confirmé",
+    icon: CheckCircle2,
+    iconClassName: "bg-sky-500/16 text-sky-700 ring-1 ring-sky-500/10",
+    surfaceClassName: "border-sky-500/16",
+    desktopPositionClassName: "-right-10 top-[54%] xl:-right-14 xl:top-[55%]",
+    mobilePositionClassName: "right-3 -bottom-4 sm:right-4",
+    enterX: 20,
+    enterDelay: 0.92,
+    floatKeyframes: [0, -6, 0, 5, 0],
+    floatDuration: 7.8,
+    floatDelay: 1.35,
+  },
+] as const;
+
+type FloatingHeroCardProps = {
+  className: string;
+  compact?: boolean;
+  enterDelay: number;
+  enterX: number;
+  floatDelay: number;
+  floatDuration: number;
+  floatKeyframes: readonly number[];
+  icon: typeof Briefcase;
+  iconClassName: string;
+  subtitle: string;
+  surfaceClassName: string;
+  title: string;
+};
+
+const FloatingHeroCard = ({
+  className,
+  compact = false,
+  enterDelay,
+  enterX,
+  floatDelay,
+  floatDuration,
+  floatKeyframes,
+  icon: Icon,
+  iconClassName,
+  subtitle,
+  surfaceClassName,
+  title,
+}: FloatingHeroCardProps) => {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: enterX, y: 18 }}
+      animate={{ opacity: 1, x: 0, y: 0 }}
+      transition={{ duration: 0.5, delay: enterDelay, ease: "easeOut" as const }}
+      className={`pointer-events-none absolute z-20 ${className}`}
+    >
+      <motion.div
+        animate={shouldReduceMotion ? { y: 0 } : { y: floatKeyframes }}
+        transition={
+          shouldReduceMotion
+            ? undefined
+            : {
+                duration: floatDuration,
+                delay: floatDelay,
+                repeat: Infinity,
+                ease: "easeInOut" as const,
+              }
+        }
+        className={`transform-gpu rounded-[22px] border bg-gradient-to-br from-white/78 via-white/70 to-white/62 shadow-[0_18px_38px_rgba(15,23,42,0.14)] backdrop-blur-[14px] ${surfaceClassName} ${
+          compact ? "min-w-[152px] px-3 py-2.5" : "min-w-[188px] px-4 py-3.5"
+        }`}
+        style={{ willChange: "transform" }}
+      >
+        <div className={`flex items-center gap-3 ${compact ? "gap-2.5" : ""}`}>
+          <div
+            className={`flex shrink-0 items-center justify-center rounded-2xl ${
+              compact ? "h-8 w-8 rounded-xl" : "h-10 w-10"
+            } ${iconClassName}`}
+          >
+            <Icon size={compact ? 15 : 17} strokeWidth={2.25} />
+          </div>
+
+          <div className="min-w-0">
+            <p className={`font-bold leading-none tracking-[-0.01em] text-slate-950 ${compact ? "text-[11.5px]" : "text-[13px]"}`}>
+              {title}
+            </p>
+            <p className={`mt-1 font-medium text-slate-700 ${compact ? "text-[10.5px]" : "text-[11.5px]"}`}>
+              {subtitle}
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
 
 const Hero = () => {
   const { data: stats } = usePublicStats();
@@ -157,39 +283,22 @@ const Hero = () => {
 
               {/* Image container — portrait ratio, natural width */}
               <div className="relative z-10 w-full max-w-[460px] translate-x-4 -translate-y-16 xl:max-w-[500px] xl:translate-x-6 xl:-translate-y-[4.5rem]">
-                {/* Badge ⭐ — haut droite, hors zone visage */}
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.9, duration: 0.45 }}
-                  className="absolute -right-6 top-24 z-20 rounded-2xl border border-gray-100 bg-white/95 px-3.5 py-2.5 shadow-xl backdrop-blur-sm xl:-right-8 xl:top-28"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-yellow-400">
-                      <Star size={13} className="fill-white text-white" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold leading-none text-gray-800">4.9 / 5</p>
-                      <p className="mt-0.5 text-[10px] text-gray-400">Note moyenne</p>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Badge 🛡 — bas gauche, hors zone téléphone */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 1.1, duration: 0.45 }}
-                  className="absolute -left-4 bottom-28 z-20 rounded-2xl bg-green-500 px-3.5 py-2.5 text-white shadow-xl xl:-left-8 xl:bottom-32"
-                >
-                  <div className="flex items-center gap-2">
-                    <Shield size={13} className="flex-shrink-0" />
-                    <div>
-                      <p className="text-xs font-bold leading-none">Paiement sécurisé</p>
-                      <p className="mt-0.5 text-[10px] opacity-80">Fonds en séquestre</p>
-                    </div>
-                  </div>
-                </motion.div>
+                {floatingHeroCards.map((card) => (
+                  <FloatingHeroCard
+                    key={card.id}
+                    className={card.desktopPositionClassName}
+                    enterDelay={card.enterDelay}
+                    enterX={card.enterX}
+                    floatDelay={card.floatDelay}
+                    floatDuration={card.floatDuration}
+                    floatKeyframes={card.floatKeyframes}
+                    icon={card.icon}
+                    iconClassName={card.iconClassName}
+                    subtitle={card.subtitle}
+                    surfaceClassName={card.surfaceClassName}
+                    title={card.title}
+                  />
+                ))}
 
                 {/* Image — fond supprimé via multiply, proportions naturelles */}
                 <img
@@ -207,8 +316,25 @@ const Hero = () => {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.35 }}
-            className="lg:hidden mt-4 relative"
+            className="relative mt-4 pb-12 lg:hidden"
           >
+            {floatingHeroCards.map((card) => (
+              <FloatingHeroCard
+                key={card.id}
+                className={card.mobilePositionClassName}
+                compact
+                enterDelay={card.enterDelay}
+                enterX={card.enterX}
+                floatDelay={card.floatDelay}
+                floatDuration={card.floatDuration}
+                floatKeyframes={card.floatKeyframes.map((value) => Number((value * 0.72).toFixed(2)))}
+                icon={card.icon}
+                iconClassName={card.iconClassName}
+                subtitle={card.subtitle}
+                surfaceClassName={card.surfaceClassName}
+                title={card.title}
+              />
+            ))}
             <img
               src={heroImg}
               alt="Talent freelance FreeJobGN"
