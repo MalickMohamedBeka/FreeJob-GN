@@ -27,6 +27,7 @@ const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminWithdrawals = lazy(() => import("./pages/admin/AdminWithdrawals"));
 const ClientDashboard = lazy(() => import("./pages/client/ClientDashboard"));
 const ClientProjects = lazy(() => import("./pages/client/ClientProjects"));
+const ClientProjectDetail = lazy(() => import("./pages/client/ClientProjectDetail"));
 const ClientProposals = lazy(() => import("./pages/client/ClientProposals"));
 const ClientContracts = lazy(() => import("./pages/client/ClientContracts"));
 const ClientProfile = lazy(() => import("./pages/client/ClientProfile"));
@@ -125,6 +126,9 @@ const App = () => (
               } />
               <Route path={ROUTES.CLIENT.PROJECTS} element={
                 <ProtectedRoute requiredRole="CLIENT"><ClientProjects /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.CLIENT.PROJECT_DETAIL} element={
+                <ProtectedRoute requiredRole="CLIENT"><ClientProjectDetail /></ProtectedRoute>
               } />
               <Route path={ROUTES.CLIENT.PROPOSALS} element={
                 <ProtectedRoute requiredRole="CLIENT"><ClientProposals /></ProtectedRoute>

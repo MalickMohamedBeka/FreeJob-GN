@@ -69,6 +69,7 @@ export const ROUTES = {
     ROOT: '/client',
     DASHBOARD: '/client/dashboard',
     PROJECTS: '/client/projects',
+    PROJECT_DETAIL: '/client/projects/:id',
     PROPOSALS: '/client/proposals',
     CONTRACTS: '/client/contracts',
     MESSAGES: '/client/messages',

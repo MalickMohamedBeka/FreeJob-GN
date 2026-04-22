@@ -31,6 +31,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Link } from "react-router-dom";
+import { ROUTES } from "@/constants/routes";
 import {
   Plus,
   Loader2,
@@ -623,7 +625,12 @@ const ClientProjects = () => {
                   <Card className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <h3 className="text-xl font-semibold mb-1">{project.title}</h3>
+                        <Link
+                          to={ROUTES.CLIENT.PROJECT_DETAIL.replace(":id", project.id)}
+                          className="text-xl font-semibold mb-1 hover:text-primary transition-colors line-clamp-1 block"
+                        >
+                          {project.title}
+                        </Link>
                         <p className="text-sm text-muted-foreground">{project.category.name}</p>
                       </div>
                       <Badge className={sc.class}>{sc.label}</Badge>
