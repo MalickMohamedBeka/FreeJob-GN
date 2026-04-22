@@ -194,7 +194,7 @@ function ContractSummarySection({ contractId }: { contractId: string }) {
           {parseFloat(data.amount_remaining).toLocaleString("fr-FR")} GNF
         </p>
       </div>
-      <div className="col-span-2">
+      <div className="col-span-2 flex flex-wrap items-center gap-2">
         <span
           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
             data.is_paid
@@ -203,9 +203,21 @@ function ContractSummarySection({ contractId }: { contractId: string }) {
           }`}
         >
           {data.is_paid ? <CheckCircle2 size={12} /> : <Clock size={12} />}
-          {data.is_paid ? "Paiement complet" : "Paiement en attente"}
+          {data.is_paid ? "Paiement confirmé" : "Paiement en attente"}
         </span>
+        {data.is_paid && data.payment_date && (
+          <span className="text-xs text-muted-foreground">
+            le {new Date(data.payment_date).toLocaleDateString("fr-FR")}
+            {data.payment_provider && ` · ${data.payment_provider}`}
+          </span>
+        )}
       </div>
+      {data.is_paid && data.transaction_reference && (
+        <div className="col-span-2">
+          <p className="text-muted-foreground mb-0.5">Référence</p>
+          <p className="font-mono text-xs text-foreground truncate">{data.transaction_reference}</p>
+        </div>
+      )}
     </div>
   );
 }

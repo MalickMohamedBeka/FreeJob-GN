@@ -363,38 +363,6 @@ export function useRemoveFavorite() {
   });
 }
 
-// ── Signalement utilisateur ───────────────────────────────────────────────────
-
-export function useReportUser() {
-  return useMutation({
-    mutationFn: ({ userId, reason, details }: { userId: number; reason: string; details?: string }) =>
-      apiService.post<void>(`/users/${userId}/report/`, { reason, details: details ?? '' }),
-  });
-}
-
-// ── Signalement contenu ───────────────────────────────────────────────────────
-
-export function useFlagContent() {
-  return useMutation({
-    mutationFn: ({
-      content_type,
-      object_id,
-      reason,
-      details,
-    }: {
-      content_type: string;
-      object_id: number | string;
-      reason: string;
-      details?: string;
-    }) =>
-      apiService.post<void>('/users/flag/', {
-        content_type,
-        object_id,
-        reason,
-        details: details ?? '',
-      }),
-  });
-}
 
 // ── Profil public client ──────────────────────────────────────────────────────
 

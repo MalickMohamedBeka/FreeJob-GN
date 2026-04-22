@@ -469,6 +469,9 @@ export interface ContractSummary {
   amount_paid: string;
   amount_remaining: string;
   next_action: 'PAY_FULL' | 'NONE';
+  payment_date: string | null;
+  payment_provider: string | null;
+  transaction_reference: string | null;
 }
 
 export interface DjomyGatewayPaymentRequest {
@@ -862,8 +865,8 @@ export interface ApiProviderRank {
   provider_profile_id: number | null;
   profile_picture: string | null;
   score: string;
-  computed_score?: string;
-  manual_adjustment?: string;
+  computed_score: string;
+  manual_adjustment: string;
   position: number;
   stars: StarsEnum;
   tier: TierEnum;

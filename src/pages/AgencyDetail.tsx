@@ -4,7 +4,7 @@ import {
   MapPin, Coins, ArrowLeft, Loader2, AlertCircle, Star, Trophy,
   Calendar, CheckCircle2, Building2, MessageSquare, Hash, Briefcase,
   Clock, Tag, CheckCircle, FolderPlus, Award, Link as LinkIcon,
-  FileText, Heart, MoreVertical, Flag, Phone, Mail,
+  FileText, Heart, MoreVertical, Phone, Mail,
   ShieldCheck, Globe, Linkedin, BadgeCheck, Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -26,10 +26,9 @@ import Footer from "@/components/layout/Footer";
 import { useAgency, useAgencies } from "@/hooks/useAgency";
 import { useProviderRank, useProviderReviews, usePortfolio } from "@/hooks/useRankings";
 import { ROUTES } from "@/constants/routes";
-import { usePortfolioItems, useCertifications, useFavorites, useAddFavorite, useRemoveFavorite, useReportUser } from "@/hooks/useProfile";
+import { usePortfolioItems, useCertifications, useFavorites, useAddFavorite, useRemoveFavorite } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import type { ApiProviderReview, StarsEnum, ApiPortfolioItem } from "@/types";
-import { FlagContentModal } from "@/components/common";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -95,77 +94,6 @@ function RatingBar({ star, count, total }: { star: number; count: number; total:
   );
 }
 
-// ── Report Dialog ─────────────────────────────────────────────────────────────
-
-const REPORT_REASONS = [
-  { value: "SPAM", label: "Spam" },
-  { value: "FRAUD", label: "Fraude" },
-  { value: "INAPPROPRIATE", label: "Contenu inapproprié" },
-  { value: "OTHER", label: "Autre" },
-];
-
-function ReportDialog({
-  open, onOpenChange, userId, username,
-}: { open: boolean; onOpenChange: (v: boolean) => void; userId: number; username: string }) {
-  const [reason, setReason] = useState("");
-  const [details, setDetails] = useState("");
-  const [done, setDone] = useState(false);
-  const { mutate, isPending } = useReportUser();
-
-  const handleClose = () => {
-    onOpenChange(false);
-    setTimeout(() => { setReason(""); setDetails(""); setDone(false); }, 200);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <Flag size={15} className="text-destructive" />
-            Signaler @{username}
-          </DialogTitle>
-        </DialogHeader>
-        {done ? (
-          <div className="py-6 text-center space-y-2">
-            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto">
-              <Flag size={20} className="text-green-600" />
-            </div>
-            <p className="font-semibold text-sm">Signalement envoyé</p>
-            <p className="text-xs text-muted-foreground">Notre équipe examinera votre signalement dans les plus brefs délais.</p>
-            <Button size="sm" variant="outline" className="mt-2" onClick={handleClose}>Fermer</Button>
-          </div>
-        ) : (
-          <>
-            <div className="space-y-4 py-1">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Raison *</Label>
-                <Select value={reason} onValueChange={setReason}>
-                  <SelectTrigger className="h-10"><SelectValue placeholder="Choisir une raison…" /></SelectTrigger>
-                  <SelectContent>
-                    {REPORT_REASONS.map((r) => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Détails (optionnel)</Label>
-                <Textarea rows={3} value={details} onChange={(e) => setDetails(e.target.value)} placeholder="Décrivez le problème…" className="resize-none" />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={handleClose} disabled={isPending}>Annuler</Button>
-              <Button variant="destructive" onClick={() => mutate({ userId, reason, details }, { onSuccess: () => setDone(true) })} disabled={isPending || !reason} className="gap-2">
-                {isPending && <Loader2 size={13} className="animate-spin" />}
-                <Flag size={13} /> Envoyer le signalement
-              </Button>
-            </DialogFooter>
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function AgencyDetail() {
@@ -184,12 +112,9 @@ export default function AgencyDetail() {
   const certifications = certificationsData?.results ?? [];
 
   const { isAuthenticated, user } = useAuth();
-  const [reportOpen, setReportOpen] = useState(false);
-  const [flagOpen, setFlagOpen] = useState(false);
 
   const isClient = isAuthenticated && user?.role === "CLIENT";
   const isOwner = isAuthenticated && !!agency && user?.id === agency.user_id;
-  const canReport = isAuthenticated && !isOwner;
 
   const { data: favoritesData } = useFavorites(isClient);
   const addFavorite = useAddFavorite();
@@ -320,23 +245,6 @@ export default function AgencyDetail() {
                         </Button>
                       )}
 
-                      {canReport && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-muted-foreground">
-                              <MoreVertical size={15} />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="text-destructive focus:text-destructive gap-2 cursor-pointer" onClick={() => setReportOpen(true)}>
-                              <Flag size={13} /> Signaler cette agence
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive focus:text-destructive gap-2 cursor-pointer" onClick={() => setFlagOpen(true)}>
-                              <Flag size={13} /> Signaler un contenu
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
                     </div>
                   </div>
 
@@ -815,19 +723,6 @@ export default function AgencyDetail() {
       </main>
       <Footer />
 
-      {canReport && (
-        <ReportDialog open={reportOpen} onOpenChange={setReportOpen} userId={agencyUserId ?? agencyId} username={displayName} />
-      )}
-
-      {canReport && (
-        <FlagContentModal
-          open={flagOpen}
-          onOpenChange={setFlagOpen}
-          contentType="agency_profile"
-          objectId={agencyId}
-          label={displayName}
-        />
-      )}
     </div>
   );
 }

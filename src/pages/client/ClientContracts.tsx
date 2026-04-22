@@ -29,6 +29,7 @@ import {
   Star,
 } from "lucide-react";
 import { useContracts, useContractSummary, useInitiatePayment, useRequestCompletion, useConfirmCompletion, useRequestRevision, useDeliverables, useAcceptDeliverable, useRequestDeliverableRevision } from "@/hooks/useContracts";
+import { ApiError } from "@/services/api.service";
 import { useCreateReview } from "@/hooks/useRankings";
 import { useToast } from "@/hooks/use-toast";
 import { DisputeModal } from "@/components/contracts/DisputeModal";
@@ -316,7 +317,22 @@ function ContractCard({
           setReviewRating(0);
           setReviewComment("");
         },
-        onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Une erreur est survenue.", variant: "destructive" }),
+        onError: (err) => {
+          let description = "Une erreur est survenue.";
+          if (err instanceof ApiError && err.data) {
+            const contractErrors = (err.data as Record<string, unknown>)?.contract;
+            if (Array.isArray(contractErrors) && contractErrors.length > 0) {
+              const first = contractErrors[0] as Record<string, string> | string;
+              const code = typeof first === "object" ? first.code : null;
+              if (code === "already_reviewed") description = "Vous avez déjà publié un avis pour ce contrat.";
+              else if (code === "not_completed") description = "Le contrat n'est pas encore terminé.";
+              else description = typeof first === "object" ? first.message : first;
+            }
+          } else if (err instanceof Error) {
+            description = err.message;
+          }
+          toast({ title: "Erreur", description, variant: "destructive" });
+        },
       }
     );
   };
