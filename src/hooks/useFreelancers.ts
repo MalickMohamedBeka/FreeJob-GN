@@ -25,6 +25,14 @@ export function useProviders(filters?: FreelancerFilters) {
   });
 }
 
+export function usePublicProviders(count = 4) {
+  return useQuery({
+    queryKey: ['public-providers', count],
+    queryFn: () => freelancerService.getPublicProviders(count),
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
 export function useFreelancer(id: number) {
   return useQuery({
     queryKey: ['freelancer', id],

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Spotlight } from "@/components/ui/spotlight";
 import { usePublicStats } from "@/hooks/useAuth";
+import { usePublicProviders } from "@/hooks/useFreelancers";
 import heroImg from "@/assets/hero_final.png";
 
 const fadeUp = (delay = 0) => ({
@@ -140,7 +141,9 @@ const FloatingHeroCard = ({
 
 const Hero = () => {
   const { data: stats } = usePublicStats();
+  const { data: providersData } = usePublicProviders(4);
   const freelancersCount = stats?.freelances_count ?? null;
+  const providers = providersData?.results?.slice(0, 4) ?? [];
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-white">
@@ -206,17 +209,47 @@ const Hero = () => {
               className="mt-10 flex items-center gap-4 text-sm text-muted-foreground"
             >
               <div className="flex -space-x-2">
-                {["AD", "FC", "MB", "AS"].map((initials, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.55 + i * 0.08, duration: 0.3 }}
-                    className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold border-2 border-white"
-                  >
-                    {initials}
-                  </motion.div>
-                ))}
+                {providers.length > 0
+                  ? providers.map((p, i) => {
+                      const initials = p.freelance_details
+                        ? `${p.freelance_details.first_name[0] ?? ""}${p.freelance_details.last_name[0] ?? ""}`.toUpperCase()
+                        : p.username.slice(0, 2).toUpperCase();
+                      return (
+                        <motion.div
+                          key={p.id}
+                          initial={{ opacity: 0, x: -12 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.55 + i * 0.08, duration: 0.3 }}
+                        >
+                          <Link
+                            to={p.provider_kind === 'AGENCY' ? `/agencies/${p.id}` : `/freelancers/${p.id}`}
+                            title={initials}
+                            className="block w-9 h-9 rounded-full border-2 border-white overflow-hidden hover:z-10 hover:scale-110 transition-transform"
+                          >
+                            {p.profile_picture ? (
+                              <img
+                                src={p.profile_picture}
+                                alt={initials}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="w-full h-full bg-primary flex items-center justify-center text-white text-xs font-bold">
+                                {initials}
+                              </span>
+                            )}
+                          </Link>
+                        </motion.div>
+                      );
+                    })
+                  : [0, 1, 2, 3].map((i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.55 + i * 0.08, duration: 0.3 }}
+                        className="w-9 h-9 rounded-full bg-muted border-2 border-white animate-pulse"
+                      />
+                    ))}
               </div>
               <span>
                 {freelancersCount !== null ? (

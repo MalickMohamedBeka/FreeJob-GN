@@ -39,11 +39,17 @@ class FreelancerService {
     if (filters?.available) params.available = 'true';
     if (filters?.min_stars !== undefined) params.min_stars = String(filters.min_stars);
     if (filters?.provider_kind) params.provider_kind = filters.provider_kind;
-    return apiService.get<DjangoPaginatedResponse<ApiProviderDiscovery>>('/users/providers/', params);
+    return apiService.getPublic<DjangoPaginatedResponse<ApiProviderDiscovery>>('/users/providers/', params);
+  }
+
+  async getPublicProviders(page_size = 4): Promise<DjangoPaginatedResponse<ApiProviderDiscovery>> {
+    return apiService.getPublic<DjangoPaginatedResponse<ApiProviderDiscovery>>('/users/providers/', {
+      page_size: String(page_size),
+    });
   }
 
   async getFreelancerById(id: number): Promise<ApiFreelancerProfile> {
-    return apiService.get<ApiFreelancerProfile>(`/users/freelancers/${id}/`);
+    return apiService.getPublic<ApiFreelancerProfile>(`/users/freelancers/${id}/`);
   }
 }
 
