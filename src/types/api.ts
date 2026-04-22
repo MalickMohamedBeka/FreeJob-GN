@@ -1073,8 +1073,10 @@ export interface ApiCertification {
 
 export interface ApiFavorite {
   id: number;
-  provider_id: number;
+  provider_id: number;          // User.id  — pour toggle favori
+  provider_profile_id: number | null; // ProviderProfile.id — pour l'URL du profil
   provider_username: string;
   provider_role: string;
+  provider_kind: 'FREELANCE' | 'AGENCY' | null;
   created_at: string;
 }

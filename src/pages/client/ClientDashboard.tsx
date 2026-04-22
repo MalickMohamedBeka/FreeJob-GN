@@ -237,7 +237,7 @@ const ClientDashboard = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
-                      <Link to={`/freelancers/${fav.provider_id}`}>
+                      <Link to={fav.provider_profile_id ? (fav.provider_kind === 'AGENCY' ? `/agencies/${fav.provider_profile_id}` : `/freelancers/${fav.provider_profile_id}`) : '#'}>
                         <button
                           type="button"
                           className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
