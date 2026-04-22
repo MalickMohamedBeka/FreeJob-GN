@@ -19,6 +19,14 @@ export function useProjects(filters?: ProjectFilters) {
   });
 }
 
+export function usePublicProjects(ordering = '-budget_amount') {
+  return useQuery({
+    queryKey: ['public-projects', ordering],
+    queryFn: () => projectService.getPublicProjects(ordering),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 export function useProject(id: string) {
   return useQuery({
     queryKey: ['project', id],

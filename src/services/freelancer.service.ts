@@ -12,6 +12,7 @@ interface FreelancerFilters {
   skill_id?: number;
   speciality_id?: number;
   page?: number;
+  page_size?: number;
   available?: boolean;
   min_stars?: number;
   provider_kind?: 'FREELANCE' | 'AGENCY';
@@ -36,6 +37,7 @@ class FreelancerService {
     if (filters?.skill_id) params.skill_id = String(filters.skill_id);
     if (filters?.speciality_id) params.speciality_id = String(filters.speciality_id);
     if (filters?.page) params.page = String(filters.page);
+    if (filters?.page_size) params.page_size = String(filters.page_size);
     if (filters?.available) params.available = 'true';
     if (filters?.min_stars !== undefined) params.min_stars = String(filters.min_stars);
     if (filters?.provider_kind) params.provider_kind = filters.provider_kind;

@@ -7,6 +7,7 @@ export const ROUTES = {
   // Public routes
   HOME: '/',
   PROJECTS: '/projects',
+  PROJECT_DETAIL: '/projects/:id',
   FREELANCERS: '/freelancers',
   FREELANCER_PROFILE: '/freelancers/:id',
   AGENCIES: '/agencies',

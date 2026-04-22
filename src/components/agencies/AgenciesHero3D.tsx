@@ -1,38 +1,19 @@
 import { motion } from "framer-motion";
-import { Building2, Globe, Star, TrendingUp, CheckCircle, Users, LayoutGrid } from "lucide-react";
+import { Building2, Globe, Star, LayoutGrid, CheckCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Spotlight } from "@/components/ui/spotlight";
 import { usePublicStats } from "@/hooks/useAuth";
+import { useProviders } from "@/hooks/useFreelancers";
 
-const mockAgencies = [
-  {
-    initials: "TG",
-    name: "TechGroup GN",
-    title: "Développement Web & Mobile",
-    tags: ["React", "Django"],
-    rate: "120 000 GNF/h",
-    bg: "bg-primary",
-  },
-  {
-    initials: "DC",
-    name: "DesignCraft",
-    title: "Branding & Design",
-    tags: ["Figma", "Branding"],
-    rate: "90 000 GNF/h",
-    bg: "bg-secondary",
-  },
-  {
-    initials: "MG",
-    name: "MarketGo",
-    title: "Marketing Digital",
-    tags: ["SEO", "Meta Ads"],
-    rate: "80 000 GNF/h",
-    bg: "bg-cta",
-  },
-];
+const AVATAR_COLORS = ["bg-primary", "bg-secondary", "bg-cta"];
 
 const AgenciesHero3D = () => {
   const { data: stats } = usePublicStats();
+  const { data: providersData, isLoading } = useProviders({ provider_kind: "AGENCY", page_size: 3 });
+
   const s = (val: number | undefined) => val != null ? `${val}+` : "…";
+
+  const agencies = (providersData?.results ?? []).slice(0, 3);
 
   return (
     <div className="relative bg-primary py-16 lg:py-20 overflow-hidden">
@@ -81,10 +62,10 @@ const AgenciesHero3D = () => {
               className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-3 max-w-lg mx-auto lg:mx-0"
             >
               {[
-                { icon: Building2,  value: s(stats?.agencies_count),   label: "Agences" },
-                { icon: Globe,      value: s(stats?.clients_count),     label: "Clients" },
-                { icon: Star,       value: "4.9/5",                     label: "Note Moyenne" },
-                { icon: LayoutGrid, value: s(stats?.providers_count),   label: "Prestataires" },
+                { icon: Building2,  value: s(stats?.agencies_count),  label: "Agences" },
+                { icon: Globe,      value: s(stats?.clients_count),    label: "Clients" },
+                { icon: Star,       value: "4.9/5",                    label: "Note Moyenne" },
+                { icon: LayoutGrid, value: s(stats?.providers_count),  label: "Prestataires" },
               ].map((stat, i) => (
                 <motion.div
                   key={stat.label}
@@ -101,44 +82,96 @@ const AgenciesHero3D = () => {
             </motion.div>
           </div>
 
-          {/* Right — floating agency cards */}
+          {/* Right — agency cards */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
             className="hidden lg:flex flex-col gap-3"
           >
-            {mockAgencies.map((p, i) => (
-              <motion.div
-                key={p.name}
-                initial={{ opacity: 0, x: 32 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.45, delay: 0.25 + i * 0.12, ease: "easeOut" }}
-                style={{ marginLeft: i === 1 ? "2rem" : i === 2 ? "1rem" : "0" }}
-                className="bg-white rounded-2xl p-4 shadow-lg flex items-center gap-4 max-w-sm"
-              >
-                <div className={`w-12 h-12 rounded-xl ${p.bg} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
-                  {p.initials}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="font-semibold text-sm text-foreground truncate">{p.name}</span>
-                    <CheckCircle size={12} className="text-secondary flex-shrink-0" />
-                  </div>
-                  <p className="text-xs text-muted-foreground truncate mb-1.5">{p.title}</p>
-                  <div className="flex gap-1">
-                    {p.tags.map((t) => (
-                      <span key={t} className="text-[10px] px-1.5 py-0.5 bg-muted rounded-full text-muted-foreground">
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-xs font-bold text-primary">{p.rate}</p>
-                </div>
-              </motion.div>
-            ))}
+            {isLoading
+              ? [0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    style={{ marginLeft: i === 1 ? "2rem" : i === 2 ? "1rem" : "0" }}
+                    className="bg-white/20 rounded-2xl p-4 max-w-sm h-[76px] animate-pulse"
+                  />
+                ))
+              : agencies.map((a, i) => {
+                  const initials = a.username.slice(0, 2).toUpperCase();
+                  const skills = a.skills?.slice(0, 2) ?? [];
+                  const rate = a.hourly_rate
+                    ? `${Number(a.hourly_rate).toLocaleString("fr-GN")} GNF/h`
+                    : "—";
+                  const stars = a.stars ?? 0;
+
+                  return (
+                    <motion.div
+                      key={a.id}
+                      initial={{ opacity: 0, x: 32 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.45, delay: 0.25 + i * 0.12, ease: "easeOut" }}
+                      style={{ marginLeft: i === 1 ? "2rem" : i === 2 ? "1rem" : "0" }}
+                    >
+                      <Link
+                        to={`/agencies/${a.id}`}
+                        className="bg-white rounded-2xl p-4 shadow-lg flex items-center gap-4 max-w-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-200 block"
+                      >
+                        {/* Avatar */}
+                        <div className={`w-12 h-12 rounded-xl ${AVATAR_COLORS[i % AVATAR_COLORS.length]} flex items-center justify-center flex-shrink-0 overflow-hidden`}>
+                          {a.profile_picture ? (
+                            <img src={a.profile_picture} alt={initials} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-white font-bold text-sm">{initials}</span>
+                          )}
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <span className="font-semibold text-sm text-foreground truncate">
+                              {a.username}
+                            </span>
+                            {a.is_kyc_verified && (
+                              <CheckCircle size={12} className="text-secondary flex-shrink-0" />
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate mb-1.5">
+                            {a.speciality?.name ?? "Agence"}
+                          </p>
+                          <div className="flex gap-1 flex-wrap">
+                            {skills.length > 0
+                              ? skills.map((sk) => (
+                                  <span key={sk.id} className="text-[10px] px-1.5 py-0.5 bg-muted rounded-full text-muted-foreground">
+                                    {sk.name}
+                                  </span>
+                                ))
+                              : (
+                                <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded-full text-muted-foreground">
+                                  {a.speciality?.name ?? "—"}
+                                </span>
+                              )
+                            }
+                          </div>
+                        </div>
+
+                        {/* Rate + stars */}
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-xs font-bold text-primary mb-1">{rate}</p>
+                          <div className="flex gap-0.5 justify-end">
+                            {[...Array(5)].map((_, j) => (
+                              <Star
+                                key={j}
+                                size={9}
+                                className={j < stars ? "fill-warning text-warning" : "fill-muted text-muted"}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
 
             {/* Floating badge */}
             <motion.div

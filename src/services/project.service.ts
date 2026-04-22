@@ -37,6 +37,13 @@ class ProjectService {
   async getProjectById(id: string): Promise<ApiProjectDetail> {
     return apiService.get<ApiProjectDetail>(`/projects/${id}/`);
   }
+
+  async getPublicProjects(ordering = '-budget_amount'): Promise<DjangoPaginatedResponse<ApiProjectList>> {
+    return apiService.getPublic<DjangoPaginatedResponse<ApiProjectList>>('/projects/', {
+      ordering,
+      page_size: '3',
+    });
+  }
 }
 
 export const projectService = new ProjectService();

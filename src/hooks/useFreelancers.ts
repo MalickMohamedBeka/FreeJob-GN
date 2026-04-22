@@ -22,6 +22,7 @@ export function useProviders(filters?: FreelancerFilters) {
   return useQuery({
     queryKey: ['providers', filters],
     queryFn: () => freelancerService.getProviders(filters),
+    staleTime: 10 * 60 * 1000,
   });
 }
 
