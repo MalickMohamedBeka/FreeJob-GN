@@ -469,8 +469,13 @@ const FindProjects = () => {
                   <Card className="p-6 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <h3 className="text-xl font-semibold">{project.title}</h3>
-                        <p className="text-muted-foreground font-medium">{project.client.username}</p>
+                        <Link
+                          to={`/dashboard/find-projects/${project.id}`}
+                          className="text-xl font-semibold hover:text-primary transition-colors line-clamp-2"
+                        >
+                          {project.title}
+                        </Link>
+                        <p className="text-muted-foreground font-medium mt-0.5">{project.client.username}</p>
                       </div>
                     </div>
 

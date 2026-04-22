@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Clock, Coins, Users, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { memo } from "react";
@@ -44,9 +45,11 @@ const ProjectCard3D = memo(({ project, index, onApply }: ProjectCard3DProps) => 
       </div>
 
       {/* Title */}
-      <h3 className="text-lg font-bold mb-2 line-clamp-2 hover:text-primary transition-colors">
-        {project.title}
-      </h3>
+      <Link to={`/dashboard/find-projects/${project.id}`}>
+        <h3 className="text-lg font-bold mb-2 line-clamp-2 hover:text-primary transition-colors cursor-pointer">
+          {project.title}
+        </h3>
+      </Link>
 
       <p className="text-muted-foreground text-sm mb-4 line-clamp-3 leading-relaxed">
         {project.description}

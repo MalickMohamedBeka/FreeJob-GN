@@ -122,7 +122,7 @@ const ProjectsHero3D = () => {
                       style={{ marginLeft: i === 1 ? "1.5rem" : "0" }}
                     >
                       <Link
-                        to={`/projects/${p.id}`}
+                        to={`/dashboard/find-projects/${p.id}`}
                         className={`bg-white rounded-2xl p-4 shadow-lg border-l-4 ${BORDER_COLORS[i % BORDER_COLORS.length]} max-w-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-200 block`}
                       >
                         <div className="flex items-start justify-between gap-3 mb-2">

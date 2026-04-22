@@ -7,7 +7,6 @@ export const ROUTES = {
   // Public routes
   HOME: '/',
   PROJECTS: '/projects',
-  PROJECT_DETAIL: '/projects/:id',
   FREELANCERS: '/freelancers',
   FREELANCER_PROFILE: '/freelancers/:id',
   AGENCIES: '/agencies',
@@ -29,6 +28,7 @@ export const ROUTES = {
   DASHBOARD: {
     ROOT: '/dashboard',
     FIND_PROJECTS: '/dashboard/find-projects',
+    FIND_PROJECT_DETAIL: '/dashboard/find-projects/:id',
     MY_PROJECTS: '/dashboard/projects',
     PROPOSALS: '/dashboard/proposals',
     SUBSCRIPTION: '/dashboard/subscription',

@@ -16,7 +16,6 @@ import Index from "./pages/Index";
 
 // Lazy load all other pages
 const Projects = lazy(() => import("./pages/Projects"));
-const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const Freelancers = lazy(() => import("./pages/Freelancers"));
 const FreelancerProfile = lazy(() => import("./pages/FreelancerProfile"));
 const About = lazy(() => import("./pages/About"));
@@ -35,6 +34,7 @@ const ClientMessages = lazy(() => import("./pages/client/ClientMessages"));
 const PaymentReturn = lazy(() => import("./pages/client/PaymentReturn"));
 const FreelancerDashboard = lazy(() => import("./pages/dashboard/FreelancerDashboard"));
 const FindProjects = lazy(() => import("./pages/dashboard/FindProjects"));
+const DashboardProjectDetail = lazy(() => import("./pages/dashboard/ProjectDetail"));
 const MyProjects = lazy(() => import("./pages/dashboard/MyProjects"));
 const Proposals = lazy(() => import("./pages/dashboard/Proposals"));
 const Messages = lazy(() => import("./pages/dashboard/Messages"));
@@ -101,7 +101,6 @@ const App = () => (
 
               {/* Public browsing pages — accessible to everyone regardless of auth state */}
               <Route path={ROUTES.PROJECTS} element={<Projects />} />
-              <Route path={ROUTES.PROJECT_DETAIL} element={<ProjectDetail />} />
               <Route path={ROUTES.FREELANCERS} element={<Freelancers />} />
               <Route path={ROUTES.FREELANCER_PROFILE} element={<FreelancerProfile />} />
               <Route path={ROUTES.AGENCIES} element={<Agencies />} />
@@ -158,6 +157,9 @@ const App = () => (
               } />
               <Route path={ROUTES.DASHBOARD.FIND_PROJECTS} element={
                 <ProtectedRoute requiredRole="PROVIDER"><FindProjects /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.DASHBOARD.FIND_PROJECT_DETAIL} element={
+                <ProtectedRoute requiredRole="PROVIDER"><DashboardProjectDetail /></ProtectedRoute>
               } />
               <Route path={ROUTES.DASHBOARD.MY_PROJECTS} element={
                 <ProtectedRoute requiredRole="PROVIDER"><MyProjects /></ProtectedRoute>
