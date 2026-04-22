@@ -25,8 +25,6 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminWithdrawals = lazy(() => import("./pages/admin/AdminWithdrawals"));
-const FreelancerLogin = lazy(() => import("./pages/FreelancerLogin"));
-const ClientLogin = lazy(() => import("./pages/ClientLogin"));
 const ClientDashboard = lazy(() => import("./pages/client/ClientDashboard"));
 const ClientProjects = lazy(() => import("./pages/client/ClientProjects"));
 const ClientProposals = lazy(() => import("./pages/client/ClientProposals"));
@@ -55,6 +53,7 @@ const Agencies = lazy(() => import("./pages/Agencies"));
 const AgencyDetail = lazy(() => import("./pages/AgencyDetail"));
 const AgencyOnboarding = lazy(() => import("./pages/agency/AgencyOnboarding"));
 const ProviderProfile = lazy(() => import("./pages/dashboard/ProviderProfile"));
+const ClientPublicProfile = lazy(() => import("./pages/ClientPublicProfile"));
 
 /**
  * Normalises URLs with consecutive slashes (e.g. //activate → /activate).
@@ -98,8 +97,6 @@ const App = () => (
               <Route path={ROUTES.HOME} element={<Index />} />
               <Route path={ROUTES.LOGIN} element={<PublicRoute><Login /></PublicRoute>} />
               <Route path={ROUTES.SIGNUP} element={<PublicRoute><Signup /></PublicRoute>} />
-              <Route path={ROUTES.LOGIN} element={<PublicRoute><FreelancerLogin /></PublicRoute>} />
-              <Route path={ROUTES.LOGIN} element={<PublicRoute><ClientLogin /></PublicRoute>} />
 
               {/* Public browsing pages — accessible to everyone regardless of auth state */}
               <Route path={ROUTES.PROJECTS} element={<Projects />} />
@@ -110,6 +107,7 @@ const App = () => (
               <Route path={ROUTES.RANKINGS} element={<Rankings />} />
               <Route path={ROUTES.ABOUT} element={<About />} />
               <Route path={ROUTES.HOW_IT_WORKS} element={<CommentCaMarche />} />
+              <Route path={ROUTES.CLIENT_PUBLIC_PROFILE} element={<ClientPublicProfile />} />
               <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLogin />} />
               <Route path="/activate" element={<AccountActivation />} />
               <Route path={ROUTES.FORGOT_PASSWORD} element={<PublicRoute><ForgotPassword /></PublicRoute>} />

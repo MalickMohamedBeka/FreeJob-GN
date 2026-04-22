@@ -29,6 +29,7 @@ import { ROUTES } from "@/constants/routes";
 import { usePortfolioItems, useCertifications, useFavorites, useAddFavorite, useRemoveFavorite, useReportUser } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import type { ApiProviderReview, StarsEnum, ApiPortfolioItem } from "@/types";
+import { FlagContentModal } from "@/components/common";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -172,29 +173,34 @@ export default function AgencyDetail() {
   const agencyId = Number(id);
 
   const { data: agency, isLoading, isError } = useAgency(agencyId);
-  const { data: rank } = useProviderRank(agencyId);
-  const { data: reviewsData } = useProviderReviews(agencyId);
-  const { data: portfolioData } = usePortfolio(agencyId);
+  // Hooks that need User.id (different from ProviderProfile.id in the URL)
+  const agencyUserId = agency?.user_id;
+  const { data: rank } = useProviderRank(agencyUserId);
+  const { data: reviewsData } = useProviderReviews(agencyUserId);
+  const { data: portfolioData } = usePortfolio(agencyUserId);
   const { data: portfolioItemsData } = usePortfolioItems(agencyId);
-  const { data: certificationsData } = useCertifications(agencyId);
+  const { data: certificationsData } = useCertifications(agencyUserId);
   const portfolioItems = portfolioItemsData?.results ?? [];
   const certifications = certificationsData?.results ?? [];
 
   const { isAuthenticated, user } = useAuth();
   const [reportOpen, setReportOpen] = useState(false);
+  const [flagOpen, setFlagOpen] = useState(false);
 
   const isClient = isAuthenticated && user?.role === "CLIENT";
-  const isOwner = isAuthenticated && user?.id === agencyId;
+  const isOwner = isAuthenticated && !!agency && user?.id === agency.user_id;
   const canReport = isAuthenticated && !isOwner;
 
   const { data: favoritesData } = useFavorites(isClient);
   const addFavorite = useAddFavorite();
   const removeFavorite = useRemoveFavorite();
-  const isFavorite = (favoritesData?.results ?? []).some((f) => f.provider_id === agencyId);
+  // ApiFavorite.provider_id is User.id — compare against agencyUserId
+  const isFavorite = !!agencyUserId && (favoritesData?.results ?? []).some((f) => f.provider_id === agencyUserId);
   const favPending = addFavorite.isPending || removeFavorite.isPending;
   const toggleFavorite = () => {
-    if (isFavorite) removeFavorite.mutate(agencyId);
-    else addFavorite.mutate(agencyId);
+    if (!agencyUserId) return;
+    if (isFavorite) removeFavorite.mutate(agencyUserId);
+    else addFavorite.mutate(agencyUserId);
   };
 
   const reviews = reviewsData?.results ?? [];
@@ -324,6 +330,9 @@ export default function AgencyDetail() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem className="text-destructive focus:text-destructive gap-2 cursor-pointer" onClick={() => setReportOpen(true)}>
                               <Flag size={13} /> Signaler cette agence
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive focus:text-destructive gap-2 cursor-pointer" onClick={() => setFlagOpen(true)}>
+                              <Flag size={13} /> Signaler un contenu
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -807,7 +816,17 @@ export default function AgencyDetail() {
       <Footer />
 
       {canReport && (
-        <ReportDialog open={reportOpen} onOpenChange={setReportOpen} userId={agencyId} username={displayName} />
+        <ReportDialog open={reportOpen} onOpenChange={setReportOpen} userId={agencyUserId ?? agencyId} username={displayName} />
+      )}
+
+      {canReport && (
+        <FlagContentModal
+          open={flagOpen}
+          onOpenChange={setFlagOpen}
+          contentType="agency_profile"
+          objectId={agencyId}
+          label={displayName}
+        />
       )}
     </div>
   );

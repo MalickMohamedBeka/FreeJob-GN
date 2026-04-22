@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2, CheckCircle2, User } from "lucide-react";
-import { useProjects, useCreateProject, useSubmitProjectForReview } from "@/hooks/useProjects";
+import { useProjects, useCreateProject, useSubmitProjectForReview, useProjectCategories } from "@/hooks/useProjects";
 import { useToast } from "@/hooks/use-toast";
 import { ApiError } from "@/services/api.service";
 import type { BudgetBandEnum } from "@/types";
@@ -65,13 +65,11 @@ export default function DirectProjectModal({ open, onClose, providerUsername }: 
   const createProject = useCreateProject();
   const submitForReview = useSubmitProjectForReview();
 
-  // Derive categories, specialities, skills from published projects (no dedicated endpoint)
+  const { data: categoriesData } = useProjectCategories();
   const { data: allProjects } = useProjects();
-  const allResults = allProjects?.results ?? [];
 
-  const categories = Array.from(
-    new Map(allResults.map((p) => [p.category.id, p.category])).values()
-  );
+  const categories = categoriesData ?? [];
+  const allResults = allProjects?.results ?? [];
   const specialities = Array.from(
     new Map(
       allResults

@@ -61,12 +61,13 @@ import {
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useFreelancer, useProviders } from "@/hooks/useFreelancers";
-import { useProviderRank, useProviderReviews, usePortfolio } from "@/hooks/useRankings";
+import { useProviderRank, useProviderReviews, usePortfolio, useProviderRankHistory } from "@/hooks/useRankings";
 import { usePortfolioItems, useCertifications, useFavorites, useAddFavorite, useRemoveFavorite, useReportUser } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROUTES } from "@/constants/routes";
 import type { ApiProviderReview, StarsEnum, ApiPortfolioItem } from "@/types";
 import DirectProjectModal from "@/components/freelancer/DirectProjectModal";
+import { FlagContentModal } from "@/components/common";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -176,11 +177,15 @@ function RatingBar({
 const FreelancerProfile = () => {
   const { id } = useParams<{ id: string }>();
   const { data: profile, isLoading, isError } = useFreelancer(Number(id));
-  const { data: rank } = useProviderRank(Number(id));
-  const { data: reviewsData } = useProviderReviews(Number(id));
-  const { data: portfolioData } = usePortfolio(Number(id));
+  // Hooks who need User.id (different from ProviderProfile.id in the URL)
+  const userId = profile?.user_id;
+  const { data: rank } = useProviderRank(userId);
+  const { data: rankHistoryData } = useProviderRankHistory(userId);
+  const { data: reviewsData } = useProviderReviews(userId);
+  const { data: portfolioData } = usePortfolio(userId);
+  // portfolio-items and certifications use ProviderProfile.id and User.id respectively
   const { data: portfolioItemsData } = usePortfolioItems(Number(id));
-  const { data: certificationsData } = useCertifications(Number(id));
+  const { data: certificationsData } = useCertifications(userId);
   const portfolioItems = portfolioItemsData?.results ?? [];
   const certifications = certificationsData?.results ?? [];
 
@@ -195,22 +200,26 @@ const FreelancerProfile = () => {
   const { isAuthenticated, user } = useAuth();
   const [showDirectModal, setShowDirectModal] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [flagOpen, setFlagOpen] = useState(false);
 
   const isClient = isAuthenticated && user?.role === "CLIENT";
-  const isOwner = isAuthenticated && user?.id === Number(id);
+  // Compare User.id (from auth) to user_id (from profile) — not ProviderProfile.id
+  const isOwner = isAuthenticated && !!profile && user?.id === profile.user_id;
   const canReport = isAuthenticated && !isOwner;
 
   const { data: favoritesData } = useFavorites(isClient);
   const addFavorite = useAddFavorite();
   const removeFavorite = useRemoveFavorite();
-  const isFavorite = (favoritesData?.results ?? []).some(
-    (f) => f.provider_id === Number(id),
+  // ApiFavorite.provider_id is User.id — compare against user_id from profile
+  const isFavorite = !!userId && (favoritesData?.results ?? []).some(
+    (f) => f.provider_id === userId,
   );
   const toggleFavorite = () => {
+    if (!userId) return;
     if (isFavorite) {
-      removeFavorite.mutate(Number(id));
+      removeFavorite.mutate(userId);
     } else {
-      addFavorite.mutate(Number(id));
+      addFavorite.mutate(userId);
     }
   };
   const favPending = addFavorite.isPending || removeFavorite.isPending;
@@ -378,6 +387,13 @@ const FreelancerProfile = () => {
                               >
                                 <Flag size={13} />
                                 Signaler ce profil
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive gap-2 cursor-pointer"
+                                onClick={() => setFlagOpen(true)}
+                              >
+                                <Flag size={13} />
+                                Signaler un contenu
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -988,6 +1004,30 @@ const FreelancerProfile = () => {
                             </span>
                           </div>
                         )}
+                        {rankHistoryData && rankHistoryData.results && rankHistoryData.results.length > 0 && (
+                          <div className="pt-2 border-t border-border">
+                            <p className="text-xs text-muted-foreground mb-2">Évolution récente</p>
+                            <div className="space-y-1">
+                              {rankHistoryData.results.slice(0, 4).map((snap, i, arr) => {
+                                const prev = arr[i + 1];
+                                const diff = prev ? prev.position - snap.position : 0;
+                                return (
+                                  <div key={snap.id} className="flex items-center justify-between text-xs">
+                                    <span className="text-muted-foreground">
+                                      {new Date(snap.period_start).toLocaleDateString("fr-FR", { month: "short", year: "2-digit" })}
+                                    </span>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-medium">#{snap.position}</span>
+                                      {diff > 0 && <span className="text-green-600 font-bold">↑{diff}</span>}
+                                      {diff < 0 && <span className="text-red-500 font-bold">↓{Math.abs(diff)}</span>}
+                                      {diff === 0 && prev && <span className="text-muted-foreground">—</span>}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </Card>
                   )}
@@ -1075,8 +1115,18 @@ const FreelancerProfile = () => {
         <ReportUserDialog
           open={reportOpen}
           onOpenChange={setReportOpen}
-          userId={Number(id)}
+          userId={profile.user_id}
           username={displayName || profile.username}
+        />
+      )}
+
+      {canReport && profile && (
+        <FlagContentModal
+          open={flagOpen}
+          onOpenChange={setFlagOpen}
+          contentType="freelancer_profile"
+          objectId={profile.id}
+          label={displayName || profile.username}
         />
       )}
     </div>

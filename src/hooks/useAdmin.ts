@@ -130,3 +130,125 @@ export function useResolveDispute() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-stats'] }),
   });
 }
+
+// ── KYC ───────────────────────────────────────────────────────────────────────
+
+export interface AdminKycPendingProfile {
+  id: number;
+  user: number;
+  username: string;
+  kyc_status: string;
+  submitted_at: string | null;
+}
+
+export function useAdminKycPending() {
+  return useQuery({
+    queryKey: ['admin-kyc-pending'],
+    queryFn: () =>
+      apiService.get<DjangoPaginatedResponse<AdminKycPendingProfile>>(
+        '/users/admin/kyc/pending/'
+      ),
+    retry: false,
+  });
+}
+
+export function useAdminKycReview() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      profileId,
+      decision,
+      rejection_reason,
+    }: {
+      profileId: number;
+      decision: 'approve' | 'reject';
+      rejection_reason?: string;
+    }) =>
+      apiService.post(`/users/admin/kyc/${profileId}/review/`, {
+        decision,
+        rejection_reason,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-kyc-pending'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+    },
+  });
+}
+
+// ── Disputes (liste agrégée) ──────────────────────────────────────────────────
+
+export interface AdminDispute {
+  id: string;
+  contract: string;
+  contract_title: string | null;
+  raised_by_username: string;
+  status: string;
+  status_display: string;
+  reason: string;
+  created_at: string;
+}
+
+export function useAdminDisputeList(page = 1) {
+  return useQuery({
+    queryKey: ['admin-disputes', page],
+    queryFn: () =>
+      apiService.get<DjangoPaginatedResponse<AdminDispute>>(
+        '/contracts/admin/disputes/',
+        { page: String(page) }
+      ),
+    retry: false,
+  });
+}
+
+// ── Admin contract actions ────────────────────────────────────────────────────
+
+export function useAdminCompleteContract() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (contractId: string) =>
+      apiService.post(`/contracts/${contractId}/admin/complete/`, {}),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-stats'] }),
+  });
+}
+
+export function useAdminCancelContract() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (contractId: string) =>
+      apiService.post(`/contracts/${contractId}/admin/cancel/`, {}),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-stats'] }),
+  });
+}
+
+// ── Ranking maintenance ───────────────────────────────────────────────────────
+
+export function useAdminRankingRecalculate() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiService.post('/rankings/recalculate/', {}),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['rankings'] }),
+  });
+}
+
+export function useAdminRankingSnapshot() {
+  return useMutation({
+    mutationFn: () => apiService.post('/rankings/calculate-snapshot/', {}),
+  });
+}
+
+export function useAdminRankingAdjust() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      providerId,
+      score_adjustment,
+      reason,
+    }: {
+      providerId: number;
+      score_adjustment: number;
+      reason: string;
+    }) =>
+      apiService.post(`/rankings/${providerId}/adjust/`, { score_adjustment, reason }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['rankings'] }),
+  });
+}

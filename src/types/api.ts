@@ -317,6 +317,7 @@ export interface FreelanceDetails {
 
 export interface ApiFreelancerProfile {
   id: number;
+  user_id: number;
   username: string;
   email: string;
   profile_picture: string | null;
@@ -482,11 +483,10 @@ export interface DjomyGatewayPaymentRequest {
 }
 
 export interface DjomyGatewayPaymentResponse {
-  data: {
-    transactionId?: string;
-    redirectUrl: string;
-    status: string;
-  }
+  transactionId?: string;
+  redirectUrl: string;
+  status: string;
+  details?: Record<string, unknown>;
 }
 
 export interface DjomyPaymentStatus {
@@ -832,11 +832,17 @@ export interface NotificationListResponse {
   unread_count?: number;
 }
 
+export interface ApiNotificationChannelPreference {
+  email?: boolean;
+  sms?: boolean;
+  push?: boolean;
+}
+
 export interface ApiNotificationPreference {
   email_enabled: boolean;
   sms_enabled: boolean;
   push_enabled: boolean;
-  preferences: Record<string, unknown>;
+  preferences: Record<string, ApiNotificationChannelPreference>;
 }
 
 export interface ApiNotificationTypeInfo {
@@ -959,6 +965,7 @@ export interface AgencyDetails {
 
 export interface ApiAgencyProfile {
   id: number;
+  user_id: number;
   username: string;
   email: string;
   profile_picture: string | null;

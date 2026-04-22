@@ -26,8 +26,10 @@ import {
   RotateCcw,
   Package,
   CheckCheck,
+  Star,
 } from "lucide-react";
 import { useContracts, useContractSummary, useInitiatePayment, useRequestCompletion, useConfirmCompletion, useRequestRevision, useDeliverables, useAcceptDeliverable, useRequestDeliverableRevision } from "@/hooks/useContracts";
+import { useCreateReview } from "@/hooks/useRankings";
 import { useToast } from "@/hooks/use-toast";
 import { DisputeModal } from "@/components/contracts/DisputeModal";
 import type { ApiContractList } from "@/types";
@@ -128,13 +130,13 @@ function PaymentDialog({
       },
       {
         onSuccess: (res) => {
-          if (res.data.transactionId) {
+          if (res.transactionId) {
             sessionStorage.setItem(
               PENDING_PAYMENT_KEY,
-              JSON.stringify({ transactionId: res.data.transactionId, contractId: contract.id })
+              JSON.stringify({ transactionId: res.transactionId, contractId: contract.id })
             );
           }
-          const redirectUrl = res.data.redirectUrl;
+          const redirectUrl = res.redirectUrl;
           if (!redirectUrl) {
             toast({
               title: "Erreur de paiement",
@@ -217,7 +219,11 @@ function ContractCard({
   const [revisionNote, setRevisionNote] = useState("");
   const [delivRevisionId, setDelivRevisionId] = useState<string | null>(null);
   const [delivRevisionNote, setDelivRevisionNote] = useState("");
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
   const { toast } = useToast();
+  const createReview = useCreateReview();
 
   const { data: deliverables, isLoading: delivLoading } = useDeliverables(contract.id, deliverableOpen);
   const acceptDeliverable = useAcceptDeliverable();
@@ -291,9 +297,28 @@ function ContractCard({
 
   const handleConfirmCompletion = () => {
     confirmCompletion.mutate(contract.id, {
-      onSuccess: () => toast({ title: "Contrat terminé !", description: "Le contrat a été clôturé avec succès." }),
+      onSuccess: () => {
+        toast({ title: "Contrat terminé !", description: "Le contrat a été clôturé avec succès." });
+        setReviewOpen(true);
+      },
       onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Une erreur est survenue.", variant: "destructive" }),
     });
+  };
+
+  const handleSubmitReview = () => {
+    if (reviewRating === 0) return;
+    createReview.mutate(
+      { contract: contract.id, rating: reviewRating, comment: reviewComment.trim() || undefined },
+      {
+        onSuccess: () => {
+          toast({ title: "Avis publié !", description: "Merci pour votre évaluation." });
+          setReviewOpen(false);
+          setReviewRating(0);
+          setReviewComment("");
+        },
+        onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Une erreur est survenue.", variant: "destructive" }),
+      }
+    );
   };
 
   return (
@@ -572,6 +597,79 @@ function ContractCard({
         open={disputeOpen}
         onClose={() => setDisputeOpen(false)}
       />
+
+      {/* Review Dialog */}
+      <Dialog
+        open={reviewOpen}
+        onOpenChange={(v) => {
+          if (!v) { setReviewOpen(false); setReviewRating(0); setReviewComment(""); }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Star size={16} className="text-yellow-500" />
+              Noter le prestataire
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              Comment s'est passée votre collaboration avec{" "}
+              <span className="font-semibold text-foreground">{contract.provider.username}</span> ?
+            </p>
+
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium">Note *</p>
+              <div className="flex gap-1.5">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setReviewRating(n)}
+                    className="focus:outline-none transition-transform hover:scale-110"
+                  >
+                    <Star
+                      size={28}
+                      className={n <= reviewRating ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground"}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">
+                Commentaire{" "}
+                <span className="text-muted-foreground text-xs">(optionnel)</span>
+              </label>
+              <textarea
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                placeholder="Décrivez votre expérience…"
+                rows={3}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors resize-none text-sm"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => { setReviewOpen(false); setReviewRating(0); setReviewComment(""); }}
+              disabled={createReview.isPending}
+            >
+              Passer
+            </Button>
+            <Button
+              onClick={handleSubmitReview}
+              disabled={reviewRating === 0 || createReview.isPending}
+              className="gap-2"
+            >
+              {createReview.isPending ? <Loader2 size={14} className="animate-spin" /> : <Star size={14} />}
+              Publier l'avis
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }

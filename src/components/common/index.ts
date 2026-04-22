@@ -7,3 +7,4 @@ export { LoadingSpinner } from './LoadingSpinner';
 export { EmptyState } from './EmptyState';
 export { PageLoader } from './PageLoader';
 export { UnderConstruction } from './UnderConstruction';
+export { FlagContentModal } from './FlagContentModal';

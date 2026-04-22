@@ -2,7 +2,8 @@ import { useState, useEffect, Component } from "react";
 import type { ErrorInfo, ReactNode } from "react";
 import {
   Eye, EyeOff, Lock, Loader2, KeyRound, TriangleAlert,
-  Bell, BriefcaseBusiness, CalendarClock, Plus, Trash2,
+  Bell, BriefcaseBusiness, CalendarClock, Plus, Trash2, RotateCcw, ChevronDown, ChevronUp,
+  Smartphone,
 } from "lucide-react";
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
@@ -43,7 +44,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useNotificationPreferences, useUpdateNotificationPreferences } from "@/hooks/useNotifications";
+import { useNotificationPreferences, useUpdateNotificationPreferences, useNotificationTypes, useResetNotificationPreferences, usePushSubscription } from "@/hooks/useNotifications";
 import { useUpdateFreelanceProfile, useFreelanceProfile } from "@/hooks/useProfile";
 import { useJobAlerts, useCreateJobAlert, useUpdateJobAlert, useToggleJobAlert, useDeleteJobAlert } from "@/hooks/useJobAlerts";
 import type { JobAlertFrequency } from "@/types";
@@ -96,6 +97,70 @@ function Section({ icon, title, subtitle, danger, children }: {
 
 // ── Notification Preferences ──────────────────────────────────────────────────
 
+function PushToggle() {
+  const { subscribe, unsubscribe } = usePushSubscription();
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useState(() => {
+    if (!('serviceWorker' in navigator)) { setChecking(false); return; }
+    navigator.serviceWorker.getRegistration('/sw.js').then(async (reg) => {
+      if (reg) {
+        const sub = await reg.pushManager.getSubscription();
+        setIsSubscribed(!!sub);
+      }
+      setChecking(false);
+    }).catch(() => setChecking(false));
+  });
+
+  const isPending = subscribe.isPending || unsubscribe.isPending;
+
+  const handleToggle = (v: boolean) => {
+    if (v) {
+      subscribe.mutate(undefined, {
+        onSuccess: () => { setIsSubscribed(true); toast({ title: "Notifications push activées." }); },
+        onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Erreur inconnue.", variant: "destructive" }),
+      });
+    } else {
+      unsubscribe.mutate(undefined, {
+        onSuccess: () => { setIsSubscribed(false); toast({ title: "Notifications push désactivées." }); },
+        onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Erreur inconnue.", variant: "destructive" }),
+      });
+    }
+  };
+
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    return (
+      <div className="flex items-center justify-between py-2 border-b border-border">
+        <div>
+          <p className="text-sm font-medium flex items-center gap-1.5"><Smartphone size={14} /> Notifications push (navigateur)</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Non supportées par ce navigateur.</p>
+        </div>
+        <Toggle checked={false} onChange={() => {}} disabled />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-between py-2 border-b border-border">
+      <div>
+        <p className="text-sm font-medium flex items-center gap-1.5">
+          <Smartphone size={14} />
+          Notifications push (navigateur)
+        </p>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          {isSubscribed ? "Activées sur cet appareil." : "Recevez des alertes même sans ouvrir l'application."}
+        </p>
+      </div>
+      {checking ? (
+        <Loader2 size={14} className="animate-spin text-muted-foreground" />
+      ) : (
+        <Toggle checked={isSubscribed} onChange={handleToggle} disabled={isPending} />
+      )}
+    </div>
+  );
+}
+
 function NotificationPreferencesSection() {
   const { data: prefs, isLoading } = useNotificationPreferences();
   const { mutate: update, isPending } = useUpdateNotificationPreferences();
@@ -115,7 +180,7 @@ function NotificationPreferencesSection() {
         [
           { key: "email_enabled" as const, label: "Notifications par email" },
           { key: "sms_enabled" as const, label: "Notifications par SMS" },
-          { key: "push_enabled" as const, label: "Notifications push" },
+          { key: "push_enabled" as const, label: "Notifications push (API)" },
         ] as const
       ).map(({ key, label }) => (
         <div key={key} className="flex items-center justify-between py-2 border-b border-border last:border-0">
@@ -127,6 +192,118 @@ function NotificationPreferencesSection() {
           />
         </div>
       ))}
+      <PushToggle />
+    </div>
+  );
+}
+
+// ── Per-type Notification Preferences ────────────────────────────────────────
+
+const CHANNEL_LABELS: Record<string, string> = {
+  email: "Email",
+  sms: "SMS",
+  push: "Push",
+};
+
+function NotificationTypesSection() {
+  const [expanded, setExpanded] = useState(false);
+  const { data: types, isLoading: typesLoading } = useNotificationTypes();
+  const { data: prefs, isLoading: prefsLoading } = useNotificationPreferences();
+  const { mutate: update, isPending: isUpdating } = useUpdateNotificationPreferences();
+  const { mutate: reset, isPending: isResetting } = useResetNotificationPreferences();
+
+  const isLoading = typesLoading || prefsLoading;
+
+  const toggle = (typeValue: string, channel: "email" | "sms" | "push") => {
+    if (!prefs) return;
+    const current = prefs.preferences?.[typeValue] ?? {};
+    const currentVal = current[channel] ?? true;
+    update({
+      preferences: {
+        ...prefs.preferences,
+        [typeValue]: { ...current, [channel]: !currentVal },
+      },
+    });
+  };
+
+  const handleReset = () => {
+    reset(undefined, {
+      onSuccess: () => toast({ title: "Préférences réinitialisées." }),
+      onError: () => toast({ title: "Erreur", variant: "destructive" }),
+    });
+  };
+
+  return (
+    <div className="mt-4 pt-4 border-t border-border">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex items-center justify-between w-full text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <span>Préférences avancées par type</span>
+        {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+      </button>
+
+      {expanded && (
+        <div className="mt-4 space-y-3">
+          {isLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 size={14} className="animate-spin" /> Chargement…
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-xs text-muted-foreground">
+                      <th className="text-left font-medium pb-2 pr-4">Type</th>
+                      {["email", "sms", "push"].map((ch) => (
+                        <th key={ch} className="text-center font-medium pb-2 px-2 min-w-[56px]">
+                          {CHANNEL_LABELS[ch]}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {(types ?? []).map((t) => {
+                      const typePref = prefs?.preferences?.[t.value] ?? {};
+                      return (
+                        <tr key={t.value}>
+                          <td className="py-2 pr-4 text-foreground">{t.label}</td>
+                          {(["email", "sms", "push"] as const).map((ch) => {
+                            const isOn = typePref[ch] ?? t.default_channels.includes(ch);
+                            return (
+                              <td key={ch} className="py-2 px-2 text-center">
+                                <Toggle
+                                  checked={isOn}
+                                  onChange={() => toggle(t.value, ch)}
+                                  disabled={isUpdating}
+                                />
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex justify-end pt-1">
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  disabled={isResetting}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                >
+                  {isResetting ? <Loader2 size={12} className="animate-spin" /> : <RotateCcw size={12} />}
+                  Réinitialiser aux valeurs par défaut
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -377,6 +554,7 @@ const Settings = () => {
         <ErrorBoundary>
           <Section icon={<Bell size={20} />} title="Préférences de notifications" subtitle="Choisissez comment vous voulez être notifié">
             <NotificationPreferencesSection />
+            <NotificationTypesSection />
           </Section>
         </ErrorBoundary>
 

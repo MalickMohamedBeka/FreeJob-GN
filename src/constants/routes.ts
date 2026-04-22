@@ -14,6 +14,7 @@ export const ROUTES = {
   RANKINGS: '/classement',
   ABOUT: '/about',
   HOW_IT_WORKS: '/comment-ca-marche',
+  CLIENT_PUBLIC_PROFILE: '/clients/:id',
   
   // Auth routes
   LOGIN: '/login',

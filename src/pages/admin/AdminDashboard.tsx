@@ -50,6 +50,9 @@ import {
   Home,
   ChevronDown,
   Sparkles,
+  Scale,
+  FileCheck2,
+  Trophy,
 } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import {
@@ -59,6 +62,15 @@ import {
   useUnsuspendUser,
   useBanUser,
   useUnbanUser,
+  useResolveDispute,
+  useAdminKycPending,
+  useAdminKycReview,
+  useAdminDisputeList,
+  useAdminCompleteContract,
+  useAdminCancelContract,
+  useAdminRankingRecalculate,
+  useAdminRankingSnapshot,
+  useAdminRankingAdjust,
   type AuditLogFilters,
 } from "@/hooks/useAdmin";
 import { useAdminPendingWithdrawals } from "@/hooks/useWallet";
@@ -603,10 +615,498 @@ function QuickActionCard({
   return inner;
 }
 
+// ── Admin KYC Tab ─────────────────────────────────────────────────────────────
+
+function AdminKycTab() {
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [profileId, setProfileId] = useState("");
+  const [decision, setDecision] = useState<"approve" | "reject">("approve");
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [error, setError] = useState("");
+
+  const { data, isLoading, isError } = useAdminKycPending();
+  const { mutate: review, isPending } = useAdminKycReview();
+  const { toast } = useToast();
+
+  const openReview = (id?: string) => {
+    setProfileId(id ?? "");
+    setDecision("approve");
+    setRejectionReason("");
+    setError("");
+    setReviewOpen(true);
+  };
+
+  const handleReview = () => {
+    const id = parseInt(profileId, 10);
+    if (!profileId || isNaN(id)) { setError("ID de profil invalide."); return; }
+    if (decision === "reject" && !rejectionReason.trim()) { setError("Le motif de rejet est obligatoire."); return; }
+    setError("");
+    review(
+      { profileId: id, decision, rejection_reason: rejectionReason.trim() || undefined },
+      {
+        onSuccess: () => {
+          toast({ title: decision === "approve" ? "KYC approuvé." : "KYC rejeté." });
+          setReviewOpen(false);
+        },
+        onError: (err) => setError(err instanceof ApiError ? err.message : "Une erreur est survenue."),
+      }
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      {isError && (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm">
+          <AlertTriangle size={15} className="text-amber-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="font-semibold text-amber-800">Endpoint liste KYC non disponible</p>
+            <p className="text-amber-700 mt-0.5 text-xs">
+              <code className="bg-amber-100 px-1 rounded">GET /users/admin/kyc/pending/</code> n'est pas encore implémenté côté backend.
+              Vous pouvez néanmoins réviser un profil en saisissant son ID manuellement.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {isLoading && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+          <Loader2 size={14} className="animate-spin" /> Chargement…
+        </div>
+      )}
+
+      {!isLoading && !isError && (
+        (data?.results ?? []).length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+            <CheckCircle2 size={28} className="mb-2 opacity-40" />
+            <p className="text-sm">Aucun profil en attente de validation KYC.</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {data!.results.map((profile) => (
+              <div key={profile.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-background hover:border-primary/30 transition-all">
+                <div>
+                  <p className="text-sm font-semibold">{profile.username}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Profile ID : {profile.id} · User ID : {profile.user}
+                    {profile.submitted_at && ` · Soumis le ${new Date(profile.submitted_at).toLocaleDateString("fr-FR")}`}
+                  </p>
+                </div>
+                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => openReview(String(profile.id))}>
+                  <UserCheck size={13} /> Réviser
+                </Button>
+              </div>
+            ))}
+          </div>
+        )
+      )}
+
+      <div className="flex justify-end pt-2 border-t border-border">
+        <Button size="sm" className="gap-1.5" onClick={() => openReview()}>
+          <UserCheck size={13} /> Réviser un profil par ID
+        </Button>
+      </div>
+
+      <Dialog open={reviewOpen} onOpenChange={(v) => !v && setReviewOpen(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <UserCheck size={15} className="text-primary" />
+              </div>
+              Révision KYC
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-1">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">ID profil *</Label>
+              <Input type="number" placeholder="Ex: 12" value={profileId} onChange={(e) => setProfileId(e.target.value)} className="h-10" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Décision *</Label>
+              <Select value={decision} onValueChange={(v) => setDecision(v as "approve" | "reject")}>
+                <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="approve">
+                    <div className="flex items-center gap-2"><CheckCircle2 size={13} className="text-emerald-600" /> Approuver</div>
+                  </SelectItem>
+                  <SelectItem value="reject">
+                    <div className="flex items-center gap-2"><XCircle size={13} className="text-red-500" /> Rejeter</div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {decision === "reject" && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Motif de rejet *</Label>
+                <Textarea rows={3} value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} placeholder="Expliquez pourquoi le KYC est rejeté…" className="resize-none" />
+              </div>
+            )}
+            {error && (
+              <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/5 border border-destructive/20 rounded-lg px-3 py-2">
+                <XCircle size={14} /> {error}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReviewOpen(false)} disabled={isPending}>Annuler</Button>
+            <Button
+              onClick={handleReview}
+              disabled={isPending}
+              className={`gap-2 ${decision === "reject" ? "bg-red-600 hover:bg-red-700" : ""}`}
+            >
+              {isPending ? <Loader2 size={14} className="animate-spin" /> : decision === "approve" ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+              {decision === "approve" ? "Approuver" : "Rejeter"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// ── Admin Disputes Tab ─────────────────────────────────────────────────────────
+
+function AdminDisputesTab() {
+  const [page, setPage] = useState(1);
+  const [resolveOpen, setResolveOpen] = useState(false);
+  const [contractId, setContractId] = useState("");
+  const [resolution, setResolution] = useState<"client" | "provider" | "close">("close");
+  const [resolutionNote, setResolutionNote] = useState("");
+  const [error, setError] = useState("");
+
+  const { data, isLoading, isError, isFetching } = useAdminDisputeList(page);
+  const { mutate: resolve, isPending } = useResolveDispute();
+  const { toast } = useToast();
+  const totalPages = data ? Math.ceil(data.count / 20) : 0;
+
+  const openResolve = (id?: string) => {
+    setContractId(id ?? "");
+    setResolution("close");
+    setResolutionNote("");
+    setError("");
+    setResolveOpen(true);
+  };
+
+  const handleResolve = () => {
+    if (!contractId.trim()) { setError("ID de contrat requis."); return; }
+    setError("");
+    resolve(
+      { contractId: contractId.trim(), resolution, resolution_note: resolutionNote.trim() },
+      {
+        onSuccess: () => {
+          toast({ title: "Litige résolu." });
+          setResolveOpen(false);
+        },
+        onError: (err) => setError(err instanceof ApiError ? err.message : "Une erreur est survenue."),
+      }
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      {isError && (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm">
+          <AlertTriangle size={15} className="text-amber-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="font-semibold text-amber-800">Endpoint liste litiges non disponible</p>
+            <p className="text-amber-700 mt-0.5 text-xs">
+              <code className="bg-amber-100 px-1 rounded">GET /contracts/admin/disputes/</code> n'est pas encore implémenté côté backend.
+              Vous pouvez résoudre un litige en saisissant l'ID de contrat manuellement.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {isLoading && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+          <Loader2 size={14} className="animate-spin" /> Chargement…
+        </div>
+      )}
+
+      {!isLoading && !isError && (
+        <>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">{data?.count ?? 0} litige(s)</span>
+            {isFetching && <Loader2 size={13} className="animate-spin text-muted-foreground" />}
+          </div>
+          {(data?.results ?? []).length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+              <CheckCircle2 size={28} className="mb-2 opacity-40" />
+              <p className="text-sm">Aucun litige en attente.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {data!.results.map((d) => (
+                <div key={d.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-background hover:border-primary/30 transition-all">
+                  <div className="min-w-0 flex-1 mr-4">
+                    <p className="text-sm font-semibold truncate">{d.contract_title ?? `Contrat #${d.contract}`}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Par {d.raised_by_username} · {new Date(d.created_at).toLocaleDateString("fr-FR")}
+                      <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[10px] font-medium">{d.status_display}</span>
+                    </p>
+                    {d.reason && <p className="text-xs text-muted-foreground mt-1 italic truncate">{d.reason}</p>}
+                  </div>
+                  <Button size="sm" variant="outline" className="gap-1.5 flex-shrink-0" onClick={() => openResolve(d.contract)}>
+                    <Scale size={13} /> Résoudre
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-2 border-t border-border">
+              <p className="text-xs text-muted-foreground">Page {page} / {totalPages}</p>
+              <div className="flex gap-1">
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setPage((p) => p - 1)} disabled={page === 1 || isFetching}>
+                  <ChevronLeft size={14} />
+                </Button>
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages || isFetching}>
+                  <ChevronRight size={14} />
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      <div className="flex justify-end pt-2 border-t border-border">
+        <Button size="sm" className="gap-1.5" onClick={() => openResolve()}>
+          <Scale size={13} /> Résoudre un litige par ID
+        </Button>
+      </div>
+
+      <Dialog open={resolveOpen} onOpenChange={(v) => !v && setResolveOpen(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Scale size={15} className="text-primary" />
+              </div>
+              Résoudre un litige
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-1">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">ID contrat *</Label>
+              <Input placeholder="UUID du contrat" value={contractId} onChange={(e) => setContractId(e.target.value)} className="h-10 font-mono text-sm" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Résolution *</Label>
+              <Select value={resolution} onValueChange={(v) => setResolution(v as "client" | "provider" | "close")}>
+                <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="client">En faveur du client</SelectItem>
+                  <SelectItem value="provider">En faveur du prestataire</SelectItem>
+                  <SelectItem value="close">Clore sans décision</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Note de résolution</Label>
+              <Textarea rows={3} value={resolutionNote} onChange={(e) => setResolutionNote(e.target.value)} placeholder="Explication de la décision…" className="resize-none" />
+            </div>
+            {error && (
+              <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/5 border border-destructive/20 rounded-lg px-3 py-2">
+                <XCircle size={14} /> {error}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResolveOpen(false)} disabled={isPending}>Annuler</Button>
+            <Button onClick={handleResolve} disabled={isPending} className="gap-2">
+              {isPending ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+              Confirmer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// ── Admin Contracts Tab ────────────────────────────────────────────────────────
+
+function AdminContractsTab() {
+  const [contractId, setContractId] = useState("");
+  const [action, setAction] = useState<"complete" | "cancel">("complete");
+  const [error, setError] = useState("");
+
+  const complete = useAdminCompleteContract();
+  const cancel = useAdminCancelContract();
+  const { toast } = useToast();
+
+  const isPending = complete.isPending || cancel.isPending;
+
+  const handleSubmit = () => {
+    if (!contractId.trim()) { setError("ID de contrat requis."); return; }
+    setError("");
+    const mutation = action === "complete" ? complete : cancel;
+    mutation.mutate(contractId.trim(), {
+      onSuccess: () => {
+        toast({ title: action === "complete" ? "Contrat clôturé." : "Contrat annulé." });
+        setContractId("");
+      },
+      onError: (err) => setError(err instanceof ApiError ? err.message : "Une erreur est survenue."),
+    });
+  };
+
+  return (
+    <div className="max-w-md space-y-5">
+      <div className="p-4 rounded-xl bg-muted/50 border border-border text-sm text-muted-foreground">
+        Ces actions sont irréversibles. À utiliser uniquement en cas de nécessité opérationnelle (litige non résolu, contrat bloqué…).
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">ID contrat *</Label>
+        <Input placeholder="UUID du contrat" value={contractId} onChange={(e) => { setContractId(e.target.value); setError(""); }} className="h-10 font-mono text-sm" />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Action *</Label>
+        <Select value={action} onValueChange={(v) => setAction(v as "complete" | "cancel")}>
+          <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="complete">
+              <div className="flex items-center gap-2"><CheckCircle2 size={13} className="text-emerald-600" /> Clôturer le contrat</div>
+            </SelectItem>
+            <SelectItem value="cancel">
+              <div className="flex items-center gap-2"><XCircle size={13} className="text-red-500" /> Annuler le contrat</div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/5 border border-destructive/20 rounded-lg px-3 py-2">
+          <XCircle size={14} /> {error}
+        </div>
+      )}
+
+      <Button
+        onClick={handleSubmit}
+        disabled={isPending || !contractId.trim()}
+        className={`gap-2 ${action === "cancel" ? "bg-red-600 hover:bg-red-700" : ""}`}
+      >
+        {isPending ? <Loader2 size={14} className="animate-spin" /> : action === "complete" ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+        {action === "complete" ? "Clôturer le contrat" : "Annuler le contrat"}
+      </Button>
+    </div>
+  );
+}
+
+// ── Admin Ranking Tab ─────────────────────────────────────────────────────────
+
+function AdminRankingTab() {
+  const [providerId, setProviderId] = useState("");
+  const [adjustment, setAdjustment] = useState("");
+  const [adjustReason, setAdjustReason] = useState("");
+  const [error, setError] = useState("");
+
+  const recalculate = useAdminRankingRecalculate();
+  const snapshot = useAdminRankingSnapshot();
+  const adjust = useAdminRankingAdjust();
+  const { toast } = useToast();
+
+  const handleRecalculate = () => {
+    recalculate.mutate(undefined, {
+      onSuccess: () => toast({ title: "Recalcul lancé.", description: "Les classements sont en cours de mise à jour." }),
+      onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Une erreur est survenue.", variant: "destructive" }),
+    });
+  };
+
+  const handleSnapshot = () => {
+    snapshot.mutate(undefined, {
+      onSuccess: () => toast({ title: "Snapshot calculé avec succès." }),
+      onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Une erreur est survenue.", variant: "destructive" }),
+    });
+  };
+
+  const handleAdjust = () => {
+    const id = parseInt(providerId, 10);
+    const val = parseFloat(adjustment);
+    if (!providerId || isNaN(id)) { setError("ID provider invalide."); return; }
+    if (adjustment === "" || isNaN(val)) { setError("Valeur d'ajustement invalide."); return; }
+    if (!adjustReason.trim()) { setError("La raison est obligatoire."); return; }
+    setError("");
+    adjust.mutate(
+      { providerId: id, score_adjustment: val, reason: adjustReason.trim() },
+      {
+        onSuccess: () => {
+          toast({ title: "Score ajusté.", description: `Provider #${id} mis à jour.` });
+          setProviderId("");
+          setAdjustment("");
+          setAdjustReason("");
+        },
+        onError: (err) => setError(err instanceof ApiError ? err.message : "Une erreur est survenue."),
+      }
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Global actions */}
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Actions globales</p>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div className="p-4 rounded-xl border border-border bg-background space-y-3">
+            <div>
+              <p className="text-sm font-semibold">Recalculer tous les classements</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Recalcule les scores de tous les providers à partir des données actuelles.</p>
+            </div>
+            <Button size="sm" className="gap-2 w-full" onClick={handleRecalculate} disabled={recalculate.isPending}>
+              {recalculate.isPending ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
+              Lancer le recalcul
+            </Button>
+          </div>
+          <div className="p-4 rounded-xl border border-border bg-background space-y-3">
+            <div>
+              <p className="text-sm font-semibold">Calculer un snapshot</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Prend une photo de la situation actuelle pour l'historique des tendances.</p>
+            </div>
+            <Button size="sm" variant="outline" className="gap-2 w-full" onClick={handleSnapshot} disabled={snapshot.isPending}>
+              {snapshot.isPending ? <Loader2 size={13} className="animate-spin" /> : <Trophy size={13} />}
+              Calculer le snapshot
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Manual score adjustment */}
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Ajustement manuel d'un score</p>
+        <div className="max-w-md space-y-4 p-4 rounded-xl border border-border bg-background">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">User ID du provider *</Label>
+            <Input type="number" placeholder="Ex: 42" value={providerId} onChange={(e) => { setProviderId(e.target.value); setError(""); }} className="h-10" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ajustement de score *</Label>
+            <Input type="number" step="0.1" placeholder="Ex: 5 ou -3.5" value={adjustment} onChange={(e) => { setAdjustment(e.target.value); setError(""); }} className="h-10" />
+            <p className="text-xs text-muted-foreground">Valeur positive = bonus · Valeur négative = malus</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Raison *</Label>
+            <Textarea rows={2} value={adjustReason} onChange={(e) => setAdjustReason(e.target.value)} placeholder="Motif de l'ajustement…" className="resize-none" />
+          </div>
+          {error && (
+            <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/5 border border-destructive/20 rounded-lg px-3 py-2">
+              <XCircle size={14} /> {error}
+            </div>
+          )}
+          <Button onClick={handleAdjust} disabled={adjust.isPending} className="gap-2 w-full">
+            {adjust.isPending ? <Loader2 size={14} className="animate-spin" /> : <Trophy size={14} />}
+            Appliquer l'ajustement
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main Dashboard ─────────────────────────────────────────────────────────────
 
 const AdminDashboard = () => {
-  const [tab, setTab] = useState<"overview" | "audit">("overview");
+  const [tab, setTab] = useState<"overview" | "audit" | "kyc" | "litiges" | "contrats" | "classement">("overview");
   const [userActionOpen, setUserActionOpen] = useState(false);
 
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminStats();
@@ -617,6 +1117,10 @@ const AdminDashboard = () => {
   const tabs = [
     { key: "overview" as const, label: "Vue d'ensemble", icon: LayoutDashboard },
     { key: "audit" as const, label: "Logs d'audit", icon: ClipboardList },
+    { key: "kyc" as const, label: "KYC", icon: UserCheck },
+    { key: "litiges" as const, label: "Litiges", icon: Scale },
+    { key: "contrats" as const, label: "Contrats", icon: FileCheck2 },
+    { key: "classement" as const, label: "Classement", icon: Trophy },
   ];
 
   return (
@@ -799,6 +1303,36 @@ const AdminDashboard = () => {
               icon={ClipboardList}
               onClick={() => setTab("audit")}
             />
+            <QuickActionCard
+              index={3}
+              title="Validation KYC"
+              description="Approuver ou rejeter les profils en attente de vérification"
+              icon={UserCheck}
+              onClick={() => setTab("kyc")}
+            />
+            <QuickActionCard
+              index={4}
+              title="Litiges"
+              description="Résoudre les litiges ouverts entre clients et prestataires"
+              icon={Scale}
+              badge={stats ? stats.disputes.open + stats.disputes.under_review : undefined}
+              badgeColor={stats && stats.disputes.open > 0 ? "bg-red-100 text-red-700" : undefined}
+              onClick={() => setTab("litiges")}
+            />
+            <QuickActionCard
+              index={5}
+              title="Actions contrats"
+              description="Clôturer ou annuler un contrat bloqué par ID"
+              icon={FileCheck2}
+              onClick={() => setTab("contrats")}
+            />
+            <QuickActionCard
+              index={6}
+              title="Maintenance classement"
+              description="Recalculer les scores, snapshots et ajustements manuels"
+              icon={Trophy}
+              onClick={() => setTab("classement")}
+            />
           </div>
         </div>
 
@@ -961,6 +1495,97 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 <AuditLogsTab />
+              </Card>
+            </motion.div>
+          )}
+
+          {tab === "kyc" && (
+            <motion.div
+              key="kyc"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Card className="p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <UserCheck size={15} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm">Validation KYC</h3>
+                    <p className="text-xs text-muted-foreground">Approuver ou rejeter les profils en attente de vérification d'identité</p>
+                  </div>
+                </div>
+                <AdminKycTab />
+              </Card>
+            </motion.div>
+          )}
+
+          {tab === "litiges" && (
+            <motion.div
+              key="litiges"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Card className="p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Scale size={15} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm">Litiges</h3>
+                    <p className="text-xs text-muted-foreground">Résoudre les litiges ouverts entre clients et prestataires</p>
+                  </div>
+                </div>
+                <AdminDisputesTab />
+              </Card>
+            </motion.div>
+          )}
+
+          {tab === "contrats" && (
+            <motion.div
+              key="contrats"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Card className="p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <FileCheck2 size={15} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm">Actions contrats</h3>
+                    <p className="text-xs text-muted-foreground">Clôturer ou annuler un contrat bloqué</p>
+                  </div>
+                </div>
+                <AdminContractsTab />
+              </Card>
+            </motion.div>
+          )}
+          {tab === "classement" && (
+            <motion.div
+              key="classement"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Card className="p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Trophy size={15} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm">Maintenance classement</h3>
+                    <p className="text-xs text-muted-foreground">Recalcul des scores, snapshots et ajustements manuels</p>
+                  </div>
+                </div>
+                <AdminRankingTab />
               </Card>
             </motion.div>
           )}

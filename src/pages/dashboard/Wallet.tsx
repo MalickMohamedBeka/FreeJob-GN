@@ -114,6 +114,7 @@ function WithdrawalDialog({
   const [comment, setComment] = useState("");
   const [method, setMethod] = useState<PayoutMethodEnum>("MOBILE_MONEY");
   const [phone, setPhone] = useState("");
+  const [accountName, setAccountName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [bankName, setBankName] = useState("");
   const [error, setError] = useState("");
@@ -124,6 +125,7 @@ function WithdrawalDialog({
     setComment("");
     setMethod("MOBILE_MONEY");
     setPhone("");
+    setAccountName("");
     setAccountNumber("");
     setBankName("");
     setError("");
@@ -149,14 +151,14 @@ function WithdrawalDialog({
     const payout_details: Record<string, string> =
       method === "MOBILE_MONEY"
         ? { phone: phone.trim() }
-        : { account_number: accountNumber.trim(), bank_name: bankName.trim() };
+        : { account_name: accountName.trim(), account_number: accountNumber.trim(), bank_name: bankName.trim() };
 
     if (method === "MOBILE_MONEY" && !phone.trim()) {
       setError("Le numéro de téléphone est requis.");
       return;
     }
-    if (method === "BANK_TRANSFER" && (!accountNumber.trim() || !bankName.trim())) {
-      setError("Numéro de compte et nom de la banque requis.");
+    if (method === "BANK_TRANSFER" && (!accountName.trim() || !accountNumber.trim() || !bankName.trim())) {
+      setError("Titulaire, numéro de compte et nom de la banque sont requis.");
       return;
     }
 
@@ -232,6 +234,15 @@ function WithdrawalDialog({
             </div>
           ) : (
             <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="wd-account-name">Titulaire du compte *</Label>
+                <Input
+                  id="wd-account-name"
+                  value={accountName}
+                  onChange={(e) => setAccountName(e.target.value)}
+                  placeholder="Ex: Mamadou Diallo"
+                />
+              </div>
               <div className="space-y-1.5">
                 <Label htmlFor="wd-bank">Nom de la banque *</Label>
                 <Input

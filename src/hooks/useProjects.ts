@@ -2,7 +2,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '@/services/api.service';
 import { projectService } from '@/services/project.service';
 import type { ProjectFilters } from '@/services/project.service';
-import type { ApiProjectDetail, ApiProjectCreateRequest, ApiProjectPatchRequest, ApiProjectDocument, ProjectDocumentType, DjangoPaginatedResponse, ApiProjectHistoryItem } from '@/types';
+import type { ApiCategory, ApiProjectDetail, ApiProjectCreateRequest, ApiProjectPatchRequest, ApiProjectDocument, ProjectDocumentType, DjangoPaginatedResponse, ApiProjectHistoryItem } from '@/types';
+
+export function useProjectCategories() {
+  return useQuery({
+    queryKey: ['project-categories'],
+    queryFn: () => apiService.getPublic<ApiCategory[]>('/projects/categories/'),
+    staleTime: Infinity,
+  });
+}
 
 export function useProjects(filters?: ProjectFilters) {
   return useQuery({

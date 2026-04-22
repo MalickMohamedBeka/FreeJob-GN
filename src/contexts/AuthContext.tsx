@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { apiService, ApiError } from '@/services/api.service';
 import type { ApiUser, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from '@/types';
 
@@ -17,6 +18,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<ApiUser | null>(() => {
     const stored = localStorage.getItem('user');
     return stored ? JSON.parse(stored) : null;
@@ -100,11 +102,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (credentials: LoginRequest) => {
+    queryClient.clear();
     const res = await apiService.postPublic<LoginResponse>('/users/login/', credentials);
     localStorage.setItem('access_token', res.access);
     localStorage.setItem('user', JSON.stringify(res.user));
     setUser(res.user);
-  }, []);
+  }, [queryClient]);
 
   const register = useCallback(async (data: RegisterRequest) => {
     return apiService.postPublic<RegisterResponse>('/users/register/', data);
@@ -118,9 +121,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     localStorage.removeItem('access_token');
     localStorage.removeItem('user');
+    queryClient.clear();
     setUser(null);
     setProfileInitialized(null);
-  }, []);
+  }, [queryClient]);
 
   return (
     <AuthContext.Provider

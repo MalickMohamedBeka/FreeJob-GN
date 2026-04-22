@@ -56,6 +56,7 @@ import {
   useUploadProjectDocument,
   useDeleteProjectDocument,
   useProjectHistory,
+  useProjectCategories,
   downloadProjectHistoryCsv,
 } from "@/hooks/useProjects";
 import { useAuth } from "@/contexts/AuthContext";
@@ -106,16 +107,12 @@ function ProjectFormDialog({
   const isEdit = !!projectId;
   const createProject = useCreateProject();
   const updateProject = useUpdateProject();
+  const { data: categoriesData } = useProjectCategories();
   const { data: allProjects } = useProjects();
 
-  // Derive unique categories, specialities, and skills from published projects
-  // (no dedicated endpoints for these resources)
+  const categories = categoriesData ?? [];
+
   const allResults = allProjects?.results ?? [];
-
-  const categories = Array.from(
-    new Map(allResults.map((p) => [p.category.id, p.category])).values()
-  );
-
   const specialities = Array.from(
     new Map(
       allResults
@@ -123,7 +120,6 @@ function ProjectFormDialog({
         .map((p) => [p.speciality.id, p.speciality])
     ).values()
   );
-
   const skills = Array.from(
     new Map(
       allResults.flatMap((p) => p.skills).map((s) => [s.id, s])

@@ -161,7 +161,7 @@ const statusConfig: Record<string, { label: string; badgeClass: string }> = {
 // ── Contract Summary (lazy-fetched on expand) ─────────────────────────────────
 
 function ContractSummarySection({ contractId }: { contractId: string }) {
-  const { data, isLoading } = useContractSummary(contractId);
+  const { data, isLoading, isError } = useContractSummary(contractId);
 
   if (isLoading) {
     return (
@@ -172,7 +172,13 @@ function ContractSummarySection({ contractId }: { contractId: string }) {
     );
   }
 
-  if (!data) return null;
+  if (isError || !data) {
+    return (
+      <div className="py-3 text-sm text-muted-foreground">
+        Résumé financier indisponible.
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 gap-3 pt-3 text-sm">

@@ -371,3 +371,40 @@ export function useReportUser() {
       apiService.post<void>(`/users/${userId}/report/`, { reason, details: details ?? '' }),
   });
 }
+
+// ── Signalement contenu ───────────────────────────────────────────────────────
+
+export function useFlagContent() {
+  return useMutation({
+    mutationFn: ({
+      content_type,
+      object_id,
+      reason,
+      details,
+    }: {
+      content_type: string;
+      object_id: number | string;
+      reason: string;
+      details?: string;
+    }) =>
+      apiService.post<void>('/users/flag/', {
+        content_type,
+        object_id,
+        reason,
+        details: details ?? '',
+      }),
+  });
+}
+
+// ── Profil public client ──────────────────────────────────────────────────────
+
+export function useClientPublicProfile(clientId: number | undefined) {
+  return useQuery({
+    queryKey: ['client-public-profile', clientId],
+    queryFn: () =>
+      apiService.get<ApiClientProfile>(`/users/clients/${clientId}/profile/`),
+    enabled: !!clientId,
+    staleTime: 5 * 60 * 1000,
+    retry: (count, err) => (err as { status?: number })?.status !== 404 && count < 2,
+  });
+}
