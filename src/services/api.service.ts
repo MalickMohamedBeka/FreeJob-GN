@@ -89,6 +89,10 @@ class ApiService {
       throw new ApiError(401, 'Session expirée');
     }
 
+    if (response.status === 429) {
+      throw new ApiError(429, 'Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.');
+    }
+
     return this.handleResponse<T>(response);
   }
 

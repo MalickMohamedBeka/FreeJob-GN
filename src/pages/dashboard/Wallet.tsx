@@ -28,6 +28,7 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Plus,
   Clock,
   CheckCircle2,
@@ -37,6 +38,7 @@ import {
   RefreshCw,
   CreditCard,
   CheckCircle,
+  Info,
 } from "lucide-react";
 import {
   useWallet,
@@ -53,6 +55,7 @@ import type {
   WithdrawalStatusEnum,
   PayoutMethodEnum,
   WithdrawalRequestCreateRequest,
+  CommissionBreakdown,
 } from "@/types";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -298,6 +301,91 @@ function WithdrawalDialog({
   );
 }
 
+// ── Commission Detail ─────────────────────────────────────────────────────────
+
+function fmt(val: string) {
+  return parseFloat(val).toLocaleString("fr-FR");
+}
+
+function CommissionDetail({
+  commission,
+  currency,
+}: {
+  commission: CommissionBreakdown;
+  currency: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const feePercent = parseFloat(commission.fee_percent);
+
+  return (
+    <div className="mt-1.5">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1.5 text-xs text-primary/80 hover:text-primary font-medium transition-colors group"
+      >
+        <Info size={11} className="flex-shrink-0" />
+        Commission {feePercent}% prélevée
+        <ChevronDown
+          size={11}
+          className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden text-xs">
+          {/* Header */}
+          <div className="px-3 py-2 bg-primary/5 border-b border-slate-200 flex items-center gap-1.5">
+            <Unlock size={11} className="text-primary" />
+            <span className="font-semibold text-slate-700">Détail de la libération escrow</span>
+          </div>
+
+          <div className="px-3 py-2.5 space-y-2">
+            {/* Montant brut */}
+            <div className="flex justify-between items-center">
+              <span className="text-slate-500">Montant brut du contrat</span>
+              <span className="font-semibold text-slate-800">
+                {fmt(commission.gross_amount)} {currency}
+              </span>
+            </div>
+
+            {/* Séparateur */}
+            <div className="border-t border-slate-200" />
+
+            {/* Commission plateforme */}
+            <div className="flex justify-between items-center">
+              <span className="text-slate-500 flex items-center gap-1">
+                Commission FreeJobGN
+                <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold">
+                  {feePercent}%
+                </span>
+              </span>
+              <span className="font-medium text-red-500">
+                −{fmt(commission.fee_amount)} {currency}
+              </span>
+            </div>
+
+            {/* Séparateur */}
+            <div className="border-t border-dashed border-slate-200" />
+
+            {/* Net reçu */}
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-slate-700">Vous avez reçu</span>
+              <span className="font-bold text-green-600">
+                {fmt(commission.net_amount)} {currency}
+              </span>
+            </div>
+          </div>
+
+          {/* Footer note */}
+          <div className="px-3 py-1.5 bg-slate-100 border-t border-slate-200 text-[10px] text-slate-400 italic">
+            Les frais de traitement bancaire (1.5%) sont pris en charge par FreeJobGN.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Transactions Tab ───────────────────────────────────────────────────────────
 
 function TransactionsTab({ currency }: { currency: string }) {
@@ -337,34 +425,43 @@ function TransactionsTab({ currency }: { currency: string }) {
           };
           const Icon = cfg.icon;
           const positive = cfg.sign === "+";
+          const hasCommission = tx.transaction_type === "ESCROW_RELEASE" && tx.commission != null;
           return (
-            <div key={tx.id} className="flex items-center gap-3 py-3.5 px-1">
-              <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  positive ? "bg-green-100" : "bg-red-50"
-                }`}
-              >
-                <Icon size={16} className={cfg.color} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{cfg.label}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {tx.description || fmtDate(tx.created_at)}
-                </p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p
-                  className={`text-sm font-semibold ${
-                    positive ? "text-green-600" : "text-red-500"
+            <div key={tx.id} className="py-3.5 px-1">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    positive ? "bg-green-100" : "bg-red-50"
                   }`}
                 >
-                  {cfg.sign}
-                  {fmtAmount(tx.amount, currency)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {fmtDate(tx.created_at)}
-                </p>
+                  <Icon size={16} className={cfg.color} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{cfg.label}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {tx.description || fmtDate(tx.created_at)}
+                  </p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p
+                    className={`text-sm font-semibold ${
+                      positive ? "text-green-600" : "text-red-500"
+                    }`}
+                  >
+                    {cfg.sign}
+                    {fmtAmount(tx.amount, currency)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {fmtDate(tx.created_at)}
+                  </p>
+                </div>
               </div>
+
+              {hasCommission && (
+                <div className="ml-12">
+                  <CommissionDetail commission={tx.commission!} currency={currency} />
+                </div>
+              )}
             </div>
           );
         })}

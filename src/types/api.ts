@@ -763,6 +763,16 @@ export interface ApiWallet {
   updated_at: string;
 }
 
+export interface CommissionBreakdown {
+  gross_amount: string;
+  fee_percent: string;
+  fee_amount: string;
+  psp_fee_percent: string;
+  psp_fee_amount: string;
+  platform_net_revenue: string;
+  net_amount: string;
+}
+
 export interface ApiWalletTransaction {
   id: number;
   amount: string;
@@ -771,7 +781,15 @@ export interface ApiWalletTransaction {
   contract_id: string | null;
   payment_transaction_id: number | null;
   withdrawal_request_id: number | null;
+  commission: CommissionBreakdown | null;
   created_at: string;
+}
+
+export interface WithdrawalLastEscrow {
+  contract_id: string;
+  project_title: string | null;
+  amount: string;
+  released_at: string;
 }
 
 export interface ApiWithdrawalRequest {
@@ -785,6 +803,24 @@ export interface ApiWithdrawalRequest {
   processed_at: string | null;
   processed_by_id: number | null;
   created_at: string;
+  // Champs enrichis (admin uniquement)
+  user_id?: number;
+  username?: string;
+  email?: string;
+  role?: string;
+  provider_kind?: string | null;
+  date_joined?: string;
+  is_active?: boolean;
+  is_suspended?: boolean;
+  is_banned?: boolean;
+  kyc_status?: string | null;
+  location?: string | null;
+  profile_phone?: string | null;
+  wallet_balance?: string;
+  total_earned?: string;
+  total_withdrawn?: string;
+  completed_contracts_count?: number;
+  last_escrow?: WithdrawalLastEscrow | null;
 }
 
 export interface WithdrawalRequestCreateRequest {
