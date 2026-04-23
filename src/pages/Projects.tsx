@@ -97,12 +97,8 @@ const Projects = () => {
 
   const hasActiveFilters = selectedSkills.length > 0 || selectedSpeciality !== null;
 
-  const handleApply = () => {
-    if (user?.role === "PROVIDER") {
-      navigate(ROUTES.DASHBOARD.FIND_PROJECTS);
-    } else {
-      navigate(ROUTES.LOGIN);
-    }
+  const handleApply = (projectId: string) => {
+    navigate(`/dashboard/find-projects/${projectId}`);
   };
 
   const toggleSkill = (id: number) => {

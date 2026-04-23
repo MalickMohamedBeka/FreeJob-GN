@@ -19,7 +19,7 @@ interface ProjectCard3DProps {
     proposalsCount: number;
   };
   index: number;
-  onApply: () => void;
+  onApply: (id: string) => void;
 }
 
 const ProjectCard3D = memo(({ project, index, onApply }: ProjectCard3DProps) => {
@@ -91,7 +91,7 @@ const ProjectCard3D = memo(({ project, index, onApply }: ProjectCard3DProps) => 
           </p>
         </div>
 
-        <Button size="sm" className="gap-1.5" onClick={onApply}>
+        <Button size="sm" className="gap-1.5" onClick={() => onApply(project.id)}>
           Postuler
           <ArrowRight size={14} />
         </Button>
