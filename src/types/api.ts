@@ -552,6 +552,9 @@ export interface FreelanceProfilePatchRequest {
   speciality_id?: number | null;
   is_available?: boolean;
   available_from?: string | null;
+  years_of_experience?: number | null;
+  linkedin_url?: string;
+  website_url?: string;
   freelance?: {
     first_name?: string;
     last_name?: string;
@@ -1090,6 +1093,9 @@ export interface AgencyProfilePatchRequest {
   speciality_id?: number | null;
   is_available?: boolean;
   available_from?: string | null;
+  years_of_experience?: number | null;
+  linkedin_url?: string;
+  website_url?: string;
   agency?: {
     agency_name?: string;
     founded_at?: string | null;

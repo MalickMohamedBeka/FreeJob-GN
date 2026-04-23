@@ -4,8 +4,8 @@ import {
   Eye, EyeOff, Lock, Loader2, KeyRound, TriangleAlert,
   Bell, BriefcaseBusiness, CalendarClock, Plus, Trash2, RotateCcw,
   ChevronDown, ChevronUp, Smartphone, ShieldCheck, UserCircle,
-  EyeIcon, Mail, BadgeCheck, Link as LinkIcon,
-  BarChart3, Activity, Star, Users, Zap, Crown,
+  EyeIcon, Mail, BadgeCheck, Link as LinkIcon, Contact,
+  BarChart3, Activity, Star, Users, Zap, Crown, Globe,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -31,6 +31,7 @@ import {
   usePushSubscription,
 } from "@/hooks/useNotifications";
 import { useUpdateFreelanceProfile, useFreelanceProfile } from "@/hooks/useProfile";
+import { useMyAgencyProfile, useUpdateAgencyProfile } from "@/hooks/useAgency";
 import {
   useJobAlerts,
   useCreateJobAlert,
@@ -78,13 +79,14 @@ class ErrorBoundary extends Component<
 
 // ── Section types ──────────────────────────────────────────────────────────────
 
-type SettingsSection = "compte" | "securite" | "notifications" | "confidentialite" | "utilisation";
+type SettingsSection = "profil" | "compte" | "securite" | "notifications" | "confidentialite" | "utilisation";
 
 const NAV_ITEMS: {
   id: SettingsSection;
   label: string;
   icon: React.ElementType;
 }[] = [
+  { id: "profil",           label: "Mon profil",      icon: Contact     },
   { id: "compte",           label: "Compte",          icon: UserCircle  },
   { id: "securite",         label: "Sécurité",        icon: ShieldCheck },
   { id: "notifications",    label: "Notifications",   icon: Bell        },
@@ -225,6 +227,357 @@ function SettingRow({
         {hint && <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{hint}</p>}
       </div>
       {children && <div className="shrink-0">{children}</div>}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 0 — Mon profil (prestataires uniquement)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function FormField({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="block text-xs text-muted-foreground mb-1.5">{label}</label>
+      {hint && <p className="text-[11px] text-muted-foreground/70 mb-1.5 leading-relaxed">{hint}</p>}
+      {children}
+    </div>
+  );
+}
+
+const INPUT_CLS =
+  "w-full h-9 px-3 rounded-lg border border-border bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary transition-colors";
+
+const TEXTAREA_CLS =
+  "w-full px-3 py-2.5 rounded-lg border border-border bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary transition-colors resize-none";
+
+function ProfilPanel() {
+  const { user } = useAuth();
+  const isProvider = user?.role === "PROVIDER";
+  const isAgency = user?.provider_kind === "AGENCY";
+
+  const { data: freelanceProfile, isLoading: loadingFreelance } = useFreelanceProfile({
+    enabled: isProvider && !isAgency,
+  });
+  const { mutateAsync: updateFreelance, isPending: savingFreelance } = useUpdateFreelanceProfile();
+
+  const { data: agencyProfile, isLoading: loadingAgency } = useMyAgencyProfile({
+    enabled: isProvider && isAgency,
+  });
+  const { mutateAsync: updateAgency, isPending: savingAgency } = useUpdateAgencyProfile();
+
+  const profile = isAgency ? agencyProfile : freelanceProfile;
+  const isLoading = isAgency ? loadingAgency : loadingFreelance;
+  const isSaving = isAgency ? savingAgency : savingFreelance;
+
+  const [bio, setBio] = useState("");
+  const [phone, setPhone] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [hourlyRate, setHourlyRate] = useState("");
+  const [yearsExp, setYearsExp] = useState("");
+  const [linkedin, setLinkedin] = useState("");
+  const [website, setWebsite] = useState("");
+  // Freelance-specific
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  // Agency-specific
+  const [agencyName, setAgencyName] = useState("");
+  const [foundedAt, setFoundedAt] = useState("");
+
+  useEffect(() => {
+    if (!profile) return;
+    setBio(profile.bio ?? "");
+    setPhone(profile.phone ?? "");
+    setCity(profile.city_or_region ?? "");
+    setCountry(profile.country ?? "");
+    setPostalCode(profile.postal_code ?? "");
+    setHourlyRate(profile.hourly_rate ?? "");
+    setYearsExp(profile.years_of_experience?.toString() ?? "");
+    setLinkedin(profile.linkedin_url ?? "");
+    setWebsite(profile.website_url ?? "");
+
+    if (isAgency && agencyProfile) {
+      setAgencyName(agencyProfile.agency_details?.agency_name ?? "");
+      setFoundedAt(agencyProfile.agency_details?.founded_at ?? "");
+    } else if (!isAgency && freelanceProfile) {
+      setFirstName(freelanceProfile.freelance_details?.first_name ?? "");
+      setLastName(freelanceProfile.freelance_details?.last_name ?? "");
+      setBusinessName(freelanceProfile.freelance_details?.business_name ?? "");
+    }
+  }, [profile, isAgency, agencyProfile, freelanceProfile]);
+
+  if (!isProvider) {
+    return (
+      <div className="py-12 text-center">
+        <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+          <Contact size={20} className="text-muted-foreground" />
+        </div>
+        <p className="text-sm font-medium text-foreground mb-1">Section réservée aux prestataires</p>
+        <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
+          Cette section permet aux prestataires de compléter leur profil professionnel visible sur la plateforme.
+        </p>
+      </div>
+    );
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (isAgency) {
+        await updateAgency({
+          bio: bio || undefined,
+          phone: phone || undefined,
+          city_or_region: city || undefined,
+          country: country || undefined,
+          postal_code: postalCode || undefined,
+          hourly_rate: hourlyRate || null,
+          years_of_experience: yearsExp ? Number(yearsExp) : null,
+          linkedin_url: linkedin || undefined,
+          website_url: website || undefined,
+          agency: { agency_name: agencyName || undefined, founded_at: foundedAt || null },
+        });
+      } else {
+        await updateFreelance({
+          bio: bio || undefined,
+          phone: phone || undefined,
+          city_or_region: city || undefined,
+          country: country || undefined,
+          postal_code: postalCode || undefined,
+          hourly_rate: hourlyRate || null,
+          years_of_experience: yearsExp ? Number(yearsExp) : null,
+          linkedin_url: linkedin || undefined,
+          website_url: website || undefined,
+          freelance: {
+            first_name: firstName || undefined,
+            last_name: lastName || undefined,
+            business_name: businessName || undefined,
+          },
+        });
+      }
+      toast({ title: "Profil mis à jour avec succès." });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Une erreur est survenue.";
+      toast({ title: "Erreur", description: msg, variant: "destructive" });
+    }
+  };
+
+  return (
+    <div>
+      <div className="mb-7">
+        <h2 className="text-base font-semibold text-foreground">Mon profil</h2>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Informations affichées sur votre profil public
+        </p>
+      </div>
+
+      {isLoading ? (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground py-8">
+          <Loader2 size={14} className="animate-spin" /> Chargement du profil…
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-8">
+
+          {/* ── Identité ── */}
+          {isAgency ? (
+            <div>
+              <SubLabel>Identité de l&apos;agence</SubLabel>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="Nom de l'agence">
+                  <input
+                    type="text"
+                    value={agencyName}
+                    onChange={(e) => setAgencyName(e.target.value)}
+                    placeholder="Ma Super Agence"
+                    className={INPUT_CLS}
+                  />
+                </FormField>
+                <FormField label="Fondée en (date)">
+                  <input
+                    type="date"
+                    value={foundedAt}
+                    onChange={(e) => setFoundedAt(e.target.value)}
+                    className={INPUT_CLS}
+                  />
+                </FormField>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <SubLabel>Identité</SubLabel>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="Prénom">
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Mamadou"
+                    className={INPUT_CLS}
+                  />
+                </FormField>
+                <FormField label="Nom">
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Diallo"
+                    className={INPUT_CLS}
+                  />
+                </FormField>
+                <FormField label="Nom commercial (optionnel)" hint="Nom affiché sur vos propositions.">
+                  <input
+                    type="text"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    placeholder="Diallo Dev"
+                    className={INPUT_CLS}
+                  />
+                </FormField>
+              </div>
+            </div>
+          )}
+
+          {/* ── Bio ── */}
+          <div>
+            <SubLabel>Présentation</SubLabel>
+            <FormField label="Bio" hint="Décrivez votre expertise et ce qui vous distingue (visible sur votre profil public).">
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Développeur full-stack avec 5 ans d'expérience en Guinea et en Afrique de l'Ouest…"
+                rows={4}
+                className={TEXTAREA_CLS}
+              />
+            </FormField>
+          </div>
+
+          {/* ── Contact & localisation ── */}
+          <div>
+            <SubLabel>Contact & localisation</SubLabel>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField label="Téléphone">
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+224 6XX XXX XXX"
+                  className={INPUT_CLS}
+                />
+              </FormField>
+              <FormField label="Ville / Région">
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="Conakry"
+                  className={INPUT_CLS}
+                />
+              </FormField>
+              <FormField label="Pays">
+                <input
+                  type="text"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  placeholder="Guinée"
+                  className={INPUT_CLS}
+                />
+              </FormField>
+              <FormField label="Code postal (optionnel)">
+                <input
+                  type="text"
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
+                  placeholder="001"
+                  className={INPUT_CLS}
+                />
+              </FormField>
+            </div>
+          </div>
+
+          {/* ── Tarification & expérience ── */}
+          <div>
+            <SubLabel>Tarification & expérience</SubLabel>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField label="Tarif horaire (GNF)" hint="Affiché sur votre profil public.">
+                <input
+                  type="number"
+                  min="0"
+                  step="1000"
+                  value={hourlyRate}
+                  onChange={(e) => setHourlyRate(e.target.value)}
+                  placeholder="50000"
+                  className={INPUT_CLS}
+                />
+              </FormField>
+              <FormField label="Années d'expérience">
+                <input
+                  type="number"
+                  min="0"
+                  max="50"
+                  value={yearsExp}
+                  onChange={(e) => setYearsExp(e.target.value)}
+                  placeholder="5"
+                  className={INPUT_CLS}
+                />
+              </FormField>
+            </div>
+          </div>
+
+          {/* ── Liens professionnels ── */}
+          <div>
+            <SubLabel>Liens professionnels</SubLabel>
+            <div className="space-y-3">
+              <FormField label="LinkedIn">
+                <div className="relative">
+                  <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
+                  <input
+                    type="url"
+                    value={linkedin}
+                    onChange={(e) => setLinkedin(e.target.value)}
+                    placeholder="https://linkedin.com/in/votre-profil"
+                    className={`${INPUT_CLS} pl-9`}
+                  />
+                </div>
+              </FormField>
+              <FormField label="Site web / Portfolio">
+                <div className="relative">
+                  <Globe size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
+                  <input
+                    type="url"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    placeholder="https://mon-portfolio.com"
+                    className={`${INPUT_CLS} pl-9`}
+                  />
+                </div>
+              </FormField>
+            </div>
+          </div>
+
+          {/* ── Actions ── */}
+          <div className="pt-2 flex items-center gap-3">
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="h-9 px-5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isSaving ? <Loader2 size={13} className="animate-spin" /> : <Contact size={13} />}
+              Enregistrer le profil
+            </button>
+          </div>
+
+        </form>
+      )}
     </div>
   );
 }
@@ -1423,7 +1776,7 @@ function UtilisationPanel() {
 
 const Settings = () => {
   const { logout } = useAuth();
-  const [activeSection, setActiveSection] = useState<SettingsSection>("compte");
+  const [activeSection, setActiveSection] = useState<SettingsSection>("profil");
 
   return (
     <DashboardLayout userType="freelancer">
@@ -1448,6 +1801,7 @@ const Settings = () => {
             <div className="flex-1 min-w-0 bg-white rounded-2xl border border-border/60 shadow-sm">
               <div className="px-8 py-8">
                 <ErrorBoundary>
+                  {activeSection === "profil"          && <ProfilPanel />}
                   {activeSection === "compte"          && <ComptePanel />}
                   {activeSection === "securite"        && <SecuritePanel onLogout={logout} />}
                   {activeSection === "notifications"   && <NotificationsPanel />}
