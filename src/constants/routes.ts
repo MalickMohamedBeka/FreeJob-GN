@@ -62,6 +62,7 @@ export const ROUTES = {
     ROOT: '/admin',
     DASHBOARD: '/admin/dashboard',
     WITHDRAWALS: '/admin/withdrawals',
+    COMPTABILITE: '/admin/comptabilite',
   },
   
   // Client routes

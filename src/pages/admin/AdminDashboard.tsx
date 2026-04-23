@@ -185,6 +185,13 @@ function AdminSidebar({
             </span>
           )}
         </Link>
+        <Link
+          to={ROUTES.ADMIN.COMPTABILITE}
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/8 transition-all text-sm"
+        >
+          <TrendingUp size={15} className="flex-shrink-0" />
+          <span>Comptabilité</span>
+        </Link>
       </nav>
 
       {/* User footer */}

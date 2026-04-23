@@ -25,6 +25,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminWithdrawals = lazy(() => import("./pages/admin/AdminWithdrawals"));
+const AdminComptabilite = lazy(() => import("./pages/admin/AdminComptabilite"));
 const ClientDashboard = lazy(() => import("./pages/client/ClientDashboard"));
 const ClientProjects = lazy(() => import("./pages/client/ClientProjects"));
 const ClientProjectDetail = lazy(() => import("./pages/client/ClientProjectDetail"));
@@ -122,6 +123,9 @@ const App = () => (
               } />
               <Route path={ROUTES.ADMIN.WITHDRAWALS} element={
                 <ProtectedRoute requireSuperuser><AdminWithdrawals /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.ADMIN.COMPTABILITE} element={
+                <ProtectedRoute requireSuperuser><AdminComptabilite /></ProtectedRoute>
               } />
 
               {/* Client dashboard (protected) */}

@@ -354,3 +354,150 @@ export function useAdminUserList(params: { page?: number; search?: string } = {}
     retry: false,
   });
 }
+
+// ── Finance Admin ──────────────────────────────────────────────────────────────
+
+export interface FinancePeriod {
+  contracts_commission_gross: string;
+  contracts_psp_costs: string;
+  contracts_net: string;
+  contracts_released: number;
+  contracts_gross_volume: string;
+  sub_gross: string;
+  sub_psp_costs: string;
+  sub_net: string;
+  sub_count: number;
+  total_gross_revenue: string;
+  total_psp_costs: string;
+  total_net_revenue: string;
+}
+
+export interface FinanceMonthlyEntry {
+  month: string;
+  month_label: string;
+  contracts_gross_volume: string;
+  contracts_commission: string;
+  contracts_psp: string;
+  contracts_net: string;
+  contracts_count: number;
+  sub_gross: string;
+  sub_psp: string;
+  sub_net: string;
+  sub_count: number;
+  total_net: string;
+  total_psp: string;
+  withdrawals: string;
+  withdrawals_count: number;
+}
+
+export interface AdminFinanceOverview {
+  generated_at: string;
+  psp_rate: string;
+  all_time: FinancePeriod;
+  current_month: FinancePeriod;
+  last_month: FinancePeriod;
+  escrow: {
+    funded_amount: string;
+    funded_count: number;
+    refunded_amount: string;
+    refunded_count: number;
+  };
+  subscriptions: {
+    gross_total: string;
+    psp_total: string;
+    net_total: string;
+    revenue_count: number;
+    pending_total: string;
+    refunded_total: string;
+    failed_count: number;
+    by_tier: { tier: string; gross: string; psp_cost: string; net: string; count: number }[];
+  };
+  withdrawals: {
+    approved_total: string;
+    approved_count: number;
+    pending_total: string;
+    pending_count: number;
+    rejected_total: string;
+    rejected_count: number;
+  };
+  wallets: {
+    total_balance: string;
+    wallet_count: number;
+  };
+  payments: {
+    success_volume: string;
+    success_count: number;
+    failed_count: number;
+    pending_count: number;
+  };
+  monthly_revenue: FinanceMonthlyEntry[];
+}
+
+export interface AdminEscrowItem {
+  id: number;
+  contract_id: string;
+  project_title: string | null;
+  client_username: string | null;
+  provider_username: string | null;
+  gross_amount: string;
+  fee_percent: string;
+  fee_amount: string;
+  psp_fee_amount: string;
+  platform_net_revenue: string;
+  net_amount: string;
+  status: 'FUNDED' | 'RELEASED' | 'REFUNDED';
+  funded_at: string;
+  released_at: string | null;
+  refunded_at: string | null;
+}
+
+export interface AdminPaymentItem {
+  id: number;
+  provider: string;
+  reference: string;
+  transaction_id: string;
+  status: 'SUCCESS' | 'FAILED' | 'PENDING';
+  amount: string | null;
+  currency: string;
+  contract_id: string | null;
+  project_title: string | null;
+  username: string | null;
+  processed_at: string | null;
+  created_at: string;
+}
+
+export function useAdminFinanceOverview() {
+  return useQuery({
+    queryKey: ['admin-finance-overview'],
+    queryFn: () => apiService.get<AdminFinanceOverview>('/wallet/admin/finance/overview/'),
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useAdminEscrows(params: { page?: number; status?: string } = {}) {
+  const queryParams: Record<string, string> = {};
+  if (params.page && params.page > 1) queryParams.page = String(params.page);
+  if (params.status) queryParams.status = params.status;
+  return useQuery({
+    queryKey: ['admin-escrows', params],
+    queryFn: () =>
+      apiService.get<DjangoPaginatedResponse<AdminEscrowItem>>(
+        '/wallet/admin/finance/escrows/',
+        queryParams,
+      ),
+  });
+}
+
+export function useAdminPayments(params: { page?: number; status?: string } = {}) {
+  const queryParams: Record<string, string> = {};
+  if (params.page && params.page > 1) queryParams.page = String(params.page);
+  if (params.status) queryParams.status = params.status;
+  return useQuery({
+    queryKey: ['admin-payments', params],
+    queryFn: () =>
+      apiService.get<DjangoPaginatedResponse<AdminPaymentItem>>(
+        '/wallet/admin/finance/payments/',
+        queryParams,
+      ),
+  });
+}
