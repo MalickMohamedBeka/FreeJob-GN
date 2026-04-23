@@ -12,6 +12,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { useAllSkills, useAllSpecialities } from "@/hooks/useTaxonomy";
 import { useDebounce } from "@/hooks";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { ROUTES } from "@/constants/routes";
 import type { Project } from "@/types";
 import type { ApiProjectList } from "@/types";
@@ -73,6 +74,7 @@ const Projects = () => {
   const debouncedSearch = useDebounce(search, 300);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const { data: specialitiesData } = useAllSpecialities();
   const { data: skillsData } = useAllSkills();
@@ -97,7 +99,33 @@ const Projects = () => {
 
   const hasActiveFilters = selectedSkills.length > 0 || selectedSpeciality !== null;
 
+  const handleView = (projectId: string) => {
+    if (user?.role === "CLIENT") {
+      toast({
+        title: "Espace prestataires",
+        description: "Le détail des projets est réservé aux prestataires. Créez un compte prestataire pour postuler.",
+      });
+      return;
+    }
+    if (!user) {
+      navigate(ROUTES.LOGIN);
+      return;
+    }
+    navigate(`/dashboard/find-projects/${projectId}`);
+  };
+
   const handleApply = (projectId: string) => {
+    if (user?.role === "CLIENT") {
+      toast({
+        title: "Action réservée aux prestataires",
+        description: "Seuls les prestataires peuvent postuler à un projet. Inscrivez-vous en tant que prestataire.",
+      });
+      return;
+    }
+    if (!user) {
+      navigate(ROUTES.LOGIN);
+      return;
+    }
     navigate(`/dashboard/find-projects/${projectId}`);
   };
 
@@ -318,6 +346,7 @@ const Projects = () => {
                     key={project.id}
                     project={mapApiProjectToUI(project)}
                     index={index}
+                    onView={handleView}
                     onApply={handleApply}
                   />
                 ))}
