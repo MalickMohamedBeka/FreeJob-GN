@@ -22,7 +22,15 @@ export function useProjects(filters?: ProjectFilters) {
 export function usePublicProjects(ordering = '-budget_amount') {
   return useQuery({
     queryKey: ['public-projects', ordering],
-    queryFn: () => projectService.getPublicProjects(ordering),
+    queryFn: () => projectService.getPublicProjects(ordering, 3),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useRecentProjects() {
+  return useQuery({
+    queryKey: ['recent-projects'],
+    queryFn: () => projectService.getPublicProjects('-created_at', 8),
     staleTime: 5 * 60 * 1000,
   });
 }

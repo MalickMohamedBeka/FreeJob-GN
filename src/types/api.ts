@@ -114,14 +114,14 @@ export interface ApiProjectList {
   status: ProjectStatusEnum;
   status_display: string;
   client: ApiUserMini;
+  views_count: number;
+  proposals_count: number;
   created_at: string;
   updated_at: string;
 }
 
 export interface ApiProjectDetail extends ApiProjectList {
   review_note: string;
-  proposals_count: number;
-  views_count: number;
   interactions_count: number;
 }
 

@@ -38,10 +38,10 @@ class ProjectService {
     return apiService.get<ApiProjectDetail>(`/projects/${id}/`);
   }
 
-  async getPublicProjects(ordering = '-budget_amount'): Promise<DjangoPaginatedResponse<ApiProjectList>> {
+  async getPublicProjects(ordering = '-budget_amount', page_size = 3): Promise<DjangoPaginatedResponse<ApiProjectList>> {
     return apiService.getPublic<DjangoPaginatedResponse<ApiProjectList>>('/projects/', {
       ordering,
-      page_size: '3',
+      page_size: String(page_size),
     });
   }
 

@@ -1,8 +1,7 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Hero from "@/components/landing/Hero";
-import TrustStrip from "@/components/landing/TrustStrip";
-import Features from "@/components/landing/Features";
+import RecentProjects from "@/components/landing/RecentProjects";
 import PlatformPreview from "@/components/landing/PlatformPreview";
 import HowItWorks from "@/components/landing/HowItWorks";
 import DualCTA from "@/components/landing/DualCTA";
@@ -18,8 +17,7 @@ const Index = () => {
       <Navbar />
       <main>
         <Hero />
-        <TrustStrip />
-        <Features />
+        <RecentProjects />
         <PlatformPreview />
         <HowItWorks />
         <DualCTA />
