@@ -84,14 +84,22 @@ export function useSuspendUser() {
         reason,
         until,
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-stats'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    },
   });
 }
 
 export function useUnsuspendUser() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (userId: number) =>
       apiService.post<{ detail: string }>(`/users/admin/users/${userId}/unsuspend/`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    },
   });
 }
 
@@ -100,14 +108,22 @@ export function useBanUser() {
   return useMutation({
     mutationFn: ({ userId, reason }: { userId: number; reason: string }) =>
       apiService.post<{ detail: string }>(`/users/admin/users/${userId}/ban/`, { reason }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-stats'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    },
   });
 }
 
 export function useUnbanUser() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (userId: number) =>
       apiService.post<{ detail: string }>(`/users/admin/users/${userId}/unban/`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    },
   });
 }
 
@@ -148,6 +164,63 @@ export function useAdminKycPending() {
       apiService.get<DjangoPaginatedResponse<AdminKycPendingProfile>>(
         '/users/admin/kyc/pending/'
       ),
+    retry: false,
+  });
+}
+
+export interface AdminKycDocument {
+  id: number;
+  doc_type: string;
+  doc_type_display: string;
+  file: string | null;
+  title: string;
+  reference_number: string;
+  issued_at: string | null;
+  uploaded_at: string;
+}
+
+export interface AdminKycAgencyDocument {
+  id: number;
+  doc_type: string;
+  doc_type_display: string;
+  file: string | null;
+  reference_number: string;
+  uploaded_at: string;
+}
+
+export interface AdminKycDetail {
+  id: number;
+  user_id: number;
+  username: string;
+  email: string;
+  provider_kind: 'FREELANCE' | 'AGENCY';
+  profile_picture: string | null;
+  bio: string;
+  hourly_rate: string | null;
+  city_or_region: string;
+  country: string;
+  phone: string;
+  years_of_experience: number | null;
+  linkedin_url: string;
+  website_url: string;
+  kyc_status: string;
+  kyc_rejection_reason: string;
+  submitted_at: string;
+  freelance_first_name: string | null;
+  freelance_last_name: string | null;
+  freelance_business_name: string | null;
+  agency_name: string | null;
+  agency_founded_at: string | null;
+  agency_documents: AdminKycAgencyDocument[];
+  documents: AdminKycDocument[];
+}
+
+export function useAdminKycDetail(profileId: number | null) {
+  return useQuery({
+    queryKey: ['admin-kyc-detail', profileId],
+    queryFn: () =>
+      apiService.get<AdminKycDetail>(`/users/admin/kyc/${profileId}/detail/`),
+    enabled: profileId !== null,
     retry: false,
   });
 }

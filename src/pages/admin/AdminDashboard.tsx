@@ -22,16 +22,18 @@ import {
   UserCheck, RefreshCw, TrendingUp, TrendingDown, LayoutDashboard,
   ClipboardList, Wallet, CheckCircle2, XCircle, Clock, Activity,
   Home, Scale, FileCheck2, Trophy, Search, Bell, LogOut,
-  MoreHorizontal, ExternalLink, ChevronDown,
+  MoreHorizontal, ExternalLink, ChevronDown, Download, Phone,
+  MapPin, Globe, Linkedin, Calendar, Star, FileIcon, User,
 } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import {
   useAdminStats, useAuditLogs, useSuspendUser, useUnsuspendUser,
   useBanUser, useUnbanUser, useResolveDispute, useAdminKycPending,
-  useAdminKycReview, useAdminDisputeList, useAdminCompleteContract,
-  useAdminCancelContract, useAdminRankingRecalculate, useAdminRankingSnapshot,
+  useAdminKycReview, useAdminKycDetail, useAdminDisputeList,
+  useAdminCompleteContract, useAdminCancelContract,
+  useAdminRankingRecalculate, useAdminRankingSnapshot,
   useAdminRankingAdjust, useAdminUserList,
-  type AuditLogFilters, type AdminUserItem,
+  type AuditLogFilters, type AdminUserItem, type AdminKycDetail,
 } from "@/hooks/useAdmin";
 import { useAdminPendingWithdrawals } from "@/hooks/useWallet";
 import { useToast } from "@/hooks/use-toast";
@@ -670,16 +672,28 @@ function UserModerationDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-1">
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">ID utilisateur *</Label>
-            <Input
-              type="number"
-              placeholder="Ex: 42"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              className="h-9"
-            />
-          </div>
+          {user ? (
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
+                {user.username.slice(0, 2).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-slate-800 truncate">{user.username}</p>
+                <p className="text-xs text-slate-500 truncate">{user.email} · ID #{user.id}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">ID utilisateur *</Label>
+              <Input
+                type="number"
+                placeholder="Ex: 42"
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+                className="h-9"
+              />
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Action *</Label>
@@ -880,44 +894,331 @@ function AuditLogsSection({ search }: { search: string }) {
   );
 }
 
-// ── KYC Section ───────────────────────────────────────────────────────────────
+// ── KYC Detail Modal ──────────────────────────────────────────────────────────
 
-function KycSection() {
-  const [reviewOpen, setReviewOpen] = useState(false);
-  const [profileId, setProfileId] = useState("");
+function KycDetailModal({
+  profileId,
+  open,
+  onClose,
+}: {
+  profileId: number | null;
+  open: boolean;
+  onClose: () => void;
+}) {
   const [decision, setDecision] = useState<"approve" | "reject">("approve");
   const [rejectionReason, setRejectionReason] = useState("");
   const [error, setError] = useState("");
 
-  const { data, isLoading, isError } = useAdminKycPending();
+  const { data: detail, isLoading } = useAdminKycDetail(open ? profileId : null);
   const { mutate: review, isPending } = useAdminKycReview();
   const { toast } = useToast();
 
-  const openReview = (id?: string) => {
-    setProfileId(id ?? "");
+  const handleClose = () => {
     setDecision("approve");
     setRejectionReason("");
     setError("");
-    setReviewOpen(true);
+    onClose();
   };
 
   const handleReview = () => {
-    const id = parseInt(profileId, 10);
-    if (!profileId || isNaN(id)) { setError("ID de profil invalide."); return; }
-    if (decision === "reject" && !rejectionReason.trim()) { setError("Le motif de rejet est obligatoire."); return; }
+    if (!profileId) return;
+    if (decision === "reject" && !rejectionReason.trim()) {
+      setError("Le motif de rejet est obligatoire.");
+      return;
+    }
     setError("");
     review(
-      { profileId: id, decision, rejection_reason: rejectionReason.trim() || undefined },
+      { profileId, decision, rejection_reason: rejectionReason.trim() || undefined },
       {
         onSuccess: () => {
           toast({ title: decision === "approve" ? "KYC approuvé." : "KYC rejeté." });
-          setReviewOpen(false);
+          handleClose();
         },
         onError: (err) => setError(err instanceof ApiError ? err.message : "Une erreur est survenue."),
       }
     );
   };
 
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <UserCheck size={15} className="text-emerald-600" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-sm text-slate-800">Dossier KYC</h2>
+              {detail && (
+                <p className="text-xs text-slate-400">
+                  {detail.provider_kind === "AGENCY" ? "Agence" : "Freelance"} · Profil #{detail.id}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="animate-spin text-primary" size={28} />
+          </div>
+        ) : detail ? (
+          <div className="p-6 space-y-6">
+
+            {/* Identité */}
+            <div className="flex items-start gap-4">
+              {detail.profile_picture ? (
+                <img
+                  src={detail.profile_picture}
+                  alt={detail.username}
+                  className="w-16 h-16 rounded-xl object-cover border border-slate-200 flex-shrink-0"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center text-xl font-bold text-slate-500 flex-shrink-0">
+                  {detail.username.slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-bold text-slate-900 text-base">
+                    {detail.freelance_first_name
+                      ? `${detail.freelance_first_name} ${detail.freelance_last_name}`
+                      : detail.agency_name ?? detail.username}
+                  </h3>
+                  <Badge className={`text-[10px] border-0 ${detail.provider_kind === "AGENCY" ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700"}`}>
+                    {detail.provider_kind === "AGENCY" ? "Agence" : "Freelance"}
+                  </Badge>
+                  <Badge className={`text-[10px] border-0 ${
+                    detail.kyc_status === "PENDING" ? "bg-amber-100 text-amber-700" :
+                    detail.kyc_status === "VERIFIED" ? "bg-emerald-100 text-emerald-700" :
+                    detail.kyc_status === "REJECTED" ? "bg-red-100 text-red-600" :
+                    "bg-slate-100 text-slate-500"
+                  }`}>
+                    {detail.kyc_status}
+                  </Badge>
+                </div>
+                <p className="text-sm text-slate-500 mt-0.5">@{detail.username} · {detail.email}</p>
+                {detail.freelance_business_name && (
+                  <p className="text-xs text-slate-400 mt-0.5">Entreprise : {detail.freelance_business_name}</p>
+                )}
+                {detail.agency_founded_at && (
+                  <p className="text-xs text-slate-400 mt-0.5">Fondée le {fmtDate(detail.agency_founded_at)}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Coordonnées */}
+            <div>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Coordonnées</p>
+              <div className="grid grid-cols-2 gap-2">
+                {detail.city_or_region && (
+                  <div className="flex items-center gap-2 text-sm text-slate-600 p-3 rounded-lg bg-slate-50">
+                    <MapPin size={14} className="text-slate-400 flex-shrink-0" />
+                    {detail.city_or_region}, {detail.country}
+                  </div>
+                )}
+                {detail.phone && (
+                  <div className="flex items-center gap-2 text-sm text-slate-600 p-3 rounded-lg bg-slate-50">
+                    <Phone size={14} className="text-slate-400 flex-shrink-0" />
+                    {detail.phone}
+                  </div>
+                )}
+                {detail.linkedin_url && (
+                  <a href={detail.linkedin_url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-blue-600 p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+                    <Linkedin size={14} className="flex-shrink-0" />
+                    LinkedIn
+                    <ExternalLink size={11} className="ml-auto" />
+                  </a>
+                )}
+                {detail.website_url && (
+                  <a href={detail.website_url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-slate-600 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                    <Globe size={14} className="text-slate-400 flex-shrink-0" />
+                    Site web
+                    <ExternalLink size={11} className="ml-auto" />
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {/* Profil professionnel */}
+            {(detail.bio || detail.years_of_experience || detail.hourly_rate) && (
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Profil professionnel</p>
+                <div className="space-y-2">
+                  {detail.years_of_experience && (
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
+                      <span className="text-sm text-slate-500">Expérience</span>
+                      <span className="text-sm font-medium text-slate-800">{detail.years_of_experience} ans</span>
+                    </div>
+                  )}
+                  {detail.hourly_rate && (
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
+                      <span className="text-sm text-slate-500">Taux horaire</span>
+                      <span className="text-sm font-medium text-slate-800">{parseFloat(detail.hourly_rate).toLocaleString("fr-FR")} GNF/h</span>
+                    </div>
+                  )}
+                  {detail.bio && (
+                    <div className="p-3 rounded-lg bg-slate-50">
+                      <p className="text-xs text-slate-400 mb-1">Bio</p>
+                      <p className="text-sm text-slate-700 leading-relaxed">{detail.bio}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Documents provider (freelance) */}
+            {detail.documents.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+                  Documents soumis ({detail.documents.length})
+                </p>
+                <div className="space-y-2">
+                  {detail.documents.map((doc) => (
+                    <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-white hover:border-slate-300 transition-colors">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                          <FileIcon size={14} className="text-blue-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-slate-800 truncate">
+                            {doc.title || doc.doc_type_display}
+                          </p>
+                          <p className="text-[11px] text-slate-400">
+                            {doc.doc_type_display}
+                            {doc.reference_number && ` · Réf: ${doc.reference_number}`}
+                            {doc.issued_at && ` · Émis le ${fmtDate(doc.issued_at)}`}
+                          </p>
+                        </div>
+                      </div>
+                      {doc.file && (
+                        <a href={doc.file} target="_blank" rel="noopener noreferrer">
+                          <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs border-slate-200 flex-shrink-0">
+                            <Download size={11} /> Voir
+                          </Button>
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Documents agence */}
+            {detail.agency_documents.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+                  Documents agence ({detail.agency_documents.length})
+                </p>
+                <div className="space-y-2">
+                  {detail.agency_documents.map((doc) => (
+                    <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-white hover:border-slate-300 transition-colors">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0">
+                          <FileIcon size={14} className="text-violet-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-slate-800">{doc.doc_type_display}</p>
+                          {doc.reference_number && (
+                            <p className="text-[11px] text-slate-400">Réf: {doc.reference_number}</p>
+                          )}
+                        </div>
+                      </div>
+                      {doc.file && (
+                        <a href={doc.file} target="_blank" rel="noopener noreferrer">
+                          <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs border-slate-200 flex-shrink-0">
+                            <Download size={11} /> Voir
+                          </Button>
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {detail.documents.length === 0 && detail.agency_documents.length === 0 && (
+              <div className="flex items-center gap-2 p-4 rounded-lg bg-amber-50 border border-amber-200">
+                <AlertTriangle size={14} className="text-amber-600 flex-shrink-0" />
+                <p className="text-sm text-amber-700">Aucun document soumis par ce prestataire.</p>
+              </div>
+            )}
+
+            {/* Décision KYC */}
+            <div className="border-t border-slate-200 pt-5 space-y-4">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Décision</p>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setDecision("approve")}
+                  className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${
+                    decision === "approve"
+                      ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                  }`}
+                >
+                  <CheckCircle2 size={15} /> Approuver
+                </button>
+                <button
+                  onClick={() => setDecision("reject")}
+                  className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-all ${
+                    decision === "reject"
+                      ? "border-red-300 bg-red-50 text-red-700"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                  }`}
+                >
+                  <XCircle size={15} /> Rejeter
+                </button>
+              </div>
+
+              {decision === "reject" && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Motif de rejet *</Label>
+                  <Textarea
+                    rows={3}
+                    value={rejectionReason}
+                    onChange={(e) => setRejectionReason(e.target.value)}
+                    placeholder="Expliquez pourquoi le KYC est rejeté…"
+                    className="resize-none"
+                  />
+                </div>
+              )}
+
+              {error && (
+                <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  <XCircle size={14} /> {error}
+                </div>
+              )}
+
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={handleClose} disabled={isPending}>Annuler</Button>
+                <Button
+                  onClick={handleReview}
+                  disabled={isPending}
+                  className={`gap-1.5 ${decision === "reject" ? "bg-red-600 hover:bg-red-700" : "bg-emerald-600 hover:bg-emerald-700"}`}
+                >
+                  {isPending ? <Loader2 size={13} className="animate-spin" /> : decision === "approve" ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
+                  {decision === "approve" ? "Approuver le KYC" : "Rejeter le KYC"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ── KYC Section ───────────────────────────────────────────────────────────────
+
+function KycSection() {
+  const [selectedProfileId, setSelectedProfileId] = useState<number | null>(null);
+  const [manualProfileId, setManualProfileId] = useState("");
+
+  const { data, isLoading, isError } = useAdminKycPending();
   const profiles = data?.results ?? [];
 
   return (
@@ -928,7 +1229,6 @@ function KycSection() {
           <div>
             <p className="font-semibold text-amber-800 text-sm">Endpoint liste KYC non disponible</p>
             <p className="text-amber-700 mt-0.5 text-xs">
-              <code className="bg-amber-100 px-1 rounded">GET /users/admin/kyc/pending/</code> n'est pas encore implémenté.
               Vous pouvez néanmoins réviser un profil par ID.
             </p>
           </div>
@@ -958,13 +1258,16 @@ function KycSection() {
                   <div>
                     <p className="text-sm font-semibold text-slate-800">{profile.username}</p>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      Profile #{profile.id} · User #{profile.user}
-                      {profile.submitted_at && ` · Soumis le ${fmtDate(profile.submitted_at)}`}
+                      {profile.email} · Soumis le {fmtDate(profile.submitted_at ?? "")}
                     </p>
                   </div>
                 </div>
-                <Button size="sm" variant="outline" className="gap-1.5 border-slate-200" onClick={() => openReview(String(profile.id))}>
-                  <UserCheck size={13} /> Réviser
+                <Button
+                  size="sm"
+                  className="gap-1.5 bg-primary hover:bg-primary/90"
+                  onClick={() => setSelectedProfileId(profile.id)}
+                >
+                  <UserCheck size={13} /> Voir le dossier
                 </Button>
               </div>
             ))}
@@ -972,66 +1275,35 @@ function KycSection() {
         )
       )}
 
-      <div className="flex justify-end pt-2 border-t border-slate-200">
-        <Button size="sm" className="gap-1.5" onClick={() => openReview()}>
-          <UserCheck size={13} /> Réviser un profil par ID
+      {/* Accès manuel par ID */}
+      <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
+        <Input
+          placeholder="ID profil…"
+          value={manualProfileId}
+          onChange={(e) => setManualProfileId(e.target.value)}
+          className="h-8 w-32 text-sm"
+          type="number"
+        />
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1.5 border-slate-200"
+          disabled={!manualProfileId}
+          onClick={() => {
+            const id = parseInt(manualProfileId, 10);
+            if (!isNaN(id)) { setSelectedProfileId(id); setManualProfileId(""); }
+          }}
+        >
+          <UserCheck size={13} /> Ouvrir par ID
         </Button>
       </div>
 
-      <Dialog open={reviewOpen} onOpenChange={(v) => !v && setReviewOpen(false)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2.5 text-sm">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                <UserCheck size={15} className="text-slate-600" />
-              </div>
-              Révision KYC
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-1">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">ID profil *</Label>
-              <Input type="number" placeholder="Ex: 12" value={profileId} onChange={(e) => setProfileId(e.target.value)} className="h-9" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Décision *</Label>
-              <Select value={decision} onValueChange={(v) => setDecision(v as "approve" | "reject")}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="approve">
-                    <div className="flex items-center gap-2"><CheckCircle2 size={13} className="text-emerald-600" /> Approuver</div>
-                  </SelectItem>
-                  <SelectItem value="reject">
-                    <div className="flex items-center gap-2"><XCircle size={13} className="text-red-500" /> Rejeter</div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {decision === "reject" && (
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Motif de rejet *</Label>
-                <Textarea rows={3} value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} placeholder="Expliquez pourquoi le KYC est rejeté…" className="resize-none" />
-              </div>
-            )}
-            {error && (
-              <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                <XCircle size={14} /> {error}
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setReviewOpen(false)} disabled={isPending}>Annuler</Button>
-            <Button
-              onClick={handleReview}
-              disabled={isPending}
-              className={`gap-1.5 ${decision === "reject" ? "bg-red-600 hover:bg-red-700" : ""}`}
-            >
-              {isPending ? <Loader2 size={13} className="animate-spin" /> : decision === "approve" ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
-              {decision === "approve" ? "Approuver" : "Rejeter"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Modal détail */}
+      <KycDetailModal
+        profileId={selectedProfileId}
+        open={selectedProfileId !== null}
+        onClose={() => setSelectedProfileId(null)}
+      />
     </div>
   );
 }
