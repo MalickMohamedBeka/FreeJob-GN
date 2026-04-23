@@ -59,6 +59,15 @@ export interface ApiUserMini {
   username: string;
 }
 
+export interface ApiUserWithPhoto extends ApiUserMini {
+  profile_picture: string | null;
+}
+
+export interface ApiConversationProvider extends ApiUserWithPhoto {
+  provider_kind: 'FREELANCE' | 'AGENCY' | null;
+  provider_profile_id: number | null;
+}
+
 // ── Pagination ──
 
 export interface DjangoPaginatedResponse<T> {
@@ -362,8 +371,8 @@ export interface ApiConversation {
   id: string;
   proposal_id: string;
   proposal_status: string;
-  client: ApiUserMini;
-  provider: ApiUserMini;
+  client: ApiUserWithPhoto;
+  provider: ApiConversationProvider;
   message_count: number;
   created_at: string;
   updated_at: string;
@@ -371,7 +380,7 @@ export interface ApiConversation {
 
 export interface ApiMessage {
   id: string;
-  author: ApiUserMini;
+  author: ApiUserWithPhoto;
   content: string;
   created_at: string;
 }
