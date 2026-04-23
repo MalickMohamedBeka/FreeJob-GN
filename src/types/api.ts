@@ -653,10 +653,16 @@ export interface ApiSubscriptionCreditSnapshot {
 
 export interface ApiSubscriptionEntitlements {
   freejobgn_rank_stars?: number;
+  proposals_per_month?: number;
+  credits_per_month?: number;
+  monthly_client_contacts?: number;
+  annual_credits_total?: number | null;
+  annual_client_contacts_total?: number | null;
   client_contact_visible?: boolean;
   own_contact_visible?: boolean;
   premium_email_alerts?: boolean;
   suggested_profile?: boolean;
+  min_seniority_months?: number;
   [key: string]: unknown;
 }
 

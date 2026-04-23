@@ -902,6 +902,12 @@ const TIER_LABELS: Record<string, string> = {
   AGENCY: "Agence",
 };
 
+function toPositiveLimit(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
 // SVG Donut gauge
 function DonutGauge({
   value,
@@ -1138,11 +1144,46 @@ function UtilisationPanel() {
   const tierColor = TIER_COLORS[plan?.tier ?? "FREE"] ?? "#6366f1";
 
   const creditsUsed = snapshot?.monthly_used ?? latestUsage?.credits_used ?? 0;
-  const creditsLimit = snapshot?.monthly_limit ?? latestUsage?.credits_limit ?? 0;
-  const creditsRemaining = snapshot?.monthly_remaining ?? latestUsage?.credits_remaining ?? 0;
+  const creditsLimit = toPositiveLimit(
+    snapshot?.monthly_limit
+      ?? latestUsage?.credits_limit
+      ?? entitlements?.credits_per_month
+      ?? plan?.limits?.credits_per_month
+  );
+  const creditsRemaining =
+    creditsLimit !== null
+      ? snapshot?.monthly_remaining ?? latestUsage?.credits_remaining ?? Math.max(0, creditsLimit - creditsUsed)
+      : null;
   const proposalsUsed = latestMonthly?.proposals_used ?? 0;
-  const proposalsLimit = latestMonthly?.proposals_limit ?? null;
-  const contactsUsed = latestUsage?.client_contacts_used ?? 0;
+  const planProposalsLimit = toPositiveLimit(
+    entitlements?.proposals_per_month ?? plan?.limits?.proposals_per_month
+  );
+  const proposalsLimit =
+    latestMonthly?.proposals_limit === null
+      ? null
+      : toPositiveLimit(latestMonthly?.proposals_limit) ?? planProposalsLimit;
+  const proposalsRemaining =
+    latestMonthly?.proposals_remaining
+      ?? (proposalsLimit !== null ? Math.max(0, proposalsLimit - proposalsUsed) : null);
+  const contactsUsed = latestUsage?.client_contacts_used ?? snapshot?.monthly_used ?? 0;
+  const contactsLimit = toPositiveLimit(
+    entitlements?.monthly_client_contacts
+      ?? plan?.limits?.monthly_client_contacts
+      ?? creditsLimit
+  );
+  const contactsRemaining =
+    contactsLimit !== null ? Math.max(0, contactsLimit - contactsUsed) : null;
+  const annualCreditsLimit = toPositiveLimit(
+    snapshot?.annual_limit
+      ?? entitlements?.annual_credits_total
+      ?? plan?.limits?.annual_credits_total
+  );
+  const annualCreditsUsed = snapshot?.annual_used ?? 0;
+  const annualCreditsRemaining =
+    annualCreditsLimit !== null
+      ? snapshot?.annual_remaining ?? Math.max(0, annualCreditsLimit - annualCreditsUsed)
+      : null;
+  const rankStars = Number(entitlements?.freejobgn_rank_stars ?? 0);
 
   // History: last 6 periods reversed for chronological display
   const historyItems = [...(monthlyData?.results ?? [])]
@@ -1151,7 +1192,7 @@ function UtilisationPanel() {
     .map((m) => ({
       label: new Date(m.period_start).toLocaleDateString("fr-FR", { month: "short" }),
       value: m.proposals_used,
-      max: m.proposals_limit ?? m.proposals_used,
+      max: toPositiveLimit(m.proposals_limit) ?? proposalsLimit ?? m.proposals_used,
     }));
 
   const fmtDate = (d: string) =>
@@ -1163,9 +1204,9 @@ function UtilisationPanel() {
       : null;
 
   const activeEntitlements: { label: string; icon: React.ElementType; color: string }[] = [];
-  if (entitlements?.freejobgn_rank_stars) {
+  if (rankStars > 0) {
     activeEntitlements.push({
-      label: `${entitlements.freejobgn_rank_stars} étoile${Number(entitlements.freejobgn_rank_stars) > 1 ? "s" : ""} classement`,
+      label: `${rankStars} étoile${rankStars > 1 ? "s" : ""} classement`,
       icon: Star,
       color: "#f59e0b",
     });
@@ -1247,10 +1288,15 @@ function UtilisationPanel() {
         <div className="flex items-center justify-center py-5 rounded-2xl border border-indigo-100/80 bg-gradient-to-br from-indigo-50/70 via-indigo-50/30 to-white">
           <DonutGauge
             value={creditsUsed}
-            max={creditsLimit}
+            max={creditsLimit ?? 0}
             color="#6366f1"
+            unlimited={creditsLimit === null}
             label="Crédits"
-            sublabel={`${creditsRemaining} restant${creditsRemaining > 1 ? "s" : ""}`}
+            sublabel={
+              creditsLimit !== null
+                ? `${creditsRemaining ?? 0} restant${(creditsRemaining ?? 0) > 1 ? "s" : ""} sur ${creditsLimit}`
+                : "Sans limite mensuelle"
+            }
           />
         </div>
 
@@ -1264,7 +1310,7 @@ function UtilisationPanel() {
             label="Propositions"
             sublabel={
               proposalsLimit !== null
-                ? `${Math.max(0, proposalsLimit - proposalsUsed)} restante${Math.max(0, proposalsLimit - proposalsUsed) > 1 ? "s" : ""}`
+                ? `${proposalsRemaining ?? 0} restante${(proposalsRemaining ?? 0) > 1 ? "s" : ""} sur ${proposalsLimit}`
                 : "Sans limite"
             }
           />
@@ -1274,10 +1320,15 @@ function UtilisationPanel() {
         <div className="col-span-2 sm:col-span-1 flex items-center justify-center py-5 rounded-2xl border border-amber-100/80 bg-gradient-to-br from-amber-50/70 via-amber-50/30 to-white">
           <DonutGauge
             value={contactsUsed}
-            max={0}
+            max={contactsLimit ?? 0}
             color="#f59e0b"
+            unlimited={contactsLimit === null}
             label="Contacts clients"
-            sublabel="ce mois-ci"
+            sublabel={
+              contactsLimit !== null
+                ? `${contactsRemaining ?? 0} restant${(contactsRemaining ?? 0) > 1 ? "s" : ""} ce mois-ci`
+                : "Sans limite ce mois-ci"
+            }
           />
         </div>
       </div>
@@ -1287,28 +1338,38 @@ function UtilisationPanel() {
       <div className="mb-2">
         <UsageBar
           icon={Activity}
-          label="Crédits de propositions"
-          hint="Crédits consommés sur la période"
+          label="Crédits contacts"
+          hint="1 premier message à un client = 1 crédit"
           used={creditsUsed}
-          limit={creditsLimit > 0 ? creditsLimit : null}
+          limit={creditsLimit}
           color="#6366f1"
         />
         <UsageBar
           icon={BriefcaseBusiness}
           label="Propositions envoyées"
-          hint="Offres soumises aux projets clients"
+          hint="Ce mois-ci"
           used={proposalsUsed}
           limit={proposalsLimit}
           color="#10b981"
         />
         <UsageBar
           icon={Users}
-          label="Contacts clients débloqués"
-          hint="Coordonnées consultées ce mois"
+          label="Contacts clients"
+          hint="Ce mois-ci"
           used={contactsUsed}
-          limit={null}
+          limit={contactsLimit}
           color="#f59e0b"
         />
+        {annualCreditsLimit !== null && (
+          <UsageBar
+            icon={Activity}
+            label="Crédits annuels"
+            hint={`${annualCreditsRemaining ?? 0} restants sur ${annualCreditsLimit}`}
+            used={annualCreditsUsed}
+            limit={annualCreditsLimit}
+            color="#8b5cf6"
+          />
+        )}
       </div>
 
       {/* ── History chart ── */}
@@ -1326,7 +1387,7 @@ function UtilisationPanel() {
 
       {/* ── Active entitlements ── */}
       {activeEntitlements.length > 0 && (
-        <div className="mt-10 pt-8 border-t border-border/50">
+        <div className="mt-8 pt-6 border-t border-border/50">
           <SubLabel>Avantages actifs</SubLabel>
           <div className="flex flex-wrap gap-2">
             {activeEntitlements.map((e) => (
