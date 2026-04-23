@@ -116,9 +116,13 @@ const App = () => (
               <Route path={ROUTES.RESET_PASSWORD} element={<PublicRoute><ResetPassword /></PublicRoute>} />
               <Route path={ROUTES.ONBOARDING} element={<Onboarding />} />
 
-              {/* Admin */}
-              <Route path={ROUTES.ADMIN.DASHBOARD} element={<AdminDashboard />} />
-              <Route path={ROUTES.ADMIN.WITHDRAWALS} element={<AdminWithdrawals />} />
+              {/* Admin — superusers only */}
+              <Route path={ROUTES.ADMIN.DASHBOARD} element={
+                <ProtectedRoute requireSuperuser><AdminDashboard /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.ADMIN.WITHDRAWALS} element={
+                <ProtectedRoute requireSuperuser><AdminWithdrawals /></ProtectedRoute>
+              } />
 
               {/* Client dashboard (protected) */}
               <Route path={ROUTES.CLIENT.DASHBOARD} element={

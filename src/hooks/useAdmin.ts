@@ -252,3 +252,32 @@ export function useAdminRankingAdjust() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['rankings'] }),
   });
 }
+
+// ── Admin User List ───────────────────────────────────────────────────────────
+
+export interface AdminUserItem {
+  id: number;
+  email: string;
+  username: string;
+  first_name?: string;
+  last_name?: string;
+  role: 'CLIENT' | 'PROVIDER';
+  provider_kind: 'FREELANCE' | 'AGENCY' | null;
+  is_active: boolean;
+  is_suspended: boolean;
+  is_banned: boolean;
+  date_joined: string;
+}
+
+export function useAdminUserList(params: { page?: number; search?: string } = {}) {
+  const queryParams: Record<string, string> = {};
+  if (params.page && params.page > 1) queryParams.page = String(params.page);
+  if (params.search) queryParams.search = params.search;
+
+  return useQuery({
+    queryKey: ['admin-users', params],
+    queryFn: () =>
+      apiService.get<DjangoPaginatedResponse<AdminUserItem>>('/users/admin/users/', queryParams),
+    retry: false,
+  });
+}

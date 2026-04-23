@@ -6,6 +6,7 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: 'CLIENT' | 'PROVIDER';
   requiredProviderKind?: 'FREELANCE' | 'AGENCY';
+  requireSuperuser?: boolean;
 }
 
 function getDashboard(role?: string, providerKind?: string | null) {
@@ -14,12 +15,22 @@ function getDashboard(role?: string, providerKind?: string | null) {
   return '/dashboard';
 }
 
-export default function ProtectedRoute({ children, requiredRole, requiredProviderKind }: ProtectedRouteProps) {
+export default function ProtectedRoute({
+  children,
+  requiredRole,
+  requiredProviderKind,
+  requireSuperuser,
+}: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, user, profileInitialized } = useAuth();
 
   if (isLoading) return <PageLoader />;
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/admin" replace />;
+
+  // Superuser-only routes — redirect non-superusers to their own dashboard
+  if (requireSuperuser && !user?.is_superuser) {
+    return <Navigate to={getDashboard(user?.role, user?.provider_kind)} replace />;
+  }
 
   // Wrong role → send to their own dashboard
   if (requiredRole && user?.role !== requiredRole) {

@@ -51,6 +51,7 @@ export interface ApiUser {
   role: 'CLIENT' | 'PROVIDER';
   provider_kind: 'FREELANCE' | 'AGENCY' | null;
   is_active: boolean;
+  is_superuser: boolean;
   date_joined: string;
 }
 
