@@ -189,7 +189,7 @@ const Hero = () => {
 
             <motion.div {...fadeUp(0.3)} className="flex flex-wrap gap-4">
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                <Button variant="cta" size="lg" asChild>
+                <Button variant="default" size="lg" asChild>
                   <Link to="/signup">
                     Commencer Gratuitement
                     <ArrowRight size={18} />
@@ -344,12 +344,12 @@ const Hero = () => {
             </div>
           </motion.div>
 
-          {/* Mobile image */}
+          {/* Mobile image — masqué sur mobile */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.35 }}
-            className="relative mt-4 pb-12 lg:hidden"
+            className="hidden"
           >
             {floatingHeroCards.map((card) => (
               <FloatingHeroCard
