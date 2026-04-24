@@ -13,8 +13,7 @@ export default function PublicRoute({ children }: { children: React.ReactNode })
   if (isLoading) return <PageLoader />;
 
   if (isAuthenticated) {
-    const destination =
-      user?.role === 'CLIENT' ? '/client/dashboard' : '/dashboard';
+    const destination = user?.role === 'CLIENT' ? '/client/dashboard' : '/dashboard';
     return <Navigate to={destination} replace />;
   }
 

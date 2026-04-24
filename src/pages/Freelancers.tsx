@@ -6,7 +6,7 @@ import Footer from "@/components/layout/Footer";
 import FreelancersHero3D from "@/components/freelancers/FreelancersHero3D";
 import SearchBar3D from "@/components/freelancers/SearchBar3D";
 import FreelancerCard3D from "@/components/freelancers/FreelancerCard3D";
-import { useFreelancers } from "@/hooks/useFreelancers";
+import { useProviders } from "@/hooks/useFreelancers";
 import { useAllSkills, useAllSpecialities } from "@/hooks/useTaxonomy";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,10 +32,9 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { Freelancer } from "@/types";
-import type { ApiFreelancerProfile } from "@/types";
+import type { Freelancer, ApiProviderDiscovery } from "@/types";
 
-function mapApiFreelancerToUI(f: ApiFreelancerProfile): Freelancer {
+function mapApiFreelancerToUI(f: ApiProviderDiscovery): Freelancer {
   const fullName = f.freelance_details
     ? `${f.freelance_details.first_name} ${f.freelance_details.last_name}`
     : f.username;
@@ -51,7 +50,7 @@ function mapApiFreelancerToUI(f: ApiFreelancerProfile): Freelancer {
     skills: f.skills.map((s) => s.name),
     completedProjects: 0,
     location: [f.city_or_region, f.country].filter(Boolean).join(", "),
-    available: true,
+    available: f.is_available ?? true,
     bio: f.bio || "",
   };
 }
@@ -62,6 +61,8 @@ const Freelancers = () => {
   const [selectedSpeciality, setSelectedSpeciality] = useState<number | null>(null);
   const [selectedSkillId, setSelectedSkillId] = useState<number | null>(null);
   const [skillsOpen, setSkillsOpen] = useState(false);
+  const [availableOnly, setAvailableOnly] = useState(false);
+  const [minStars, setMinStars] = useState<number | null>(null);
   const [page, setPage] = useState(1);
 
   // Taxonomy
@@ -78,10 +79,13 @@ const Freelancers = () => {
 
   const selectedSkillObj = visibleSkills.find((s) => s.id === selectedSkillId);
 
-  const { data, isLoading } = useFreelancers({
+  const { data, isLoading } = useProviders({
     page,
+    provider_kind: 'FREELANCE',
     skill_id: selectedSkillId ?? undefined,
     speciality_id: selectedSpeciality ?? undefined,
+    available: availableOnly ? true : undefined,
+    min_stars: minStars ?? undefined,
   });
 
   const results = data?.results ?? [];
@@ -99,7 +103,7 @@ const Freelancers = () => {
       })
     : results;
 
-  const hasActiveFilters = selectedSkillId !== null || selectedSpeciality !== null;
+  const hasActiveFilters = selectedSkillId !== null || selectedSpeciality !== null || availableOnly || minStars !== null;
 
   const handleSpecialityChange = (value: string) => {
     const next = value === "__all__" ? null : Number(value);
@@ -124,6 +128,8 @@ const Freelancers = () => {
   const resetFilters = () => {
     setSelectedSpeciality(null);
     setSelectedSkillId(null);
+    setAvailableOnly(false);
+    setMinStars(null);
     setPage(1);
   };
 
@@ -201,6 +207,31 @@ const Freelancers = () => {
                     </Command>
                   </PopoverContent>
                 </Popover>
+
+                {/* Disponibles uniquement */}
+                <label className="flex items-center gap-2 cursor-pointer select-none h-10 px-2">
+                  <Checkbox
+                    checked={availableOnly}
+                    onCheckedChange={(v) => { setAvailableOnly(!!v); setPage(1); }}
+                  />
+                  <span className="text-sm font-medium">Disponibles uniquement</span>
+                </label>
+
+                {/* Note minimale */}
+                <Select
+                  value={minStars !== null ? String(minStars) : "__all__"}
+                  onValueChange={(v) => { setMinStars(v === "__all__" ? null : Number(v)); setPage(1); }}
+                >
+                  <SelectTrigger className="h-10 w-[160px]">
+                    <SelectValue placeholder="Note minimale" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">Toutes notes</SelectItem>
+                    <SelectItem value="1">★ 1 étoile et +</SelectItem>
+                    <SelectItem value="2">★★ 2 étoiles et +</SelectItem>
+                    <SelectItem value="3">★★★ 3 étoiles</SelectItem>
+                  </SelectContent>
+                </Select>
 
                 {/* Reset */}
                 {hasActiveFilters && (

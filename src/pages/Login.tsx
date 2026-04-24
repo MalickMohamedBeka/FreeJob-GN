@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useAuth } from "@/contexts/AuthContext";
+import { ROUTES } from "@/constants";
 
 const features = [
   { icon: Shield, text: "Connexion sécurisée" },
@@ -29,7 +30,9 @@ const Login = () => {
       await login({ email, password });
       const stored = localStorage.getItem("user");
       const user = stored ? JSON.parse(stored) : null;
-      navigate(user?.role === "CLIENT" ? "/client/dashboard" : "/dashboard");
+      navigate(
+        user?.role === "CLIENT" ? "/client/dashboard" : "/dashboard"
+      );
     } catch (err: any) {
       setError(err?.message || "Email ou mot de passe incorrect");
     } finally {
@@ -135,7 +138,7 @@ const Login = () => {
                       <input type="checkbox" className="rounded border-border" />
                       <span className="text-muted-foreground">Se souvenir de moi</span>
                     </label>
-                    <Link to="#" className="text-primary hover:underline font-medium">
+                    <Link to={ROUTES.FORGOT_PASSWORD} className="text-primary hover:underline font-medium">
                       Mot de passe oublié ?
                     </Link>
                   </div>

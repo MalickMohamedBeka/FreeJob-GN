@@ -28,6 +28,7 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Plus,
   Clock,
   CheckCircle2,
@@ -35,6 +36,9 @@ import {
   Lock,
   Unlock,
   RefreshCw,
+  CreditCard,
+  CheckCircle,
+  Info,
 } from "lucide-react";
 import {
   useWallet,
@@ -42,6 +46,7 @@ import {
   useWithdrawals,
   useCreateWithdrawal,
 } from "@/hooks/useWallet";
+import { usePaymentTransactions } from "@/hooks/usePayments";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks";
 import { ApiError } from "@/services/api.service";
@@ -50,6 +55,7 @@ import type {
   WithdrawalStatusEnum,
   PayoutMethodEnum,
   WithdrawalRequestCreateRequest,
+  CommissionBreakdown,
 } from "@/types";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -111,6 +117,7 @@ function WithdrawalDialog({
   const [comment, setComment] = useState("");
   const [method, setMethod] = useState<PayoutMethodEnum>("MOBILE_MONEY");
   const [phone, setPhone] = useState("");
+  const [accountName, setAccountName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [bankName, setBankName] = useState("");
   const [error, setError] = useState("");
@@ -121,6 +128,7 @@ function WithdrawalDialog({
     setComment("");
     setMethod("MOBILE_MONEY");
     setPhone("");
+    setAccountName("");
     setAccountNumber("");
     setBankName("");
     setError("");
@@ -146,14 +154,14 @@ function WithdrawalDialog({
     const payout_details: Record<string, string> =
       method === "MOBILE_MONEY"
         ? { phone: phone.trim() }
-        : { account_number: accountNumber.trim(), bank_name: bankName.trim() };
+        : { account_name: accountName.trim(), account_number: accountNumber.trim(), bank_name: bankName.trim() };
 
     if (method === "MOBILE_MONEY" && !phone.trim()) {
       setError("Le numéro de téléphone est requis.");
       return;
     }
-    if (method === "BANK_TRANSFER" && (!accountNumber.trim() || !bankName.trim())) {
-      setError("Numéro de compte et nom de la banque requis.");
+    if (method === "BANK_TRANSFER" && (!accountName.trim() || !accountNumber.trim() || !bankName.trim())) {
+      setError("Titulaire, numéro de compte et nom de la banque sont requis.");
       return;
     }
 
@@ -230,6 +238,15 @@ function WithdrawalDialog({
           ) : (
             <div className="space-y-3">
               <div className="space-y-1.5">
+                <Label htmlFor="wd-account-name">Titulaire du compte *</Label>
+                <Input
+                  id="wd-account-name"
+                  value={accountName}
+                  onChange={(e) => setAccountName(e.target.value)}
+                  placeholder="Ex: Mamadou Diallo"
+                />
+              </div>
+              <div className="space-y-1.5">
                 <Label htmlFor="wd-bank">Nom de la banque *</Label>
                 <Input
                   id="wd-bank"
@@ -284,6 +301,91 @@ function WithdrawalDialog({
   );
 }
 
+// ── Commission Detail ─────────────────────────────────────────────────────────
+
+function fmt(val: string) {
+  return parseFloat(val).toLocaleString("fr-FR");
+}
+
+function CommissionDetail({
+  commission,
+  currency,
+}: {
+  commission: CommissionBreakdown;
+  currency: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const feePercent = parseFloat(commission.fee_percent);
+
+  return (
+    <div className="mt-1.5">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1.5 text-xs text-primary/80 hover:text-primary font-medium transition-colors group"
+      >
+        <Info size={11} className="flex-shrink-0" />
+        Commission {feePercent}% prélevée
+        <ChevronDown
+          size={11}
+          className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden text-xs">
+          {/* Header */}
+          <div className="px-3 py-2 bg-primary/5 border-b border-slate-200 flex items-center gap-1.5">
+            <Unlock size={11} className="text-primary" />
+            <span className="font-semibold text-slate-700">Détail de la libération escrow</span>
+          </div>
+
+          <div className="px-3 py-2.5 space-y-2">
+            {/* Montant brut */}
+            <div className="flex justify-between items-center">
+              <span className="text-slate-500">Montant brut du contrat</span>
+              <span className="font-semibold text-slate-800">
+                {fmt(commission.gross_amount)} {currency}
+              </span>
+            </div>
+
+            {/* Séparateur */}
+            <div className="border-t border-slate-200" />
+
+            {/* Commission plateforme */}
+            <div className="flex justify-between items-center">
+              <span className="text-slate-500 flex items-center gap-1">
+                Commission FreeJobGN
+                <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold">
+                  {feePercent}%
+                </span>
+              </span>
+              <span className="font-medium text-red-500">
+                −{fmt(commission.fee_amount)} {currency}
+              </span>
+            </div>
+
+            {/* Séparateur */}
+            <div className="border-t border-dashed border-slate-200" />
+
+            {/* Net reçu */}
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-slate-700">Vous avez reçu</span>
+              <span className="font-bold text-green-600">
+                {fmt(commission.net_amount)} {currency}
+              </span>
+            </div>
+          </div>
+
+          {/* Footer note */}
+          <div className="px-3 py-1.5 bg-slate-100 border-t border-slate-200 text-[10px] text-slate-400 italic">
+            Les frais de traitement bancaire (1.5%) sont pris en charge par FreeJobGN.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Transactions Tab ───────────────────────────────────────────────────────────
 
 function TransactionsTab({ currency }: { currency: string }) {
@@ -323,34 +425,43 @@ function TransactionsTab({ currency }: { currency: string }) {
           };
           const Icon = cfg.icon;
           const positive = cfg.sign === "+";
+          const hasCommission = tx.transaction_type === "ESCROW_RELEASE" && tx.commission != null;
           return (
-            <div key={tx.id} className="flex items-center gap-3 py-3.5 px-1">
-              <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  positive ? "bg-green-100" : "bg-red-50"
-                }`}
-              >
-                <Icon size={16} className={cfg.color} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{cfg.label}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {tx.description || fmtDate(tx.created_at)}
-                </p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p
-                  className={`text-sm font-semibold ${
-                    positive ? "text-green-600" : "text-red-500"
+            <div key={tx.id} className="py-3.5 px-1">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    positive ? "bg-green-100" : "bg-red-50"
                   }`}
                 >
-                  {cfg.sign}
-                  {fmtAmount(tx.amount, currency)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {fmtDate(tx.created_at)}
-                </p>
+                  <Icon size={16} className={cfg.color} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{cfg.label}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {tx.description || fmtDate(tx.created_at)}
+                  </p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p
+                    className={`text-sm font-semibold ${
+                      positive ? "text-green-600" : "text-red-500"
+                    }`}
+                  >
+                    {cfg.sign}
+                    {fmtAmount(tx.amount, currency)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {fmtDate(tx.created_at)}
+                  </p>
+                </div>
               </div>
+
+              {hasCommission && (
+                <div className="ml-12">
+                  <CommissionDetail commission={tx.commission!} currency={currency} />
+                </div>
+              )}
             </div>
           );
         })}
@@ -458,12 +569,128 @@ function WithdrawalsTab({ currency }: { currency: string }) {
   );
 }
 
+// ── Payments Tab (Djomy transactions) ─────────────────────────────────────────
+
+const PAYMENT_STATUS_CONFIG: Record<string, { label: string; className: string; icon: React.ElementType }> = {
+  SUCCESS:   { label: "Succès",      className: "bg-green-100 text-green-700",   icon: CheckCircle },
+  PENDING:   { label: "En attente",  className: "bg-orange-100 text-orange-700", icon: Clock },
+  FAILED:    { label: "Échoué",      className: "bg-red-100 text-red-700",       icon: XCircle },
+  CANCELLED: { label: "Annulé",      className: "bg-muted text-muted-foreground", icon: XCircle },
+};
+
+function PaymentsTab() {
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching } = usePaymentTransactions(page);
+  const transactions = data?.results ?? [];
+  const total = data?.count ?? 0;
+  const pageSize = 20;
+  const totalPages = Math.ceil(total / pageSize);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="animate-spin text-primary" size={28} />
+      </div>
+    );
+  }
+
+  if (transactions.length === 0) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <CreditCard size={32} className="mx-auto mb-3 opacity-30" />
+        <p className="text-sm">Aucun paiement Djomy pour le moment.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`transition-opacity ${isFetching ? "opacity-60" : ""}`}>
+      <div className="divide-y divide-border">
+        {transactions.map((tx) => {
+          const statusKey = tx.status?.toUpperCase() ?? "";
+          const cfg = PAYMENT_STATUS_CONFIG[statusKey] ?? {
+            label: tx.status,
+            className: "bg-muted text-muted-foreground",
+            icon: CreditCard,
+          };
+          const StatusIcon = cfg.icon;
+          const isSuccess = statusKey === "SUCCESS";
+
+          return (
+            <div key={tx.id} className="flex items-center gap-3 py-3.5 px-1">
+              <div
+                className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  isSuccess ? "bg-green-100" : "bg-muted"
+                }`}
+              >
+                <CreditCard size={16} className={isSuccess ? "text-green-600" : "text-muted-foreground"} />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">
+                  {tx.event_type || "Paiement Djomy"}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  Réf: {tx.reference}
+                  {tx.payer_identifier && ` · ${tx.payer_identifier}`}
+                </p>
+              </div>
+
+              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                {tx.amount != null ? (
+                  <p className={`text-sm font-semibold ${isSuccess ? "text-green-600" : "text-foreground"}`}>
+                    {parseFloat(tx.amount).toLocaleString("fr-FR")} {tx.currency}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">—</p>
+                )}
+                <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${cfg.className}`}>
+                  <StatusIcon size={10} />
+                  {cfg.label}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-4 mt-2 border-t border-border">
+          <p className="text-xs text-muted-foreground">
+            Page {page} sur {totalPages}
+          </p>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => setPage((p) => p - 1)}
+              disabled={page === 1 || isFetching}
+            >
+              <ChevronLeft size={14} />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={page >= totalPages || isFetching}
+            >
+              <ChevronRight size={14} />
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
 const Wallet = () => {
   const { user } = useAuth();
   const userType = user?.role === "CLIENT" ? "client" : "freelancer";
-  const [tab, setTab] = useState<"transactions" | "withdrawals">("transactions");
+  const [tab, setTab] = useState<"transactions" | "withdrawals" | "payments">("transactions");
   const [wdOpen, setWdOpen] = useState(false);
 
   const { data: wallet, isLoading } = useWallet();
@@ -526,8 +753,8 @@ const Wallet = () => {
         )}
 
         {/* ── Tabs ── */}
-        <div className="flex items-center bg-muted rounded-xl p-1 w-fit text-sm">
-          {(["transactions", "withdrawals"] as const).map((t) => (
+        <div className="flex items-center bg-muted rounded-xl p-1 w-fit text-sm flex-wrap gap-0.5">
+          {(["transactions", "payments", "withdrawals"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -537,7 +764,7 @@ const Wallet = () => {
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t === "transactions" ? "Transactions" : "Retraits"}
+              {t === "transactions" ? "Mouvements wallet" : t === "payments" ? "Paiements Djomy" : "Retraits"}
             </button>
           ))}
         </div>
@@ -546,6 +773,8 @@ const Wallet = () => {
         <Card className="p-4">
           {tab === "transactions" ? (
             <TransactionsTab currency={wallet?.currency ?? "GNF"} />
+          ) : tab === "payments" ? (
+            <PaymentsTab />
           ) : (
             <WithdrawalsTab currency={wallet?.currency ?? "GNF"} />
           )}

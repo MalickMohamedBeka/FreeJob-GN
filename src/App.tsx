@@ -25,10 +25,10 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminWithdrawals = lazy(() => import("./pages/admin/AdminWithdrawals"));
-const FreelancerLogin = lazy(() => import("./pages/FreelancerLogin"));
-const ClientLogin = lazy(() => import("./pages/ClientLogin"));
+const AdminComptabilite = lazy(() => import("./pages/admin/AdminComptabilite"));
 const ClientDashboard = lazy(() => import("./pages/client/ClientDashboard"));
 const ClientProjects = lazy(() => import("./pages/client/ClientProjects"));
+const ClientProjectDetail = lazy(() => import("./pages/client/ClientProjectDetail"));
 const ClientProposals = lazy(() => import("./pages/client/ClientProposals"));
 const ClientContracts = lazy(() => import("./pages/client/ClientContracts"));
 const ClientProfile = lazy(() => import("./pages/client/ClientProfile"));
@@ -36,6 +36,7 @@ const ClientMessages = lazy(() => import("./pages/client/ClientMessages"));
 const PaymentReturn = lazy(() => import("./pages/client/PaymentReturn"));
 const FreelancerDashboard = lazy(() => import("./pages/dashboard/FreelancerDashboard"));
 const FindProjects = lazy(() => import("./pages/dashboard/FindProjects"));
+const DashboardProjectDetail = lazy(() => import("./pages/dashboard/ProjectDetail"));
 const MyProjects = lazy(() => import("./pages/dashboard/MyProjects"));
 const Proposals = lazy(() => import("./pages/dashboard/Proposals"));
 const Messages = lazy(() => import("./pages/dashboard/Messages"));
@@ -43,11 +44,20 @@ const Profile = lazy(() => import("./pages/dashboard/Profile"));
 const Settings = lazy(() => import("./pages/dashboard/Settings"));
 const Notifications = lazy(() => import("./pages/dashboard/Notifications"));
 const Wallet = lazy(() => import("./pages/dashboard/Wallet"));
+const Invoices = lazy(() => import("./pages/dashboard/Invoices"));
 const Subscriptions = lazy(() => import("./pages/dashboard/Subscriptions"));
 const AccountActivation = lazy(() => import("./pages/AccountActivation"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const CommentCaMarche = lazy(() => import("./pages/CommentCaMarche"));
 const Rankings = lazy(() => import("./pages/Rankings"));
+const Agencies = lazy(() => import("./pages/Agencies"));
+const AgencyDetail = lazy(() => import("./pages/AgencyDetail"));
+const AgencyOnboarding = lazy(() => import("./pages/agency/AgencyOnboarding"));
+const ClientOnboarding = lazy(() => import("./pages/client/ClientOnboarding"));
+const ProviderProfile = lazy(() => import("./pages/dashboard/ProviderProfile"));
+const ClientPublicProfile = lazy(() => import("./pages/ClientPublicProfile"));
 
 /**
  * Normalises URLs with consecutive slashes (e.g. //activate → /activate).
@@ -91,23 +101,34 @@ const App = () => (
               <Route path={ROUTES.HOME} element={<Index />} />
               <Route path={ROUTES.LOGIN} element={<PublicRoute><Login /></PublicRoute>} />
               <Route path={ROUTES.SIGNUP} element={<PublicRoute><Signup /></PublicRoute>} />
-              <Route path={ROUTES.LOGIN} element={<PublicRoute><FreelancerLogin /></PublicRoute>} />
-              <Route path={ROUTES.LOGIN} element={<PublicRoute><ClientLogin /></PublicRoute>} />
 
               {/* Public browsing pages — accessible to everyone regardless of auth state */}
               <Route path={ROUTES.PROJECTS} element={<Projects />} />
               <Route path={ROUTES.FREELANCERS} element={<Freelancers />} />
               <Route path={ROUTES.FREELANCER_PROFILE} element={<FreelancerProfile />} />
+              <Route path={ROUTES.AGENCIES} element={<Agencies />} />
+              <Route path={ROUTES.AGENCY_PROFILE} element={<AgencyDetail />} />
               <Route path={ROUTES.RANKINGS} element={<Rankings />} />
               <Route path={ROUTES.ABOUT} element={<About />} />
               <Route path={ROUTES.HOW_IT_WORKS} element={<CommentCaMarche />} />
+              <Route path={ROUTES.CLIENT_PUBLIC_PROFILE} element={<ClientPublicProfile />} />
               <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLogin />} />
               <Route path="/activate" element={<AccountActivation />} />
+              <Route path={ROUTES.FORGOT_PASSWORD} element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+              <Route path={ROUTES.RESET_PASSWORD} element={<PublicRoute><ResetPassword /></PublicRoute>} />
               <Route path={ROUTES.ONBOARDING} element={<Onboarding />} />
+              <Route path={ROUTES.CLIENT.ONBOARDING} element={<ClientOnboarding />} />
 
-              {/* Admin */}
-              <Route path={ROUTES.ADMIN.DASHBOARD} element={<AdminDashboard />} />
-              <Route path={ROUTES.ADMIN.WITHDRAWALS} element={<AdminWithdrawals />} />
+              {/* Admin — superusers only */}
+              <Route path={ROUTES.ADMIN.DASHBOARD} element={
+                <ProtectedRoute requireSuperuser><AdminDashboard /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.ADMIN.WITHDRAWALS} element={
+                <ProtectedRoute requireSuperuser><AdminWithdrawals /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.ADMIN.COMPTABILITE} element={
+                <ProtectedRoute requireSuperuser><AdminComptabilite /></ProtectedRoute>
+              } />
 
               {/* Client dashboard (protected) */}
               <Route path={ROUTES.CLIENT.DASHBOARD} element={
@@ -115,6 +136,9 @@ const App = () => (
               } />
               <Route path={ROUTES.CLIENT.PROJECTS} element={
                 <ProtectedRoute requiredRole="CLIENT"><ClientProjects /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.CLIENT.PROJECT_DETAIL} element={
+                <ProtectedRoute requiredRole="CLIENT"><ClientProjectDetail /></ProtectedRoute>
               } />
               <Route path={ROUTES.CLIENT.PROPOSALS} element={
                 <ProtectedRoute requiredRole="CLIENT"><ClientProposals /></ProtectedRoute>
@@ -134,13 +158,22 @@ const App = () => (
               <Route path={ROUTES.CLIENT.NOTIFICATIONS} element={
                 <ProtectedRoute requiredRole="CLIENT"><Notifications /></ProtectedRoute>
               } />
+              <Route path={ROUTES.CLIENT.INVOICES} element={
+                <ProtectedRoute requiredRole="CLIENT"><Invoices /></ProtectedRoute>
+              } />
 
-              {/* Freelancer dashboard (protected) */}
+              {/* Agency onboarding (accessed before profile is created) */}
+              <Route path={ROUTES.AGENCY.ONBOARDING} element={<AgencyOnboarding />} />
+
+              {/* Provider dashboard — shared by FREELANCE and AGENCY */}
               <Route path={ROUTES.DASHBOARD.ROOT} element={
                 <ProtectedRoute requiredRole="PROVIDER"><FreelancerDashboard /></ProtectedRoute>
               } />
               <Route path={ROUTES.DASHBOARD.FIND_PROJECTS} element={
                 <ProtectedRoute requiredRole="PROVIDER"><FindProjects /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.DASHBOARD.FIND_PROJECT_DETAIL} element={
+                <ProtectedRoute requiredRole="PROVIDER"><DashboardProjectDetail /></ProtectedRoute>
               } />
               <Route path={ROUTES.DASHBOARD.MY_PROJECTS} element={
                 <ProtectedRoute requiredRole="PROVIDER"><MyProjects /></ProtectedRoute>
@@ -152,7 +185,7 @@ const App = () => (
                 <ProtectedRoute requiredRole="PROVIDER"><Messages /></ProtectedRoute>
               } />
               <Route path={ROUTES.DASHBOARD.PROFILE} element={
-                <ProtectedRoute requiredRole="PROVIDER"><Profile /></ProtectedRoute>
+                <ProtectedRoute requiredRole="PROVIDER"><ProviderProfile /></ProtectedRoute>
               } />
               <Route path={ROUTES.DASHBOARD.SETTINGS} element={
                 <ProtectedRoute requiredRole="PROVIDER"><Settings /></ProtectedRoute>
@@ -162,6 +195,9 @@ const App = () => (
               } />
               <Route path={ROUTES.DASHBOARD.WALLET} element={
                 <ProtectedRoute requiredRole="PROVIDER"><Wallet /></ProtectedRoute>
+              } />
+              <Route path={ROUTES.DASHBOARD.INVOICES} element={
+                <ProtectedRoute requiredRole="PROVIDER"><Invoices /></ProtectedRoute>
               } />
               <Route path={ROUTES.DASHBOARD.SUBSCRIPTION} element={
                 <ProtectedRoute requiredRole="PROVIDER"><Subscriptions /></ProtectedRoute>

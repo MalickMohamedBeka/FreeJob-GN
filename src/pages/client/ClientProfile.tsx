@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, User, MapPin, Phone, Pencil, Plus, FileText, Trash2, ExternalLink } from "lucide-react";
+import { Loader2, User, MapPin, Phone, Pencil, Plus, FileText, Trash2, ExternalLink, Star, MessageSquare } from "lucide-react";
 import {
   useClientProfile,
   useCreateClientProfile,
@@ -29,8 +29,71 @@ import {
   usePatchClientDocument,
 } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
+import { useClientReviews } from "@/hooks/useRankings";
 import { ApiError } from "@/services/api.service";
 import type { ClientProfileCreateRequest, PatchedClientProfileUpdateRequest, ApiClientCompanyDocument } from "@/types";
+
+// ── Client Reviews Section ────────────────────────────────────────────────────
+
+function StarDisplay({ rating }: { rating: number }) {
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((s) => (
+        <Star
+          key={s}
+          size={13}
+          className={s <= rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ClientReviewsSection({ clientId }: { clientId?: number }) {
+  const { data, isLoading } = useClientReviews(clientId);
+  const reviews = data?.results ?? [];
+
+  return (
+    <Card className="p-6">
+      <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+        <MessageSquare size={20} className="text-primary" />
+        Avis reçus des prestataires
+        {reviews.length > 0 && (
+          <span className="ml-auto text-sm font-normal text-muted-foreground">
+            {reviews.length} avis
+          </span>
+        )}
+      </h3>
+
+      {isLoading ? (
+        <div className="flex justify-center py-6">
+          <Loader2 className="animate-spin text-muted-foreground" size={24} />
+        </div>
+      ) : reviews.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-4">
+          Aucun avis reçu pour le moment.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {reviews.map((review) => (
+            <div key={review.id} className="border-b border-border last:border-0 pb-4 last:pb-0">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-sm font-medium">{review.provider_username}</span>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(review.created_at).toLocaleDateString("fr-FR")}
+                </span>
+              </div>
+              <StarDisplay rating={review.rating} />
+              {review.comment && (
+                <p className="text-sm text-muted-foreground mt-1.5">{review.comment}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
 
 // ── Profile Form Dialog ───────────────────────────────────────────────────────
 
@@ -598,6 +661,7 @@ const ClientProfile = () => {
                   )}
                 </Card>
               )}
+              <ClientReviewsSection clientId={user?.id} />
             </div>
 
             {/* Sidebar */}

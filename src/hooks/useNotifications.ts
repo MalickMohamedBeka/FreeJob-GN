@@ -126,3 +126,51 @@ export function useNotificationTypes() {
     staleTime: Infinity,
   });
 }
+
+// ── Push subscriptions ────────────────────────────────────────────────────────
+
+function urlBase64ToUint8Array(base64: string): Uint8Array {
+  const padding = '='.repeat((4 - (base64.length % 4)) % 4);
+  const b64 = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(b64);
+  return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+}
+
+export function usePushSubscription() {
+  const subscribe = useMutation({
+    mutationFn: async () => {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        throw new Error('Push notifications non supportées par ce navigateur.');
+      }
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') throw new Error('Permission refusée par l\'utilisateur.');
+
+      const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
+      if (!vapidKey) throw new Error('Clé VAPID publique manquante (VITE_VAPID_PUBLIC_KEY).');
+
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      await navigator.serviceWorker.ready;
+
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      });
+
+      return apiService.post('/notifications/push-subscription/', sub.toJSON());
+    },
+  });
+
+  const unsubscribe = useMutation({
+    mutationFn: async () => {
+      const reg = await navigator.serviceWorker.getRegistration('/sw.js');
+      if (!reg) return;
+      const sub = await reg.pushManager.getSubscription();
+      if (!sub) return;
+      await apiService.deleteWithBody('/notifications/push-subscription/', sub.toJSON());
+      await sub.unsubscribe();
+    },
+  });
+
+  return { subscribe, unsubscribe };
+}
+

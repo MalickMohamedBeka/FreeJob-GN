@@ -20,6 +20,7 @@ const Signup = () => {
   const [providerKind, setProviderKind] = useState<"FREELANCE" | "AGENCY">("FREELANCE");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [usernameError, setUsernameError] = useState("");
   const [success, setSuccess] = useState(false);
   const { register } = useAuth();
   const { data: regOptions } = useRegistrationOptions();
@@ -45,13 +46,29 @@ const Signup = () => {
     CLIENT: Building2,
   };
 
+  const validateUsername = (value: string): string => {
+    if (!value.trim()) return "Le nom d'utilisateur est requis.";
+    if (/\s/.test(value)) return "Le nom d'utilisateur ne doit pas contenir d'espaces.";
+    if (!/^[a-zA-Z0-9_.\-]+$/.test(value)) return "Seuls les lettres, chiffres, tirets, points et underscores sont autorisés.";
+    if (value.length < 3) return "Le nom d'utilisateur doit contenir au moins 3 caractères.";
+    if (value.length > 150) return "Le nom d'utilisateur ne peut pas dépasser 150 caractères.";
+    return "";
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (name === "fullName") setUsernameError(validateUsername(value));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    const uErr = validateUsername(formData.fullName);
+    if (uErr) {
+      setUsernameError(uErr);
+      return;
+    }
     if (formData.password !== formData.confirmPassword) {
       setError("Les mots de passe ne correspondent pas");
       return;
@@ -202,9 +219,12 @@ const Signup = () => {
                             onChange={handleChange}
                             placeholder="Choisissez un nom d'utilisateur"
                             required
-                            className="w-full h-11 pl-10 pr-4 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                            className={`w-full h-11 pl-10 pr-4 rounded-lg border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 transition-colors ${usernameError ? "border-destructive focus:ring-destructive/20 focus:border-destructive" : "border-border focus:ring-primary/20 focus:border-primary"}`}
                           />
                         </div>
+                        {usernameError && (
+                          <p className="text-destructive text-xs mt-1">{usernameError}</p>
+                        )}
                       </div>
 
                       <div>

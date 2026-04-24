@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Quote, MapPin, CheckCircle, TrendingUp, Users } from "lucide-react";
 import { team } from "@/data/team";
-import { SITE_STATS } from "@/constants/siteStats";
+import { usePublicStats } from "@/hooks/useAuth";
 
 const AvatarSilhouette = () => (
   <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
@@ -12,7 +12,9 @@ const AvatarSilhouette = () => (
 
 const founder = team[0];
 
-const Mission3D = () => (
+const Mission3D = () => {
+  const { data: stats } = usePublicStats();
+  return (
   <section className="py-24 bg-white overflow-hidden">
     <div className="container mx-auto px-4 lg:px-8">
       <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -141,7 +143,7 @@ const Mission3D = () => (
               <Users size={18} className="text-secondary" />
             </div>
             <div>
-              <p className="text-lg font-bold leading-none">{SITE_STATS.freelancers.value}{SITE_STATS.freelancers.suffix}</p>
+              <p className="text-lg font-bold leading-none">{stats?.freelances_count ?? "…"}+</p>
               <p className="text-xs text-muted-foreground mt-0.5">Talents actifs</p>
             </div>
           </motion.div>
@@ -157,8 +159,8 @@ const Mission3D = () => (
               <TrendingUp size={18} className="text-cta" />
             </div>
             <div>
-              <p className="text-lg font-bold leading-none">{SITE_STATS.satisfaction.value}{SITE_STATS.satisfaction.suffix}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Satisfaction</p>
+              <p className="text-lg font-bold leading-none">{stats?.projects_count ?? "…"}+</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Projets publiés</p>
             </div>
           </motion.div>
         </motion.div>
@@ -166,6 +168,7 @@ const Mission3D = () => (
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default Mission3D;

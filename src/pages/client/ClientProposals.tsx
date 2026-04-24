@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   XCircle,
   ExternalLink,
+  AlertTriangle,
 } from "lucide-react";
 import { useMyProjects } from "@/hooks/useProjects";
 import {
@@ -39,6 +40,7 @@ const statusConfig: Record<string, { label: string; class: string }> = {
   PENDING: { label: "En attente", class: "bg-yellow-500 text-white" },
   SHORTLISTED: { label: "Présélectionné", class: "bg-blue-500 text-white" },
   SELECTED: { label: "Sélectionné", class: "bg-orange-500 text-white" },
+  SELECTION_EXPIRED: { label: "Délai expiré", class: "bg-red-500 text-white" },
   CONFIRMED: { label: "Confirmé", class: "bg-primary text-white" },
   REFUSED: { label: "Refusé", class: "bg-muted text-foreground" },
   WITHDRAWN: { label: "Retiré", class: "bg-muted text-foreground" },
@@ -148,6 +150,29 @@ const ClientProposals = () => {
                       <p className="text-xs text-muted-foreground mb-1">Lettre de motivation</p>
                       <p className="text-sm line-clamp-4">{proposal.message}</p>
                     </div>
+
+                    {/* Expiry notice — visible when SELECTED */}
+                    {proposal.status === "SELECTED" && proposal.selection_expires_at && (
+                      <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-orange-50 border border-orange-200 text-sm text-orange-700">
+                        <Clock size={15} />
+                        <span>
+                          En attente de confirmation du prestataire jusqu'au{" "}
+                          <strong>
+                            {new Date(proposal.selection_expires_at).toLocaleDateString("fr-FR", {
+                              day: "2-digit", month: "long", year: "numeric",
+                            })}
+                          </strong>
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Expired notice */}
+                    {proposal.status === "SELECTION_EXPIRED" && (
+                      <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+                        <AlertTriangle size={15} />
+                        <span>Le prestataire n'a pas confirmé dans le délai imparti.</span>
+                      </div>
+                    )}
 
                     <div className="flex flex-wrap gap-2">
                       {proposal.status === "CONFIRMED" && (

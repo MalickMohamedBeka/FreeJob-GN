@@ -18,10 +18,11 @@ interface ProjectCard3DProps {
     proposalsCount: number;
   };
   index: number;
-  onApply: () => void;
+  onApply: (id: string) => void;
+  onView: (id: string) => void;
 }
 
-const ProjectCard3D = memo(({ project, index, onApply }: ProjectCard3DProps) => {
+const ProjectCard3D = memo(({ project, index, onApply, onView }: ProjectCard3DProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -44,9 +45,14 @@ const ProjectCard3D = memo(({ project, index, onApply }: ProjectCard3DProps) => 
       </div>
 
       {/* Title */}
-      <h3 className="text-lg font-bold mb-2 line-clamp-2 hover:text-primary transition-colors">
-        {project.title}
-      </h3>
+      <button
+        onClick={() => onView(project.id)}
+        className="text-left w-full"
+      >
+        <h3 className="text-lg font-bold mb-2 line-clamp-2 hover:text-primary transition-colors cursor-pointer">
+          {project.title}
+        </h3>
+      </button>
 
       <p className="text-muted-foreground text-sm mb-4 line-clamp-3 leading-relaxed">
         {project.description}
@@ -88,7 +94,7 @@ const ProjectCard3D = memo(({ project, index, onApply }: ProjectCard3DProps) => 
           </p>
         </div>
 
-        <Button size="sm" className="gap-1.5" onClick={onApply}>
+        <Button size="sm" className="gap-1.5" onClick={() => onApply(project.id)}>
           Postuler
           <ArrowRight size={14} />
         </Button>

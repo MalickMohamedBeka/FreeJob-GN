@@ -5,24 +5,56 @@ import { PageLoader } from '@/components/common';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: 'CLIENT' | 'PROVIDER';
+  requiredProviderKind?: 'FREELANCE' | 'AGENCY';
+  requireSuperuser?: boolean;
 }
 
-export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+function getDashboard(role?: string, providerKind?: string | null) {
+  if (role === 'CLIENT') return '/client/dashboard';
+  if (providerKind === 'AGENCY') return '/agency/dashboard';
+  return '/dashboard';
+}
+
+export default function ProtectedRoute({
+  children,
+  requiredRole,
+  requiredProviderKind,
+  requireSuperuser,
+}: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, user, profileInitialized } = useAuth();
 
   if (isLoading) return <PageLoader />;
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to={requireSuperuser ? '/admin' : '/login'} replace />;
 
-  if (requiredRole && user?.role !== requiredRole) {
-    const redirect = user?.role === 'CLIENT' ? '/client/dashboard' : '/dashboard';
-    return <Navigate to={redirect} replace />;
+  // Superuser-only routes — redirect non-superusers to their own dashboard
+  if (requireSuperuser && !user?.is_superuser) {
+    return <Navigate to={getDashboard(user?.role, user?.provider_kind)} replace />;
   }
 
-  // Freelancer profile check
-  if (user?.role === 'PROVIDER' && user?.provider_kind === 'FREELANCE') {
+  // Wrong role → send to their own dashboard
+  if (requiredRole && user?.role !== requiredRole) {
+    return <Navigate to={getDashboard(user?.role, user?.provider_kind)} replace />;
+  }
+
+  // Wrong provider kind (e.g. FREELANCE trying to access AGENCY routes)
+  if (requiredProviderKind && user?.provider_kind !== requiredProviderKind) {
+    return <Navigate to={getDashboard(user?.role, user?.provider_kind)} replace />;
+  }
+
+  // Profile check — redirect to onboarding if profile not yet created
+  if (user?.role === 'PROVIDER') {
     if (profileInitialized === null) return <PageLoader />;
-    if (profileInitialized === false) return <Navigate to="/onboarding" replace />;
+    if (profileInitialized === false) {
+      const onboarding = user.provider_kind === 'AGENCY' ? '/agency/onboarding' : '/onboarding';
+      return <Navigate to={onboarding} replace />;
+    }
+  }
+  if (user?.role === 'CLIENT') {
+    if (profileInitialized === null) return <PageLoader />;
+    if (profileInitialized === false) {
+      return <Navigate to="/client/onboarding" replace />;
+    }
   }
 
   return <>{children}</>;

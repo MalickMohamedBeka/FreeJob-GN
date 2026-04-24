@@ -46,8 +46,10 @@ import {
   ChevronDown,
   X,
   CreditCard,
+  Paperclip,
+  FileText,
 } from "lucide-react";
-import { useProjects } from "@/hooks/useProjects";
+import { useProjects, useProjectDocuments } from "@/hooks/useProjects";
 import { useCreateProposal } from "@/hooks/useProposals";
 import { useAllSkills, useAllSpecialities } from "@/hooks/useTaxonomy";
 import { useDebounce } from "@/hooks";
@@ -170,12 +172,18 @@ function SubmitProposalDialog({
 
           {error && (
             <div className={`rounded-lg p-3 text-sm ${
-              errorCode === 'active_subscription_required'
+              errorCode === 'active_subscription_required' || errorCode === 'proposal_quota_exhausted'
                 ? 'bg-primary/5 border border-primary/20'
                 : 'bg-destructive/5 border border-destructive/20'
             }`}>
-              <p className={errorCode === 'active_subscription_required' ? 'text-primary font-medium' : 'text-destructive'}>
-                {errorCode === 'monthly_credits_exhausted'
+              <p className={
+                errorCode === 'active_subscription_required' || errorCode === 'proposal_quota_exhausted'
+                  ? 'text-primary font-medium'
+                  : 'text-destructive'
+              }>
+                {errorCode === 'proposal_quota_exhausted'
+                  ? 'Quota de propositions atteint pour ce mois.'
+                  : errorCode === 'monthly_credits_exhausted'
                   ? 'Quota mensuel atteint — vos crédits du mois sont épuisés.'
                   : errorCode === 'annual_credits_exhausted'
                   ? 'Quota annuel atteint — vos crédits annuels sont épuisés.'
@@ -183,19 +191,19 @@ function SubmitProposalDialog({
                   ? 'Votre abonnement ne permet pas de crédits mensuels.'
                   : error}
               </p>
-              {errorCode === 'active_subscription_required' && (
+              {(errorCode === 'active_subscription_required' || errorCode === 'proposal_quota_exhausted') && (
                 <Link
-                  to={ROUTES.DASHBOARD.EARNINGS}
+                  to={ROUTES.DASHBOARD.SUBSCRIPTION}
                   className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary underline underline-offset-2"
                   onClick={() => handleOpenChange(false)}
                 >
                   <CreditCard size={12} />
-                  Souscrire un abonnement
+                  {errorCode === 'proposal_quota_exhausted' ? 'Améliorer mon abonnement' : 'Souscrire un abonnement'}
                 </Link>
               )}
               {(errorCode === 'monthly_credits_exhausted' || errorCode === 'annual_credits_exhausted') && (
                 <Link
-                  to={ROUTES.DASHBOARD.EARNINGS}
+                  to={ROUTES.DASHBOARD.SUBSCRIPTION}
                   className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground underline underline-offset-2"
                   onClick={() => handleOpenChange(false)}
                 >
@@ -219,6 +227,34 @@ function SubmitProposalDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ── Project Documents (read-only) ────────────────────────────────────────────
+
+function ProjectDocumentsList({ projectId }: { projectId: string }) {
+  const { data: docs } = useProjectDocuments(projectId);
+  if (!docs || docs.length === 0) return null;
+  return (
+    <div className="mt-3 pt-3 border-t border-border space-y-1.5">
+      <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+        <Paperclip size={12} />
+        Documents joints ({docs.length})
+      </p>
+      {docs.map((doc) => (
+        <a
+          key={doc.id}
+          href={doc.file}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+        >
+          <FileText size={12} className="flex-shrink-0" />
+          <span className="truncate">{doc.title}</span>
+          <span className="text-muted-foreground">({doc.doc_type_display})</span>
+        </a>
+      ))}
+    </div>
   );
 }
 
@@ -433,8 +469,13 @@ const FindProjects = () => {
                   <Card className="p-6 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <h3 className="text-xl font-semibold">{project.title}</h3>
-                        <p className="text-muted-foreground font-medium">{project.client.username}</p>
+                        <Link
+                          to={`/dashboard/find-projects/${project.id}`}
+                          className="text-xl font-semibold hover:text-primary transition-colors line-clamp-2"
+                        >
+                          {project.title}
+                        </Link>
+                        <p className="text-muted-foreground font-medium mt-0.5">{project.client.username}</p>
                       </div>
                     </div>
 
@@ -472,6 +513,8 @@ const FindProjects = () => {
                         <span>{project.category.name}</span>
                       </div>
                     </div>
+
+                    <ProjectDocumentsList projectId={project.id} />
 
                     <div className="flex items-center justify-between pt-4 border-t border-border">
                       <span className="text-sm text-muted-foreground">

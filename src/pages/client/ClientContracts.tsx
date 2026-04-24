@@ -22,9 +22,17 @@ import {
   CreditCard,
   Flag,
   ThumbsUp,
+  AlertTriangle,
+  RotateCcw,
+  Package,
+  CheckCheck,
+  Star,
 } from "lucide-react";
-import { useContracts, useContractSummary, useInitiatePayment, useRequestCompletion, useConfirmCompletion } from "@/hooks/useContracts";
+import { useContracts, useContractSummary, useInitiatePayment, useRequestCompletion, useConfirmCompletion, useRequestRevision, useDeliverables, useAcceptDeliverable, useRequestDeliverableRevision } from "@/hooks/useContracts";
+import { ApiError } from "@/services/api.service";
+import { useCreateReview } from "@/hooks/useRankings";
 import { useToast } from "@/hooks/use-toast";
+import { DisputeModal } from "@/components/contracts/DisputeModal";
 import type { ApiContractList } from "@/types";
 
 // ── Status config ─────────────────────────────────────────────────────────────
@@ -123,13 +131,13 @@ function PaymentDialog({
       },
       {
         onSuccess: (res) => {
-          if (res.data.transactionId) {
+          if (res.transactionId) {
             sessionStorage.setItem(
               PENDING_PAYMENT_KEY,
-              JSON.stringify({ transactionId: res.data.transactionId, contractId: contract.id })
+              JSON.stringify({ transactionId: res.transactionId, contractId: contract.id })
             );
           }
-          const redirectUrl = res.data.redirectUrl;
+          const redirectUrl = res.redirectUrl;
           if (!redirectUrl) {
             toast({
               title: "Erreur de paiement",
@@ -206,7 +214,69 @@ function ContractCard({
   onPay: (contract: ApiContractList) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [deliverableOpen, setDeliverableOpen] = useState(false);
+  const [disputeOpen, setDisputeOpen] = useState(false);
+  const [revisionOpen, setRevisionOpen] = useState(false);
+  const [revisionNote, setRevisionNote] = useState("");
+  const [delivRevisionId, setDelivRevisionId] = useState<string | null>(null);
+  const [delivRevisionNote, setDelivRevisionNote] = useState("");
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
   const { toast } = useToast();
+  const createReview = useCreateReview();
+
+  const { data: deliverables, isLoading: delivLoading } = useDeliverables(contract.id, deliverableOpen);
+  const acceptDeliverable = useAcceptDeliverable();
+  const requestDelivRevision = useRequestDeliverableRevision();
+
+  const handleAcceptDeliverable = (deliverableId: string) => {
+    acceptDeliverable.mutate(
+      { deliverableId, contractId: contract.id },
+      {
+        onSuccess: () => toast({ title: "Livrable accepté !" }),
+        onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Une erreur est survenue.", variant: "destructive" }),
+      }
+    );
+  };
+
+  const handleDelivRevision = () => {
+    if (!delivRevisionId) return;
+    requestDelivRevision.mutate(
+      { deliverableId: delivRevisionId, contractId: contract.id, revision_note: delivRevisionNote },
+      {
+        onSuccess: () => {
+          toast({ title: "Révision demandée", description: "Le prestataire a été notifié." });
+          setDelivRevisionId(null);
+          setDelivRevisionNote("");
+        },
+        onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Une erreur est survenue.", variant: "destructive" }),
+      }
+    );
+  };
+
+  const requestRevision = useRequestRevision();
+  const revisionsExhausted = contract.revisions_used >= contract.revisions_included;
+
+  const handleRequestRevision = () => {
+    requestRevision.mutate(
+      { contractId: contract.id, note: revisionNote.trim() },
+      {
+        onSuccess: () => {
+          toast({ title: "Révision demandée", description: "Le prestataire a été notifié." });
+          setRevisionNote("");
+          setRevisionOpen(false);
+        },
+        onError: (err) => {
+          toast({
+            title: "Erreur",
+            description: err instanceof Error ? err.message : "Une erreur est survenue.",
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  };
 
   // completion_requested_by is the user ID who signaled, or null if nobody has
   const requestedByClient = contract.completion_requested_by === contract.client.id;
@@ -228,9 +298,43 @@ function ContractCard({
 
   const handleConfirmCompletion = () => {
     confirmCompletion.mutate(contract.id, {
-      onSuccess: () => toast({ title: "Contrat terminé !", description: "Le contrat a été clôturé avec succès." }),
+      onSuccess: () => {
+        toast({ title: "Contrat terminé !", description: "Le contrat a été clôturé avec succès." });
+        setReviewOpen(true);
+      },
       onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Une erreur est survenue.", variant: "destructive" }),
     });
+  };
+
+  const handleSubmitReview = () => {
+    if (reviewRating === 0) return;
+    createReview.mutate(
+      { contract: contract.id, rating: reviewRating, comment: reviewComment.trim() || undefined },
+      {
+        onSuccess: () => {
+          toast({ title: "Avis publié !", description: "Merci pour votre évaluation." });
+          setReviewOpen(false);
+          setReviewRating(0);
+          setReviewComment("");
+        },
+        onError: (err) => {
+          let description = "Une erreur est survenue.";
+          if (err instanceof ApiError && err.data) {
+            const contractErrors = (err.data as Record<string, unknown>)?.contract;
+            if (Array.isArray(contractErrors) && contractErrors.length > 0) {
+              const first = contractErrors[0] as Record<string, string> | string;
+              const code = typeof first === "object" ? first.code : null;
+              if (code === "already_reviewed") description = "Vous avez déjà publié un avis pour ce contrat.";
+              else if (code === "not_completed") description = "Le contrat n'est pas encore terminé.";
+              else description = typeof first === "object" ? first.message : first;
+            }
+          } else if (err instanceof Error) {
+            description = err.message;
+          }
+          toast({ title: "Erreur", description, variant: "destructive" });
+        },
+      }
+    );
   };
 
   return (
@@ -250,7 +354,7 @@ function ContractCard({
           <Badge className={sc.class}>{sc.label}</Badge>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg text-sm mb-4">
+        <div className="grid md:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg text-sm mb-4">
           <div>
             <p className="text-muted-foreground mb-0.5">Montant Total</p>
             <p className="font-semibold">
@@ -267,11 +371,81 @@ function ContractCard({
               {new Date(contract.start_at).toLocaleDateString("fr-FR")}
             </p>
           </div>
+          <div>
+            <p className="text-muted-foreground mb-0.5">Révisions</p>
+            <p className={`font-semibold ${revisionsExhausted ? "text-destructive" : "text-foreground"}`}>
+              {contract.revisions_used} / {contract.revisions_included}
+            </p>
+          </div>
         </div>
 
         {isExpanded && (
           <div className="border-t border-border pt-3 mb-4">
             <ContractSummarySection contractId={contract.id} />
+          </div>
+        )}
+
+        {deliverableOpen && (
+          <div className="border-t border-border pt-3 mb-4">
+            <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Package size={14} /> Livrables
+            </p>
+            {delivLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                <Loader2 size={14} className="animate-spin" /> Chargement…
+              </div>
+            ) : !deliverables?.length ? (
+              <p className="text-sm text-muted-foreground py-2">Aucun livrable soumis pour l'instant.</p>
+            ) : (
+              <div className="space-y-3">
+                {deliverables.map((d) => (
+                  <div key={d.id} className="p-3 rounded-lg border border-border bg-muted/30 text-sm">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div>
+                        <p className="font-medium">{d.description || "Sans description"}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {new Date(d.created_at).toLocaleDateString("fr-FR")}
+                          {d.revision_count > 0 && ` — ${d.revision_count} révision(s)`}
+                        </p>
+                      </div>
+                      <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${
+                        d.status === "ACCEPTED" ? "bg-primary/10 text-primary" :
+                        d.status === "REVISION_REQUESTED" ? "bg-orange-100 text-orange-700" :
+                        "bg-secondary/10 text-secondary"
+                      }`}>
+                        {d.status_display}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <a href={d.file} target="_blank" rel="noopener noreferrer"
+                        className="text-xs text-primary hover:underline">
+                        Télécharger le fichier
+                      </a>
+                      {d.status === "SUBMITTED" && (
+                        <>
+                          <Button size="sm" variant="outline"
+                            className="h-7 text-xs gap-1 border-primary text-primary hover:bg-primary hover:text-white"
+                            onClick={() => handleAcceptDeliverable(d.id)}
+                            disabled={acceptDeliverable.isPending}
+                          >
+                            <CheckCheck size={12} /> Accepter
+                          </Button>
+                          <Button size="sm" variant="outline"
+                            className="h-7 text-xs gap-1"
+                            onClick={() => { setDelivRevisionId(d.id); setDelivRevisionNote(""); }}
+                          >
+                            <RotateCcw size={12} /> Révision
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                    {d.revision_note && (
+                      <p className="text-xs text-muted-foreground mt-2 italic">Note : {d.revision_note}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -319,6 +493,42 @@ function ContractCard({
             </Button>
           )}
 
+          {contract.status === "IN_PROGRESS" && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2"
+              onClick={() => setRevisionOpen(true)}
+              disabled={revisionsExhausted}
+              title={revisionsExhausted ? "Quota de révisions épuisé" : undefined}
+            >
+              <RotateCcw size={14} />
+              {revisionsExhausted ? "Révisions épuisées" : "Demander une révision"}
+            </Button>
+          )}
+
+          {(contract.status === "IN_PROGRESS" || contract.status === "ON_HOLD") && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2 border-destructive/50 text-destructive hover:bg-destructive hover:text-white"
+              onClick={() => setDisputeOpen(true)}
+            >
+              <AlertTriangle size={14} />
+              {contract.status === "ON_HOLD" ? "Litige en cours" : "Ouvrir un litige"}
+            </Button>
+          )}
+
+          <Button
+            size="sm"
+            variant="ghost"
+            className="gap-1.5 text-muted-foreground"
+            onClick={() => setDeliverableOpen((v) => !v)}
+          >
+            <Package size={14} />
+            {deliverableOpen ? "Masquer livrables" : "Voir livrables"}
+          </Button>
+
           <Button
             size="sm"
             variant="ghost"
@@ -330,6 +540,152 @@ function ContractCard({
           </Button>
         </div>
       </Card>
+
+      {/* Deliverable Revision Dialog */}
+      <Dialog open={!!delivRevisionId} onOpenChange={(v) => !v && setDelivRevisionId(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RotateCcw size={16} /> Demander une révision du livrable
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-2">
+            <label className="block text-sm font-semibold mb-2">Note de révision</label>
+            <textarea
+              value={delivRevisionNote}
+              onChange={(e) => setDelivRevisionNote(e.target.value)}
+              placeholder="Décrivez les modifications à apporter…"
+              rows={3}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors resize-none text-sm"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDelivRevisionId(null)} disabled={requestDelivRevision.isPending}>
+              Annuler
+            </Button>
+            <Button onClick={handleDelivRevision} disabled={requestDelivRevision.isPending} className="gap-2">
+              {requestDelivRevision.isPending ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
+              Confirmer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Revision Dialog */}
+      <Dialog open={revisionOpen} onOpenChange={(v) => !v && setRevisionOpen(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RotateCcw size={16} />
+              Demander une révision
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
+              Révisions utilisées : <span className="font-semibold text-foreground">{contract.revisions_used} / {contract.revisions_included}</span>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2">Note pour le prestataire</label>
+              <textarea
+                value={revisionNote}
+                onChange={(e) => setRevisionNote(e.target.value)}
+                placeholder="Décrivez ce qui doit être modifié…"
+                rows={3}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors resize-none text-sm"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRevisionOpen(false)} disabled={requestRevision.isPending}>
+              Annuler
+            </Button>
+            <Button onClick={handleRequestRevision} disabled={requestRevision.isPending} className="gap-2">
+              {requestRevision.isPending ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
+              Confirmer la révision
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <DisputeModal
+        contractId={contract.id}
+        contractTitle={contract.project.title}
+        open={disputeOpen}
+        onClose={() => setDisputeOpen(false)}
+      />
+
+      {/* Review Dialog */}
+      <Dialog
+        open={reviewOpen}
+        onOpenChange={(v) => {
+          if (!v) { setReviewOpen(false); setReviewRating(0); setReviewComment(""); }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Star size={16} className="text-yellow-500" />
+              Noter le prestataire
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              Comment s'est passée votre collaboration avec{" "}
+              <span className="font-semibold text-foreground">{contract.provider.username}</span> ?
+            </p>
+
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium">Note *</p>
+              <div className="flex gap-1.5">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setReviewRating(n)}
+                    className="focus:outline-none transition-transform hover:scale-110"
+                  >
+                    <Star
+                      size={28}
+                      className={n <= reviewRating ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground"}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">
+                Commentaire{" "}
+                <span className="text-muted-foreground text-xs">(optionnel)</span>
+              </label>
+              <textarea
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                placeholder="Décrivez votre expérience…"
+                rows={3}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors resize-none text-sm"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => { setReviewOpen(false); setReviewRating(0); setReviewComment(""); }}
+              disabled={createReview.isPending}
+            >
+              Passer
+            </Button>
+            <Button
+              onClick={handleSubmitReview}
+              disabled={reviewRating === 0 || createReview.isPending}
+              className="gap-2"
+            >
+              {createReview.isPending ? <Loader2 size={14} className="animate-spin" /> : <Star size={14} />}
+              Publier l'avis
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }

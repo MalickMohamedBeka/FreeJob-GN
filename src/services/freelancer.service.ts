@@ -4,7 +4,7 @@
  */
 
 import { apiService } from './api.service';
-import type { ApiFreelancerProfile, DjangoPaginatedResponse } from '@/types';
+import type { ApiFreelancerProfile, ApiProviderDiscovery, DjangoPaginatedResponse } from '@/types';
 
 interface FreelancerFilters {
   city?: string;
@@ -12,6 +12,10 @@ interface FreelancerFilters {
   skill_id?: number;
   speciality_id?: number;
   page?: number;
+  page_size?: number;
+  available?: boolean;
+  min_stars?: number;
+  provider_kind?: 'FREELANCE' | 'AGENCY';
 }
 
 class FreelancerService {
@@ -22,11 +26,32 @@ class FreelancerService {
     if (filters?.skill_id) params.skill_id = String(filters.skill_id);
     if (filters?.speciality_id) params.speciality_id = String(filters.speciality_id);
     if (filters?.page) params.page = String(filters.page);
+    if (filters?.available) params.available = 'true';
     return apiService.get<DjangoPaginatedResponse<ApiFreelancerProfile>>('/users/freelancers/', params);
   }
 
+  async getProviders(filters?: FreelancerFilters): Promise<DjangoPaginatedResponse<ApiProviderDiscovery>> {
+    const params: Record<string, string> = {};
+    if (filters?.city) params.city = filters.city;
+    if (filters?.country) params.country = filters.country;
+    if (filters?.skill_id) params.skill_id = String(filters.skill_id);
+    if (filters?.speciality_id) params.speciality_id = String(filters.speciality_id);
+    if (filters?.page) params.page = String(filters.page);
+    if (filters?.page_size) params.page_size = String(filters.page_size);
+    if (filters?.available) params.available = 'true';
+    if (filters?.min_stars !== undefined) params.min_stars = String(filters.min_stars);
+    if (filters?.provider_kind) params.provider_kind = filters.provider_kind;
+    return apiService.getPublic<DjangoPaginatedResponse<ApiProviderDiscovery>>('/users/providers/', params);
+  }
+
+  async getPublicProviders(page_size = 4): Promise<DjangoPaginatedResponse<ApiProviderDiscovery>> {
+    return apiService.getPublic<DjangoPaginatedResponse<ApiProviderDiscovery>>('/users/providers/', {
+      page_size: String(page_size),
+    });
+  }
+
   async getFreelancerById(id: number): Promise<ApiFreelancerProfile> {
-    return apiService.get<ApiFreelancerProfile>(`/users/freelancers/${id}/`);
+    return apiService.getPublic<ApiFreelancerProfile>(`/users/freelancers/${id}/`);
   }
 }
 

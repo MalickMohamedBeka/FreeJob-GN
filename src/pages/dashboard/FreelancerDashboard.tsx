@@ -9,6 +9,7 @@ import AvailableJobs from "@/components/dashboard/freelancer/AvailableJobs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProviderRank } from "@/hooks/useRankings";
 import { useFreelanceProfile } from "@/hooks/useProfile";
+import { useMyAgencyProfile } from "@/hooks/useAgency";
 import { Card } from "@/components/ui/card";
 import { Trophy, Star, Hash } from "lucide-react";
 
@@ -29,8 +30,13 @@ const TIER_COLORS: Record<string, string> = {
 const FreelancerDashboard = () => {
   const { user } = useAuth();
   const userName = user?.username || "Freelancer";
-  const { data: rank } = useProviderRank(user?.id);
-  const { data: profile } = useFreelanceProfile();
+  const isAgency = user?.provider_kind === 'AGENCY';
+
+  const { data: freelanceProfile } = useFreelanceProfile({ enabled: !isAgency });
+  const { data: agencyProfile } = useMyAgencyProfile({ enabled: isAgency });
+
+  const profile = isAgency ? agencyProfile : freelanceProfile;
+  const { data: rank } = useProviderRank(profile?.id);
 
   const initials = userName.slice(0, 2).toUpperCase();
 

@@ -65,6 +65,12 @@ function PodiumCard({
   const ordinals = ["1er", "2ème", "3ème"];
   const heightClass = large ? "pt-10" : "pt-4";
 
+  const profileUrl = rank.provider_profile_id
+    ? rank.provider_kind === "AGENCY"
+      ? ROUTES.AGENCY_PROFILE.replace(":id", String(rank.provider_profile_id))
+      : ROUTES.FREELANCER_PROFILE.replace(":id", String(rank.provider_profile_id))
+    : "#";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -73,13 +79,17 @@ function PodiumCard({
       className={`flex flex-col items-center ${heightClass}`}
     >
       <Link
-        to={ROUTES.FREELANCER_PROFILE.replace(":id", String(rank.provider_id))}
+        to={profileUrl}
         className="flex flex-col items-center gap-2 group"
       >
         <div
-          className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${colors[position - 1]} flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:scale-105 transition-transform`}
+          className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${colors[position - 1]} flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:scale-105 transition-transform overflow-hidden`}
         >
-          {getInitials(rank.provider_username)}
+          {rank.profile_picture ? (
+            <img src={rank.profile_picture} alt={rank.provider_username} className="w-full h-full object-cover" />
+          ) : (
+            getInitials(rank.provider_username)
+          )}
           <span className="absolute -top-3 -right-2 text-xl leading-none">
             {medalIcons[position - 1]}
           </span>
@@ -115,12 +125,17 @@ function PodiumCard({
 function RankingRow({ rank, index }: { rank: ApiProviderRank; index: number }) {
   const tierClass = TIER_COLORS[rank.tier] ?? TIER_COLORS.FREE;
   const tierLabel = TIER_LABELS[rank.tier] ?? rank.tier;
+  const profileUrl = rank.provider_profile_id
+    ? rank.provider_kind === "AGENCY"
+      ? ROUTES.AGENCY_PROFILE.replace(":id", String(rank.provider_profile_id))
+      : ROUTES.FREELANCER_PROFILE.replace(":id", String(rank.provider_profile_id))
+    : "#";
 
   return (
     <motion.tr
       initial={{ opacity: 0, x: -12 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.04 }}
+      transition={{ duration: 0.25, delay: Math.min(index * 0.02, 0.3) }}
       className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
     >
       {/* Position */}
@@ -131,11 +146,15 @@ function RankingRow({ rank, index }: { rank: ApiProviderRank; index: number }) {
       {/* Avatar + name */}
       <td className="py-4 pr-4">
         <Link
-          to={ROUTES.FREELANCER_PROFILE.replace(":id", String(rank.provider_id))}
+          to={profileUrl}
           className="flex items-center gap-3 group"
         >
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary text-sm flex-shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
-            {getInitials(rank.provider_username)}
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary text-sm flex-shrink-0 group-hover:bg-primary group-hover:text-white transition-colors overflow-hidden">
+            {rank.profile_picture ? (
+              <img src={rank.profile_picture} alt={rank.provider_username} className="w-full h-full object-cover" />
+            ) : (
+              getInitials(rank.provider_username)
+            )}
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold group-hover:text-primary transition-colors truncate">

@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const navLinks = [
   { label: "Accueil", path: "/" },
   { label: "Freelancers", path: "/freelancers" },
+  { label: "Agences", path: "/agencies" },
   { label: "Classement", path: "/classement" },
   { label: "Projets", path: "/projects" },
   { label: "Comment ça marche", path: "/comment-ca-marche" },
@@ -62,7 +63,7 @@ const Navbar = () => {
       >
         <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.svg" alt="FreeJobGN" className="h-8 w-auto object-contain" />
+            <img src="/logo.svg" alt="FreeJobGN" className="h-14 w-auto object-contain" />
           </Link>
 
           {/* Desktop Nav */}
@@ -130,7 +131,7 @@ const Navbar = () => {
             {/* Header */}
             <div className="flex items-center justify-between px-5 h-16 border-b border-border flex-shrink-0">
               <Link to="/" onClick={close} className="flex items-center">
-                <img src="/logo.svg" alt="FreeJobGN" className="h-8 w-auto object-contain" />
+                <img src="/logo.svg" alt="FreeJobGN" className="h-14 w-auto object-contain" />
               </Link>
               <button
                 onClick={close}

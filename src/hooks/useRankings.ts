@@ -6,6 +6,8 @@ import type {
   ApiProviderRankHistory,
   ApiProviderReview,
   ApiProviderReviewCreateRequest,
+  ApiClientReview,
+  ApiClientReviewCreateRequest,
   ApiPortfolioResponse,
 } from '@/types';
 
@@ -88,6 +90,33 @@ export function useReviewDetail(reviewId: number | undefined) {
       apiService.getPublic<ApiProviderReview>(`/rankings/reviews/${reviewId}/`),
     enabled: !!reviewId,
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useClientReviews(clientId?: number) {
+  const params: Record<string, string> = {};
+  if (clientId) params.client = String(clientId);
+
+  return useQuery({
+    queryKey: ['client-reviews', clientId],
+    queryFn: () =>
+      apiService.getPublic<DjangoPaginatedResponse<ApiClientReview>>(
+        '/rankings/client-reviews/',
+        params,
+      ),
+    enabled: !!clientId,
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useCreateClientReview() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: ApiClientReviewCreateRequest) =>
+      apiService.post<ApiClientReview>('/rankings/client-reviews/', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-reviews'] });
+    },
   });
 }
 

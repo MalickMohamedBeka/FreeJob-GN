@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { apiService, ApiError } from '@/services/api.service';
 import type { ApiUser, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from '@/types';
 
@@ -16,11 +17,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-function isFreelanceProvider(user: ApiUser | null): boolean {
-  return user?.role === 'PROVIDER' && user?.provider_kind === 'FREELANCE';
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<ApiUser | null>(() => {
     const stored = localStorage.getItem('user');
     return stored ? JSON.parse(stored) : null;
@@ -29,18 +27,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profileInitialized, setProfileInitialized] = useState<boolean | null>(null);
 
   const checkProfileStatus = useCallback(async (u: ApiUser) => {
-    if (!isFreelanceProvider(u)) {
+    if (u.role === 'CLIENT') {
+      try {
+        const res = await apiService.get<{ client_profile: unknown | null }>(
+          '/users/client/profile/',
+        );
+        setProfileInitialized(res?.client_profile != null);
+      } catch {
+        setProfileInitialized(true);
+      }
+      return;
+    }
+    if (u.role !== 'PROVIDER') {
       setProfileInitialized(true);
       return;
     }
+    const endpoint =
+      u.provider_kind === 'AGENCY' ? '/users/agency/profile/' : '/users/freelance/profile/';
     try {
-      await apiService.get('/users/freelance/profile/');
+      await apiService.get(endpoint);
       setProfileInitialized(true);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setProfileInitialized(false);
       } else {
-        // Fail-open: don't block on unexpected errors
         setProfileInitialized(true);
       }
     }
@@ -103,11 +113,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (credentials: LoginRequest) => {
+    queryClient.clear();
     const res = await apiService.postPublic<LoginResponse>('/users/login/', credentials);
     localStorage.setItem('access_token', res.access);
     localStorage.setItem('user', JSON.stringify(res.user));
     setUser(res.user);
-  }, []);
+  }, [queryClient]);
 
   const register = useCallback(async (data: RegisterRequest) => {
     return apiService.postPublic<RegisterResponse>('/users/register/', data);
@@ -121,9 +132,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     localStorage.removeItem('access_token');
     localStorage.removeItem('user');
+    queryClient.clear();
     setUser(null);
     setProfileInitialized(null);
-  }, []);
+  }, [queryClient]);
 
   return (
     <AuthContext.Provider

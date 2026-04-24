@@ -30,7 +30,8 @@ export function useWalletTransactions(page = 1) {
     queryKey: KEYS.transactions(page),
     queryFn: () =>
       apiService.get<DjangoPaginatedResponse<ApiWalletTransaction>>(
-        `/wallet/transactions/${page > 1 ? `?page=${page}` : ''}`,
+        '/wallet/transactions/',
+        page > 1 ? { page: String(page) } : undefined,
       ),
     staleTime: 30_000,
   });

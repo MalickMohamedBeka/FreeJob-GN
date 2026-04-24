@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
-import { Bell, Search, Menu, Briefcase, FileText, MessageSquare, FileCheck, Compass, Wallet as WalletIcon, Star, Crown } from "lucide-react";
+import { Bell, Search, Menu, Briefcase, FileText, MessageSquare, FileCheck, Compass, Wallet as WalletIcon, Star, Crown, Building2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFreelanceProfile, useClientProfile } from "@/hooks/useProfile";
+import { useMyAgencyProfile } from "@/hooks/useAgency";
 import { useUnreadCount } from "@/hooks/useNotifications";
 import { useMySubscription } from "@/hooks/useSubscriptions";
 import { useProviderRank } from "@/hooks/useRankings";
@@ -13,7 +14,7 @@ import {
 } from "@/components/ui/tooltip";
 
 interface DashboardHeaderProps {
-  userType: "freelancer" | "client";
+  userType: "freelancer" | "client" | "agency";
   onMenuToggle: () => void;
 }
 
@@ -165,6 +166,54 @@ function FreelancerHeaderSection({ username }: { username: string }) {
   );
 }
 
+// ── Agency header section ──────────────────────────────────────────────────────
+
+function AgencyHeaderSection({ username }: { username: string }) {
+  const location = useLocation();
+  const { data: profile } = useMyAgencyProfile();
+  const { data: subscription } = useMySubscription();
+  const tier = subscription?.is_active ? subscription.plan.tier : "FREE";
+
+  const shortcuts = [
+    { to: "/agency/find-projects", icon: Compass,      label: "Trouver des projets" },
+    { to: "/agency/projects",      icon: Briefcase,    label: "Mes Projets" },
+    { to: "/agency/proposals",     icon: FileText,     label: "Propositions" },
+    { to: "/agency/messages",      icon: MessageSquare,label: "Messages" },
+    { to: "/agency/wallet",        icon: WalletIcon,   label: "Portefeuille" },
+  ];
+
+  return (
+    <>
+      <div className="flex items-center gap-0.5">
+        {shortcuts.map((s) => (
+          <NavIcon
+            key={s.to}
+            to={s.to}
+            icon={s.icon}
+            label={s.label}
+            active={location.pathname === s.to}
+          />
+        ))}
+      </div>
+
+      <div className="w-px h-5 bg-border mx-1" />
+
+      <div className="hidden lg:flex items-center gap-2.5">
+        <div className="text-right">
+          <div className="flex items-center justify-end gap-1.5 mb-0.5">
+            <Building2 size={12} className="text-secondary" />
+            <TierBadge tier={tier} />
+          </div>
+          <p className="text-sm font-semibold leading-tight">{username}</p>
+        </div>
+        <Link to="/dashboard/profile">
+          <AvatarDisplay src={profile?.profile_picture} username={username} />
+        </Link>
+      </div>
+    </>
+  );
+}
+
 // ── Client header section ──────────────────────────────────────────────────────
 
 function ClientHeaderSection({ username }: { username: string }) {
@@ -216,7 +265,11 @@ const DashboardHeader = ({ userType, onMenuToggle }: DashboardHeaderProps) => {
   const username = user?.username || "Utilisateur";
   const unreadCount = useUnreadCount();
   const notifPath =
-    userType === "client" ? "/client/notifications" : "/dashboard/notifications";
+    userType === "client"
+      ? "/client/notifications"
+      : userType === "agency"
+      ? "/agency/notifications"
+      : "/dashboard/notifications";
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-border">
@@ -244,7 +297,9 @@ const DashboardHeader = ({ userType, onMenuToggle }: DashboardHeaderProps) => {
 
         {/* Right actions */}
         <div className="flex items-center gap-1 ml-auto">
-          {userType === "freelancer" ? (
+          {userType === "agency" ? (
+            <AgencyHeaderSection username={username} />
+          ) : userType === "freelancer" ? (
             <FreelancerHeaderSection username={username} />
           ) : (
             <ClientHeaderSection username={username} />

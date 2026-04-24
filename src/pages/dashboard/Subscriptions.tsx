@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +31,7 @@ import {
   CheckCircle2,
   CreditCard,
   TrendingUp,
+  KeyRound,
 } from "lucide-react";
 import {
   useSubscriptionPlans,
@@ -36,11 +39,18 @@ import {
   useSubscriptionUsage,
   useSubscriptionPayments,
   useSubscribe,
+  useChangePlan,
+  useMonthlyUsage,
   useCancelSubscription,
 } from "@/hooks/useSubscriptions";
 import { useToast } from "@/hooks/use-toast";
 import { ApiError } from "@/services/api.service";
+import { useCheckTransactionStatus, useConfirmOTP } from "@/hooks/useContracts";
 import type { ApiSubscriptionPlan } from "@/types";
+
+const PENDING_SUBSCRIPTION_KEY = "pending_subscription";
+
+type SubscriptionPaymentReturnStatus = "checking" | "otp" | "success" | "failed" | "cancelled";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -140,11 +150,13 @@ function PlanCard({
   isCurrent,
   hasActiveSubscription,
   onSubscribe,
+  onChangePlan,
 }: {
   plan: ApiSubscriptionPlan;
   isCurrent: boolean;
   hasActiveSubscription: boolean;
   onSubscribe: (plan: ApiSubscriptionPlan) => void;
+  onChangePlan: (plan: ApiSubscriptionPlan) => void;
 }) {
   const contactLimit = getContactLimit(plan);
   const price = parseFloat(plan.price);
@@ -226,9 +238,13 @@ function PlanCard({
               Plan actuel
             </div>
           ) : hasActiveSubscription ? (
-            <div className="w-full py-3 rounded-full bg-muted/60 text-center text-sm text-muted-foreground font-medium cursor-not-allowed border border-border">
-              Abonnement actif
-            </div>
+            <Button
+              variant="outline"
+              className="w-full rounded-full"
+              onClick={() => onChangePlan(plan)}
+            >
+              Changer de plan
+            </Button>
           ) : (
             <Button
               variant="cta"
@@ -385,11 +401,13 @@ function TableCell({
 function ComparisonTable({
   plans,
   onSubscribe,
+  onChangePlan,
   currentPlanId,
   hasActiveSubscription,
 }: {
   plans: ApiSubscriptionPlan[];
   onSubscribe: (plan: ApiSubscriptionPlan) => void;
+  onChangePlan: (plan: ApiSubscriptionPlan) => void;
   currentPlanId?: number;
   hasActiveSubscription: boolean;
 }) {
@@ -476,9 +494,14 @@ function ComparisonTable({
                     Plan actuel
                   </span>
                 ) : hasActiveSubscription ? (
-                  <span className="text-xs text-muted-foreground font-medium">
-                    Abonnement actif
-                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full px-6"
+                    onClick={() => onChangePlan(plan)}
+                  >
+                    Changer de plan
+                  </Button>
                 ) : (
                   <div className="flex flex-col items-center gap-1.5">
                     <Button
@@ -644,6 +667,12 @@ function HistoriqueSection({
                   />
                 </div>
               )}
+              {usage.client_contacts_used > 0 && (
+                <p className="text-xs text-muted-foreground pt-1.5 border-t border-border">
+                  Contacts clients utilisés :{" "}
+                  <span className="font-semibold text-foreground">{usage.client_contacts_used}</span>
+                </p>
+              )}
             </div>
           ))}
         </div>
@@ -689,14 +718,26 @@ function SubscribeDialog({
         payer_number: phone.trim(),
         country_code: "GN",
         return_url: `${origin}/dashboard/subscription`,
+        cancel_url: `${origin}/dashboard/subscription?payment=cancelled`,
       },
       {
         onSuccess: (response) => {
-          if (response?.redirect_url) {
-            window.location.href = response.redirect_url;
-            toast({ title: "Abonnement initié." });
-            handleClose();
+          if (!response?.redirect_url) {
+            toast({
+              title: "Erreur de paiement",
+              description: "URL de redirection manquante. Contactez le support.",
+              variant: "destructive",
+            });
+            return;
           }
+          if (response.transaction_id) {
+            sessionStorage.setItem(
+              PENDING_SUBSCRIPTION_KEY,
+              JSON.stringify({ transactionId: response.transaction_id, planId: plan.id }),
+            );
+          }
+          handleClose();
+          window.location.href = response.redirect_url;
         },
         onError: (err) => {
           toast({
@@ -765,6 +806,285 @@ function SubscribeDialog({
   );
 }
 
+// ── Change Plan Dialog ─────────────────────────────────────────────────────────
+
+function ChangePlanDialog({
+  plan,
+  open,
+  onClose,
+}: {
+  plan: ApiSubscriptionPlan | null;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const [phone, setPhone] = useState("");
+  const { toast } = useToast();
+  const changePlan = useChangePlan();
+
+  const handleClose = () => {
+    setPhone("");
+    onClose();
+  };
+
+  const handleSubmit = () => {
+    if (!plan) return;
+    if (!phone.trim()) {
+      toast({ title: "Numéro requis", description: "Saisissez votre numéro Mobile Money.", variant: "destructive" });
+      return;
+    }
+    const origin = import.meta.env.VITE_APP_URL || window.location.origin;
+    changePlan.mutate(
+      {
+        plan_id: plan.id,
+        payer_number: phone.trim(),
+        country_code: "GN",
+        return_url: `${origin}/dashboard/subscription`,
+        cancel_url: `${origin}/dashboard/subscription?payment=cancelled`,
+      },
+      {
+        onSuccess: (response) => {
+          if (!response?.redirect_url) {
+            toast({
+              title: "Erreur de paiement",
+              description: "URL de redirection manquante. Contactez le support.",
+              variant: "destructive",
+            });
+            return;
+          }
+          if (response.transaction_id) {
+            sessionStorage.setItem(
+              PENDING_SUBSCRIPTION_KEY,
+              JSON.stringify({ transactionId: response.transaction_id, planId: plan.id }),
+            );
+          }
+          handleClose();
+          window.location.href = response.redirect_url;
+        },
+        onError: (err) => {
+          toast({
+            title: "Erreur",
+            description: err instanceof ApiError ? err.message : "Une erreur est survenue.",
+            variant: "destructive",
+          });
+        },
+      },
+    );
+  };
+
+  if (!plan) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Changer de plan — {plan.name}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <p className="text-sm text-muted-foreground">
+            Votre abonnement actuel sera annulé et un nouveau sera initié. Vous conserverez l'accès jusqu'à confirmation du paiement.
+          </p>
+          <div className="p-4 bg-primary/5 rounded-xl border border-primary/15 text-center">
+            <p className="text-2xl font-extrabold text-cta">
+              {parseFloat(plan.price).toLocaleString("fr-FR")} {plan.currency}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {plan.is_annual ? "par an (360 jours)" : "par mois (30 jours)"}
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Numéro de téléphone (Mobile Money)</label>
+            <Input
+              placeholder="ex: 620000000"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              disabled={changePlan.isPending}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose} disabled={changePlan.isPending}>
+            Annuler
+          </Button>
+          <Button variant="cta" onClick={handleSubmit} disabled={changePlan.isPending}>
+            {changePlan.isPending && <Loader2 size={15} className="animate-spin mr-1.5" />}
+            Confirmer
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ── Subscription Return Banner ─────────────────────────────────────────────────
+
+function SubscriptionReturnBanner({
+  status,
+  transactionId,
+  onDismiss,
+}: {
+  status: SubscriptionPaymentReturnStatus;
+  transactionId: string | null;
+  onDismiss: () => void;
+}) {
+  const [otp, setOtp] = useState("");
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const { toast } = useToast();
+  const confirmOtp = useConfirmOTP();
+
+  const handleOtpConfirm = () => {
+    if (!transactionId || otp.length < 4) return;
+    confirmOtp.mutate(
+      { transactionReference: transactionId, data: { one_time_pin: otp } },
+      {
+        onSuccess: () => {
+          setShowOtpInput(false);
+          setOtp("");
+          toast({ title: "OTP confirmé", description: "Vérification en cours…" });
+        },
+        onError: (err) => {
+          toast({
+            title: "OTP incorrect",
+            description: err instanceof Error ? err.message : "Code invalide.",
+            variant: "destructive",
+          });
+        },
+      },
+    );
+  };
+
+  if (status === "checking") {
+    return (
+      <Card className="p-4 border-primary/20 bg-primary/5">
+        <div className="flex items-center gap-3">
+          <Loader2 size={18} className="animate-spin text-primary flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium">Vérification de votre paiement en cours…</p>
+            <p className="text-xs text-muted-foreground">
+              Nous confirmons l'activation de votre abonnement. Merci de patienter.
+            </p>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  if (status === "otp") {
+    return (
+      <Card className="p-4 border-primary/20 bg-primary/5">
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <KeyRound size={18} className="text-primary flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium">Confirmation OTP requise</p>
+              <p className="text-xs text-muted-foreground">
+                Saisissez le code reçu par SMS pour valider le paiement.
+              </p>
+            </div>
+          </div>
+          {showOtpInput ? (
+            <div className="flex items-center gap-2 flex-wrap">
+              <Input
+                placeholder="Code OTP"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                className="w-32 text-center font-mono tracking-widest"
+                autoFocus
+              />
+              <Button
+                size="sm"
+                onClick={handleOtpConfirm}
+                disabled={confirmOtp.isPending || otp.length < 4}
+              >
+                {confirmOtp.isPending && <Loader2 size={13} className="animate-spin mr-1" />}
+                Confirmer
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => { setShowOtpInput(false); setOtp(""); }}
+                disabled={confirmOtp.isPending}
+              >
+                Annuler
+              </Button>
+            </div>
+          ) : (
+            <Button size="sm" onClick={() => setShowOtpInput(true)}>
+              <KeyRound size={13} className="mr-1.5" />
+              Saisir l'OTP
+            </Button>
+          )}
+        </div>
+      </Card>
+    );
+  }
+
+  if (status === "success") {
+    return (
+      <Card className="p-4 border-green-200 bg-green-50">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 size={18} className="text-green-600 flex-shrink-0" />
+            <p className="text-sm font-medium text-green-700">
+              Abonnement activé avec succès !
+            </p>
+          </div>
+          <button
+            onClick={onDismiss}
+            className="text-green-600 hover:text-green-800 text-xs underline"
+          >
+            Fermer
+          </button>
+        </div>
+      </Card>
+    );
+  }
+
+  if (status === "failed") {
+    return (
+      <Card className="p-4 border-red-200 bg-red-50">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <XCircle size={18} className="text-red-600 flex-shrink-0" />
+            <p className="text-sm font-medium text-red-700">
+              Paiement échoué. Veuillez réessayer.
+            </p>
+          </div>
+          <button
+            onClick={onDismiss}
+            className="text-red-600 hover:text-red-800 text-xs underline"
+          >
+            Fermer
+          </button>
+        </div>
+      </Card>
+    );
+  }
+
+  if (status === "cancelled") {
+    return (
+      <Card className="p-4 border-orange-200 bg-orange-50">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <XCircle size={18} className="text-orange-600 flex-shrink-0" />
+            <p className="text-sm font-medium text-orange-700">
+              Paiement annulé. Votre abonnement n'a pas été modifié.
+            </p>
+          </div>
+          <button
+            onClick={onDismiss}
+            className="text-orange-600 hover:text-orange-800 text-xs underline"
+          >
+            Fermer
+          </button>
+        </div>
+      </Card>
+    );
+  }
+
+  return null;
+}
+
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
 const Subscription = () => {
@@ -777,8 +1097,11 @@ const Subscription = () => {
   const { data: usageData, isLoading: usageLoading } = useSubscriptionUsage();
   const { data: paymentsData, isLoading: paymentsLoading } =
     useSubscriptionPayments();
+  const { data: monthlyUsageData } = useMonthlyUsage();
   const cancelSub = useCancelSubscription();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
 
   const [billingMode, setBillingMode] = useState<"monthly" | "annual">(
     "monthly",
@@ -787,7 +1110,61 @@ const Subscription = () => {
   const [selectedPlan, setSelectedPlan] = useState<ApiSubscriptionPlan | null>(
     null,
   );
+  const [changePlanTarget, setChangePlanTarget] = useState<ApiSubscriptionPlan | null>(null);
   const [showCancel, setShowCancel] = useState(false);
+  const [pendingTxId, setPendingTxId] = useState<string | null>(null);
+  const [returnStatus, setReturnStatus] = useState<SubscriptionPaymentReturnStatus | null>(null);
+
+  // On mount: check if we're returning from Djombi after a subscription payment
+  useEffect(() => {
+    if (searchParams.get("payment") === "cancelled") {
+      setReturnStatus("cancelled");
+      return;
+    }
+    const raw = sessionStorage.getItem(PENDING_SUBSCRIPTION_KEY);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed.transactionId) {
+          setPendingTxId(parsed.transactionId);
+          setReturnStatus("checking");
+          return;
+        }
+      } catch {
+        sessionStorage.removeItem(PENDING_SUBSCRIPTION_KEY);
+      }
+    }
+    const tid = searchParams.get("transactionId") || searchParams.get("transaction_id");
+    if (tid) {
+      setPendingTxId(tid);
+      setReturnStatus("checking");
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const { data: txStatusData } = useCheckTransactionStatus(
+    pendingTxId ?? "",
+    !!pendingTxId,
+  );
+
+  useEffect(() => {
+    const s = txStatusData?.status;
+    if (!s || !pendingTxId) return;
+    if (s === "OTP_REQUIRED" || s === "PENDING_OTP") {
+      setReturnStatus("otp");
+    } else if (s === "SUCCESS" || s === "COMPLETED") {
+      sessionStorage.removeItem(PENDING_SUBSCRIPTION_KEY);
+      setPendingTxId(null);
+      setReturnStatus("success");
+      queryClient.invalidateQueries({ queryKey: ["my-subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["subscription-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["subscription-usage"] });
+      queryClient.invalidateQueries({ queryKey: ["monthly-usage"] });
+    } else if (s === "FAILED" || s === "CANCELLED") {
+      sessionStorage.removeItem(PENDING_SUBSCRIPTION_KEY);
+      setPendingTxId(null);
+      setReturnStatus("failed");
+    }
+  }, [txStatusData?.status]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const allPlans = plansData?.results ?? [];
   const byTier = (a: ApiSubscriptionPlan, b: ApiSubscriptionPlan) =>
@@ -807,6 +1184,7 @@ const Subscription = () => {
     (!subscription || (subError as { status?: number })?.status === 404);
   const usageList = usageData?.results ?? [];
   const payments = paymentsData?.results ?? [];
+  const latestMonthlyUsage = (monthlyUsageData?.results ?? [])[0] ?? null;
 
   const handleCancelConfirm = () => {
     cancelSub.mutate(undefined, {
@@ -836,6 +1214,15 @@ const Subscription = () => {
             Choisissez la formule adaptée à votre activité
           </p>
         </div>
+
+        {/* ── Payment return banner ── */}
+        {returnStatus && (
+          <SubscriptionReturnBanner
+            status={returnStatus}
+            transactionId={pendingTxId}
+            onDismiss={() => setReturnStatus(null)}
+          />
+        )}
 
         {/* ── Current subscription card ── */}
         <Card className="p-4">
@@ -914,9 +1301,31 @@ const Subscription = () => {
                 )}
               </div>
 
+              {/* Monthly proposals usage */}
+              {latestMonthlyUsage && latestMonthlyUsage.proposals_limit !== null && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-xs font-medium mb-2 flex items-center gap-1.5">
+                    <TrendingUp size={12} className="text-primary" />
+                    Propositions ce mois
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                    <span>{latestMonthlyUsage.proposals_used} utilisées</span>
+                    <span>{latestMonthlyUsage.proposals_remaining ?? 0} restantes / {latestMonthlyUsage.proposals_limit}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all"
+                      style={{
+                        width: `${Math.min(100, ((latestMonthlyUsage.proposals_used) / (latestMonthlyUsage.proposals_limit || 1)) * 100)}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Credit snapshot */}
               {subscription.credit_snapshot && (
-                <div className="mt-4 pt-4 border-t border-border grid sm:grid-cols-3 gap-3">
+                <div className="mt-4 pt-4 border-t border-border grid sm:grid-cols-2 gap-3">
                   <div className="p-3 rounded-xl bg-muted/30 text-center">
                     <p className="text-[11px] text-muted-foreground mb-1 flex items-center justify-center gap-1">
                       <CreditCard size={11} /> Crédits mensuels
@@ -943,13 +1352,6 @@ const Subscription = () => {
                       <p className="text-[10px] text-muted-foreground">restants</p>
                     </div>
                   )}
-                  <div className="p-3 rounded-xl bg-muted/30 text-center">
-                    <p className="text-[11px] text-muted-foreground mb-1">Utilisés ce mois</p>
-                    <p className="text-lg font-bold text-cta">
-                      {subscription.credit_snapshot.monthly_used ?? "—"}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">propositions envoyées</p>
-                  </div>
                 </div>
               )}
             </>
@@ -1015,6 +1417,7 @@ const Subscription = () => {
                   isCurrent={subscription?.plan?.id === plan.id}
                   hasActiveSubscription={!!(subscription?.is_active)}
                   onSubscribe={setSelectedPlan}
+                  onChangePlan={setChangePlanTarget}
                 />
               ))}
             </div>
@@ -1022,6 +1425,7 @@ const Subscription = () => {
             <ComparisonTable
               plans={displayPlans}
               onSubscribe={setSelectedPlan}
+              onChangePlan={setChangePlanTarget}
               currentPlanId={subscription?.plan?.id}
               hasActiveSubscription={!!(subscription?.is_active)}
             />
@@ -1042,6 +1446,12 @@ const Subscription = () => {
         plan={selectedPlan}
         open={selectedPlan !== null}
         onClose={() => setSelectedPlan(null)}
+      />
+
+      <ChangePlanDialog
+        plan={changePlanTarget}
+        open={changePlanTarget !== null}
+        onClose={() => setChangePlanTarget(null)}
       />
 
       <AlertDialog open={showCancel} onOpenChange={setShowCancel}>

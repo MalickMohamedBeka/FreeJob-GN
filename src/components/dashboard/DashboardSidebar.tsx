@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   Briefcase,
   FileText,
-  Coins,
   MessageSquare,
   Settings,
   User,
@@ -15,14 +14,17 @@ import {
   Wallet,
   Crown,
   X,
+  Receipt,
+  Building2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFreelanceProfile } from "@/hooks/useProfile";
 import { useClientProfile } from "@/hooks/useProfile";
+import { useMyAgencyProfile } from "@/hooks/useAgency";
 import { useUnreadCount } from "@/hooks/useNotifications";
 
 interface DashboardSidebarProps {
-  userType: "freelancer" | "client";
+  userType: "freelancer" | "client" | "agency";
   mobileOpen: boolean;
   onCloseMobile: () => void;
   desktopOpen: boolean;
@@ -35,10 +37,25 @@ const freelancerMenuItems = [
   { icon: FileText,        label: "Propositions",        path: "/dashboard/proposals" },
   { icon: Crown,           label: "Abonnement",          path: "/dashboard/subscription" },
   { icon: Wallet,          label: "Portefeuille",        path: "/dashboard/wallet" },
+  { icon: FileCheck,       label: "Factures",            path: "/dashboard/invoices" },
   { icon: MessageSquare,   label: "Messages",            path: "/dashboard/messages" },
   { icon: Bell,            label: "Notifications",       path: "/dashboard/notifications", badge: true },
   { icon: User,            label: "Mon Profil",          path: "/dashboard/profile" },
   { icon: Settings,        label: "Paramètres",          path: "/dashboard/settings" },
+];
+
+const agencyMenuItems = [
+  { icon: LayoutDashboard, label: "Dashboard",         path: "/agency/dashboard" },
+  { icon: Building2,       label: "Mon Agence",        path: "/agency/profile" },
+  { icon: Search,          label: "Trouver des Projets", path: "/agency/find-projects" },
+  { icon: Briefcase,       label: "Mes Projets",       path: "/agency/projects" },
+  { icon: FileText,        label: "Propositions",      path: "/agency/proposals" },
+  { icon: Crown,           label: "Abonnement",        path: "/agency/subscription" },
+  { icon: Wallet,          label: "Portefeuille",      path: "/agency/wallet" },
+  { icon: FileCheck,       label: "Factures",          path: "/agency/invoices" },
+  { icon: MessageSquare,   label: "Messages",          path: "/agency/messages" },
+  { icon: Bell,            label: "Notifications",     path: "/agency/notifications", badge: true },
+  { icon: Settings,        label: "Paramètres",        path: "/agency/settings" },
 ];
 
 const clientMenuItems = [
@@ -47,6 +64,7 @@ const clientMenuItems = [
   { icon: FileText,        label: "Propositions",  path: "/client/proposals" },
   { icon: FileCheck,       label: "Contrats",      path: "/client/contracts" },
   { icon: MessageSquare,   label: "Messages",      path: "/client/messages" },
+  { icon: Receipt,         label: "Factures",      path: "/client/invoices" },
   { icon: Bell,            label: "Notifications", path: "/client/notifications", badge: true },
   { icon: User,            label: "Mon Profil",    path: "/client/profile" },
 ];
@@ -82,13 +100,18 @@ function ClientAvatar({ username }: { username: string }) {
 
 // ── Shared sidebar content ─────────────────────────────────────────────────────
 
+function AgencyAvatar({ username }: { username: string }) {
+  const { data } = useMyAgencyProfile();
+  return <AvatarDisplay src={data?.profile_picture} username={username} />;
+}
+
 function SidebarContent({
   userType,
   onItemClick,
   showClose,
   onClose,
 }: {
-  userType: "freelancer" | "client";
+  userType: "freelancer" | "client" | "agency";
   onItemClick?: () => void;
   showClose?: boolean;
   onClose?: () => void;
@@ -98,8 +121,10 @@ function SidebarContent({
   const { user, logout } = useAuth();
   const unreadCount = useUnreadCount();
 
-  const menuItems = userType === "freelancer" ? freelancerMenuItems : clientMenuItems;
+  const menuItems =
+    userType === "client" ? clientMenuItems : freelancerMenuItems;
   const username = user?.username || "Utilisateur";
+  const isAgency = user?.provider_kind === "AGENCY";
 
   const handleLogout = async () => {
     onItemClick?.();
@@ -112,7 +137,7 @@ function SidebarContent({
       {/* Logo */}
       <div className="flex items-center justify-between h-16 px-4 border-b border-border flex-shrink-0">
         <Link to="/" className="flex items-center gap-2.5" onClick={onItemClick}>
-          <img src="/logo.svg" alt="FreeJobGN" className="h-8 w-auto" />
+          <img src="/logo.svg" alt="FreeJobGN" className="h-12 w-auto" />
         </Link>
         {showClose && (
           <button
@@ -157,15 +182,17 @@ function SidebarContent({
       {/* User section */}
       <div className="p-3 border-t border-border flex-shrink-0">
         <div className="flex items-center gap-2.5 px-2 py-2 mb-1">
-          {userType === "freelancer" ? (
-            <FreelancerAvatar username={username} />
-          ) : (
+          {userType === "client" ? (
             <ClientAvatar username={username} />
+          ) : isAgency ? (
+            <AgencyAvatar username={username} />
+          ) : (
+            <FreelancerAvatar username={username} />
           )}
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm truncate">{username}</p>
             <p className="text-xs text-muted-foreground truncate">
-              {userType === "freelancer" ? "Freelancer" : "Client"}
+              {userType === "client" ? "Client" : isAgency ? "Agence" : "Freelancer"}
             </p>
           </div>
         </div>

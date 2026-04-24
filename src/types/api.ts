@@ -51,12 +51,22 @@ export interface ApiUser {
   role: 'CLIENT' | 'PROVIDER';
   provider_kind: 'FREELANCE' | 'AGENCY' | null;
   is_active: boolean;
+  is_superuser: boolean;
   date_joined: string;
 }
 
 export interface ApiUserMini {
   id: number;
   username: string;
+}
+
+export interface ApiUserWithPhoto extends ApiUserMini {
+  profile_picture: string | null;
+}
+
+export interface ApiConversationProvider extends ApiUserWithPhoto {
+  provider_kind: 'FREELANCE' | 'AGENCY' | null;
+  provider_profile_id: number | null;
 }
 
 // ── Pagination ──
@@ -114,12 +124,15 @@ export interface ApiProjectList {
   status: ProjectStatusEnum;
   status_display: string;
   client: ApiUserMini;
+  views_count: number;
+  proposals_count: number;
   created_at: string;
   updated_at: string;
 }
 
 export interface ApiProjectDetail extends ApiProjectList {
   review_note: string;
+  interactions_count: number;
 }
 
 export interface ApiProjectMini {
@@ -128,12 +141,29 @@ export interface ApiProjectMini {
   status: ProjectStatusEnum;
 }
 
+export interface ApiProjectHistoryItem {
+  id: string;
+  title: string;
+  description: string;
+  status: 'CLOSED' | 'CANCELLED';
+  status_display: string;
+  budget_band: BudgetBandEnum;
+  budget_band_display: string;
+  budget_amount: string;
+  created_at: string;
+  closed_at: string | null;
+  total_proposals: number;
+  final_cost: string | null;
+  duration_days: number | null;
+}
+
 // ── Proposals ──
 
 export type ProposalStatusEnum =
   | 'PENDING'
   | 'SHORTLISTED'
   | 'SELECTED'
+  | 'SELECTION_EXPIRED'
   | 'CONFIRMED'
   | 'DECLINED_BY_PROVIDER'
   | 'REFUSED'
@@ -186,11 +216,108 @@ export interface ApiContractList {
   updated_at: string;
   completion_requested_by: number | null;
   completion_requested_at: string | null;
+  revisions_included: number;
+  revisions_used: number;
 }
 
 export interface ApiContractDetail extends ApiContractList {
   proposal: { id: string; status: ProposalStatusEnum; price: string };
   provider_kind_snapshot: string;
+}
+
+// ── Deliverable ──
+
+export type DeliverableStatus = 'SUBMITTED' | 'ACCEPTED' | 'REVISION_REQUESTED';
+
+export interface ApiDeliverable {
+  id: string;
+  contract: string;
+  submitted_by: number;
+  submitted_by_username: string;
+  file: string;
+  description: string;
+  status: DeliverableStatus;
+  status_display: string;
+  revision_count: number;
+  revision_note: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// ── PaymentTransaction ──
+
+export interface ApiPaymentTransaction {
+  id: number;
+  provider: string;
+  reference: string;
+  transaction_id: string;
+  status: string;
+  amount: string | null;
+  currency: string;
+  event_type: string;
+  payer_identifier: string;
+  processed_at: string | null;
+  created_at: string;
+}
+
+// ── Invoice ──
+
+export type InvoiceType = 'CONTRACT' | 'CONTRACT_PROVIDER' | 'SUBSCRIPTION';
+export type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PAID' | 'CANCELLED';
+
+export interface ApiInvoice {
+  id: string;
+  invoice_number: string;
+  invoice_type: InvoiceType;
+  invoice_type_display: string;
+  status: InvoiceStatus;
+  status_display: string;
+  amount: string;
+  fee_amount: string;
+  net_amount: string;
+  issued_at: string;
+}
+
+export interface ApiInvoiceDetail extends ApiInvoice {
+  tax_amount: string;
+  contract_id: string | null;
+  recipient_username: string;
+}
+
+// ── ProjectDocument ──
+
+export type ProjectDocumentType = 'CAHIER_DE_CHARGE' | 'OTHER';
+
+export interface ApiProjectDocument {
+  id: string;
+  project: string;
+  doc_type: ProjectDocumentType;
+  doc_type_display: string;
+  file: string;
+  title: string;
+  created_at: string;
+}
+
+// ── Dispute ──
+
+export type DisputeStatus =
+  | 'OPEN'
+  | 'UNDER_REVIEW'
+  | 'RESOLVED_CLIENT'
+  | 'RESOLVED_PROVIDER'
+  | 'CLOSED';
+
+export interface ApiDispute {
+  id: string;
+  contract: string;
+  opened_by: ApiUserMini;
+  reason: string;
+  status: DisputeStatus;
+  status_display: string;
+  resolution: string | null;
+  resolution_note: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // ── Freelancer Profile ──
@@ -203,6 +330,7 @@ export interface FreelanceDetails {
 
 export interface ApiFreelancerProfile {
   id: number;
+  user_id: number;
   username: string;
   email: string;
   profile_picture: string | null;
@@ -215,8 +343,27 @@ export interface ApiFreelancerProfile {
   skills: ApiSkill[];
   speciality: ApiSpeciality;
   freelance_details: FreelanceDetails;
+  is_available: boolean;
+  available_from: string | null;
+  // F1 — KYC
+  is_kyc_verified: boolean;
+  kyc_status: string;
+  // F2 — Stats
+  projects_completed: number;
+  success_rate: number;
+  total_budget_realized: string;
+  // F3 — Expérience
+  years_of_experience: number | null;
+  // F4 — Liens
+  linkedin_url: string;
+  website_url: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface ApiProviderDiscovery extends ApiFreelancerProfile {
+  stars: number | null;
+  provider_kind: 'FREELANCE' | 'AGENCY';
 }
 
 // ── Conversations & Messages ──
@@ -225,8 +372,8 @@ export interface ApiConversation {
   id: string;
   proposal_id: string;
   proposal_status: string;
-  client: ApiUserMini;
-  provider: ApiUserMini;
+  client: ApiUserWithPhoto;
+  provider: ApiConversationProvider;
   message_count: number;
   created_at: string;
   updated_at: string;
@@ -234,7 +381,7 @@ export interface ApiConversation {
 
 export interface ApiMessage {
   id: string;
-  author: ApiUserMini;
+  author: ApiUserWithPhoto;
   content: string;
   created_at: string;
 }
@@ -246,6 +393,8 @@ export interface PublicStats {
   providers_count: number;
   freelances_count: number;
   agencies_count: number;
+  projects_count: number;
+  projects_this_month: number;
 }
 
 export interface ChoiceItem {
@@ -333,6 +482,9 @@ export interface ContractSummary {
   amount_paid: string;
   amount_remaining: string;
   next_action: 'PAY_FULL' | 'NONE';
+  payment_date: string | null;
+  payment_provider: string | null;
+  transaction_reference: string | null;
 }
 
 export interface DjomyGatewayPaymentRequest {
@@ -347,11 +499,10 @@ export interface DjomyGatewayPaymentRequest {
 }
 
 export interface DjomyGatewayPaymentResponse {
-  data: {
-    transactionId?: string;
-    redirectUrl: string;
-    status: string;
-  }
+  transactionId?: string;
+  redirectUrl: string;
+  status: string;
+  details?: Record<string, unknown>;
 }
 
 export interface DjomyPaymentStatus {
@@ -399,11 +550,31 @@ export interface FreelanceProfilePatchRequest {
   phone?: string;
   skill_ids?: number[];
   speciality_id?: number | null;
+  is_available?: boolean;
+  available_from?: string | null;
+  years_of_experience?: number | null;
+  linkedin_url?: string;
+  website_url?: string;
   freelance?: {
     first_name?: string;
     last_name?: string;
     business_name?: string;
   };
+}
+
+// ── Job Alerts ──
+
+export type JobAlertFrequency = 'INSTANT' | 'DAILY' | 'WEEKLY';
+
+export interface ApiJobAlert {
+  id: string;
+  filters: Record<string, unknown>;
+  frequency: JobAlertFrequency;
+  frequency_display: string;
+  is_active: boolean;
+  last_sent_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // ── Freelance Documents ──
@@ -486,10 +657,16 @@ export interface ApiSubscriptionCreditSnapshot {
 
 export interface ApiSubscriptionEntitlements {
   freejobgn_rank_stars?: number;
+  proposals_per_month?: number;
+  credits_per_month?: number;
+  monthly_client_contacts?: number;
+  annual_credits_total?: number | null;
+  annual_client_contacts_total?: number | null;
   client_contact_visible?: boolean;
   own_contact_visible?: boolean;
   premium_email_alerts?: boolean;
   suggested_profile?: boolean;
+  min_seniority_months?: number;
   [key: string]: unknown;
 }
 
@@ -530,6 +707,15 @@ export interface ApiSubscriptionUsage {
   credits_limit: number;
   credits_remaining: number;
   last_reset_at: string;
+}
+
+export interface ApiMonthlyUsage {
+  id: number;
+  period_start: string;
+  period_end: string;
+  proposals_used: number;
+  proposals_limit: number | null;
+  proposals_remaining: number | null;
 }
 
 export interface SubscribeRequest {
@@ -580,6 +766,16 @@ export interface ApiWallet {
   updated_at: string;
 }
 
+export interface CommissionBreakdown {
+  gross_amount: string;
+  fee_percent: string;
+  fee_amount: string;
+  psp_fee_percent: string;
+  psp_fee_amount: string;
+  platform_net_revenue: string;
+  net_amount: string;
+}
+
 export interface ApiWalletTransaction {
   id: number;
   amount: string;
@@ -588,7 +784,15 @@ export interface ApiWalletTransaction {
   contract_id: string | null;
   payment_transaction_id: number | null;
   withdrawal_request_id: number | null;
+  commission: CommissionBreakdown | null;
   created_at: string;
+}
+
+export interface WithdrawalLastEscrow {
+  contract_id: string;
+  project_title: string | null;
+  amount: string;
+  released_at: string;
 }
 
 export interface ApiWithdrawalRequest {
@@ -602,6 +806,24 @@ export interface ApiWithdrawalRequest {
   processed_at: string | null;
   processed_by_id: number | null;
   created_at: string;
+  // Champs enrichis (admin uniquement)
+  user_id?: number;
+  username?: string;
+  email?: string;
+  role?: string;
+  provider_kind?: string | null;
+  date_joined?: string;
+  is_active?: boolean;
+  is_suspended?: boolean;
+  is_banned?: boolean;
+  kyc_status?: string | null;
+  location?: string | null;
+  profile_phone?: string | null;
+  wallet_balance?: string;
+  total_earned?: string;
+  total_withdrawn?: string;
+  completed_contracts_count?: number;
+  last_escrow?: WithdrawalLastEscrow | null;
 }
 
 export interface WithdrawalRequestCreateRequest {
@@ -671,11 +893,17 @@ export interface NotificationListResponse {
   unread_count?: number;
 }
 
+export interface ApiNotificationChannelPreference {
+  email?: boolean;
+  sms?: boolean;
+  push?: boolean;
+}
+
 export interface ApiNotificationPreference {
   email_enabled: boolean;
   sms_enabled: boolean;
   push_enabled: boolean;
-  preferences: Record<string, unknown>;
+  preferences: Record<string, ApiNotificationChannelPreference>;
 }
 
 export interface ApiNotificationTypeInfo {
@@ -691,13 +919,17 @@ export type StarsEnum = 0 | 1 | 2 | 3;
 export interface ApiProviderRank {
   provider_id: number;
   provider_username: string;
+  provider_kind: 'FREELANCE' | 'AGENCY';
+  provider_profile_id: number | null;
+  profile_picture: string | null;
   score: string;
   computed_score: string;
   manual_adjustment: string;
   position: number;
   stars: StarsEnum;
   tier: TierEnum;
-  breakdown: Record<string, unknown>;
+  is_suggested?: boolean;
+  breakdown?: Record<string, unknown>;
   computed_at: string;
 }
 
@@ -727,6 +959,25 @@ export interface ApiProviderReview {
 }
 
 export interface ApiProviderReviewCreateRequest {
+  contract: string;
+  rating: number;
+  comment?: string;
+}
+
+export interface ApiClientReview {
+  id: string;
+  contract: string;
+  client: number;
+  client_username: string;
+  provider: number;
+  provider_username: string;
+  rating: number;
+  comment: string;
+  project_budget: string;
+  created_at: string;
+}
+
+export interface ApiClientReviewCreateRequest {
   contract: string;
   rating: number;
   comment?: string;
@@ -762,4 +1013,128 @@ export interface ApiPortfolioSummary {
 export interface ApiPortfolioResponse {
   summary: ApiPortfolioSummary;
   results: ApiPortfolioItem[];
+}
+
+// ── Agency Profile ──
+
+export type AgencyDocTypeEnum = 'RCCM' | 'STATUTES' | 'TAX' | 'OTHER';
+
+export interface AgencyDetails {
+  agency_name: string;
+  founded_at: string | null;
+}
+
+export interface ApiAgencyProfile {
+  id: number;
+  user_id: number;
+  username: string;
+  email: string;
+  profile_picture: string | null;
+  bio: string;
+  hourly_rate: string | null;
+  city_or_region: string;
+  country: string;
+  postal_code: string;
+  phone: string;
+  skills: ApiSkill[];
+  speciality: ApiSpeciality | null;
+  agency_details: AgencyDetails;
+  is_available: boolean;
+  available_from: string | null;
+  // F1 — KYC
+  is_kyc_verified: boolean;
+  kyc_status: string;
+  // F2 — Stats
+  projects_completed: number;
+  success_rate: number;
+  total_budget_realized: string;
+  // F3 — Expérience
+  years_of_experience: number | null;
+  // F4 — Liens
+  linkedin_url: string;
+  website_url: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiAgencyDocument {
+  id: number;
+  doc_type: AgencyDocTypeEnum;
+  doc_type_display: string;
+  file: string;
+  reference_number: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AgencyProfileInitRequest {
+  bio?: string;
+  city_or_region: string;
+  country: string;
+  postal_code?: string;
+  phone?: string;
+  hourly_rate?: string | null;
+  skill_ids?: number[];
+  speciality_id?: number | null;
+  agency: {
+    agency_name: string;
+    founded_at?: string | null;
+  };
+}
+
+export interface AgencyProfilePatchRequest {
+  bio?: string;
+  city_or_region?: string;
+  country?: string;
+  postal_code?: string;
+  phone?: string;
+  hourly_rate?: string | null;
+  skill_ids?: number[];
+  speciality_id?: number | null;
+  is_available?: boolean;
+  available_from?: string | null;
+  years_of_experience?: number | null;
+  linkedin_url?: string;
+  website_url?: string;
+  agency?: {
+    agency_name?: string;
+    founded_at?: string | null;
+  };
+}
+
+// ── Portfolio items personnels (hors contrats) ──
+
+export interface ApiPortfolioItemCustom {
+  id: number;
+  title: string;
+  description: string;
+  url: string | null;
+  file: string | null;
+  image: string | null;
+  tech_stack: string[];
+  skills: { id: number; name: string }[];
+  created_at: string;
+}
+
+// ── Certifications ──
+
+export interface ApiCertification {
+  id: number;
+  name: string;
+  issuer: string;
+  issued_at: string | null;
+  expires_at: string | null;
+  file: string | null;
+}
+
+// ── Favoris providers ──
+
+export interface ApiFavorite {
+  id: number;
+  provider_id: number;          // User.id  — pour toggle favori
+  provider_profile_id: number | null; // ProviderProfile.id — pour l'URL du profil
+  provider_username: string;
+  provider_role: string;
+  provider_kind: 'FREELANCE' | 'AGENCY' | null;
+  created_at: string;
 }

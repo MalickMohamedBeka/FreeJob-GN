@@ -9,13 +9,18 @@ export const ROUTES = {
   PROJECTS: '/projects',
   FREELANCERS: '/freelancers',
   FREELANCER_PROFILE: '/freelancers/:id',
+  AGENCIES: '/agencies',
+  AGENCY_PROFILE: '/agencies/:id',
   RANKINGS: '/classement',
   ABOUT: '/about',
   HOW_IT_WORKS: '/comment-ca-marche',
+  CLIENT_PUBLIC_PROFILE: '/clients/:id',
   
   // Auth routes
   LOGIN: '/login',
   SIGNUP: '/signup',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
   ADMIN_LOGIN: '/admin',
   ONBOARDING: '/onboarding',
   
@@ -23,6 +28,7 @@ export const ROUTES = {
   DASHBOARD: {
     ROOT: '/dashboard',
     FIND_PROJECTS: '/dashboard/find-projects',
+    FIND_PROJECT_DETAIL: '/dashboard/find-projects/:id',
     MY_PROJECTS: '/dashboard/projects',
     PROPOSALS: '/dashboard/proposals',
     SUBSCRIPTION: '/dashboard/subscription',
@@ -31,26 +37,48 @@ export const ROUTES = {
     SETTINGS: '/dashboard/settings',
     NOTIFICATIONS: '/dashboard/notifications',
     WALLET: '/dashboard/wallet',
+    INVOICES: '/dashboard/invoices',
   },
   
+  // Agency routes
+  AGENCY: {
+    ROOT: '/agency',
+    ONBOARDING: '/agency/onboarding',
+    DASHBOARD: '/agency/dashboard',
+    PROFILE: '/agency/profile',
+    FIND_PROJECTS: '/agency/find-projects',
+    MY_PROJECTS: '/agency/projects',
+    PROPOSALS: '/agency/proposals',
+    MESSAGES: '/agency/messages',
+    NOTIFICATIONS: '/agency/notifications',
+    WALLET: '/agency/wallet',
+    INVOICES: '/agency/invoices',
+    SUBSCRIPTION: '/agency/subscription',
+    SETTINGS: '/agency/settings',
+  },
+
   // Admin routes
   ADMIN: {
     ROOT: '/admin',
     DASHBOARD: '/admin/dashboard',
     WITHDRAWALS: '/admin/withdrawals',
+    COMPTABILITE: '/admin/comptabilite',
   },
   
   // Client routes
   CLIENT: {
     ROOT: '/client',
+    ONBOARDING: '/client/onboarding',
     DASHBOARD: '/client/dashboard',
     PROJECTS: '/client/projects',
+    PROJECT_DETAIL: '/client/projects/:id',
     PROPOSALS: '/client/proposals',
     CONTRACTS: '/client/contracts',
     MESSAGES: '/client/messages',
     PROFILE: '/client/profile',
     PAYMENT_RETURN: '/client/payment/return',
     NOTIFICATIONS: '/client/notifications',
+    INVOICES: '/client/invoices',
   },
 } as const;
 

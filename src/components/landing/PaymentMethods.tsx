@@ -4,22 +4,37 @@ import { Shield, CheckCircle } from "lucide-react";
 const paymentMethods = [
   {
     name: "Orange Money",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Orange_logo.svg/200px-Orange_logo.svg.png",
-    description: "Paiement mobile sécurisé",
+    logo: "/payment/orange_money.png",
+    description: "Paiement mobile",
+    bg: "bg-white",
   },
   {
-    name: "Ria Money Transfer",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Ria_Money_Transfer_logo.svg/200px-Ria_Money_Transfer_logo.svg.png",
-    description: "Transfert international",
+    name: "MTN MoMo",
+    logo: "/payment/mtn_momo.png",
+    description: "Mobile Money",
+    bg: "bg-white",
+  },
+  {
+    name: "Kulu",
+    logo: "/payment/kulu.jpeg",
+    description: "Paiement mobile",
+    bg: "bg-white",
+  },
+  {
+    name: "Soutra Money",
+    logo: "/payment/soutra_money.png",
+    description: "Paiement mobile",
+    bg: "bg-white",
+  },
+  {
+    name: "Paycard",
+    logo: "/payment/paycard.png",
+    description: "Carte prépayée",
+    bg: "bg-white",
   },
   {
     name: "Visa",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/200px-Visa_Inc._logo.svg.png",
-    description: "Carte bancaire",
-  },
-  {
-    name: "Mastercard",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png",
+    logo: "/payment/visa.png",
     description: "Carte bancaire",
   },
 ];
@@ -54,19 +69,19 @@ const PaymentMethods = () => {
           </p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-10">
           {paymentMethods.map((method, index) => (
             <motion.div
               key={method.name}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.4, ease: "easeOut", delay: index * 0.09 }}
+              transition={{ duration: 0.4, ease: "easeOut", delay: index * 0.08 }}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              className="bg-white rounded-xl p-6 border border-border hover:shadow-md transition-shadow cursor-default"
+              className="bg-white rounded-xl p-5 border border-border hover:shadow-md transition-shadow cursor-default"
             >
-              <div className="flex flex-col items-center text-center">
-                <div className="w-full h-16 flex items-center justify-center mb-4 bg-muted/30 rounded-lg p-3">
+              <div className="flex flex-col items-center text-center gap-3">
+                <div className={`w-full h-14 flex items-center justify-center ${method.bg} rounded-lg p-2 border border-border/40`}>
                   <img
                     src={method.logo}
                     alt={method.name}
@@ -75,13 +90,15 @@ const PaymentMethods = () => {
                       e.currentTarget.style.display = "none";
                       const parent = e.currentTarget.parentElement;
                       if (parent) {
-                        parent.innerHTML = `<span class="text-base font-bold text-primary">${method.name}</span>`;
+                        parent.innerHTML = `<span class="text-sm font-bold text-primary">${method.name}</span>`;
                       }
                     }}
                   />
                 </div>
-                <h3 className="font-semibold mb-1">{method.name}</h3>
-                <p className="text-sm text-muted-foreground">{method.description}</p>
+                <div>
+                  <h3 className="font-semibold text-sm">{method.name}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">{method.description}</p>
+                </div>
               </div>
             </motion.div>
           ))}

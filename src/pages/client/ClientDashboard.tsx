@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Plus, Briefcase, Users, Clock, CheckCircle, Eye, Loader2 } from "lucide-react";
+import { Plus, Briefcase, Users, Clock, CheckCircle, Eye, Loader2, Heart, ExternalLink } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyProjects } from "@/hooks/useProjects";
 import { useContracts } from "@/hooks/useContracts";
+import { useFavorites, useRemoveFavorite } from "@/hooks/useProfile";
 import { ROUTES } from "@/constants";
 
 const ClientDashboard = () => {
@@ -31,6 +32,10 @@ const ClientDashboard = () => {
   ];
 
   const isLoading = loadingProjects || loadingContracts;
+
+  const { data: favoritesData } = useFavorites();
+  const removeFavorite = useRemoveFavorite();
+  const favorites = favoritesData?.results ?? [];
 
   return (
     <DashboardLayout userType="client">
@@ -197,6 +202,65 @@ const ClientDashboard = () => {
             </Card>
           </motion.div>
         </div>
+        {/* Favoris */}
+        {favorites.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Heart size={18} className="text-red-500 fill-red-500" />
+                  Freelancers favoris
+                </h3>
+                <span className="text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                  {favorites.length} favori{favorites.length > 1 ? "s" : ""}
+                </span>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {favorites.map((fav) => (
+                  <div
+                    key={fav.id}
+                    className="flex items-center justify-between p-3 rounded-xl border border-border hover:border-primary/30 hover:bg-muted/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-sm font-bold text-primary">
+                        {fav.provider_username[0]?.toUpperCase() ?? "?"}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">@{fav.provider_username}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          Ajouté le {new Date(fav.created_at).toLocaleDateString("fr-FR")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <Link to={fav.provider_profile_id ? (fav.provider_kind === 'AGENCY' ? `/agencies/${fav.provider_profile_id}` : `/freelancers/${fav.provider_profile_id}`) : '#'}>
+                        <button
+                          type="button"
+                          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
+                          title="Voir le profil"
+                        >
+                          <ExternalLink size={13} />
+                        </button>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => removeFavorite.mutate(fav.provider_id)}
+                        className="p-1.5 rounded-lg hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors"
+                        title="Retirer des favoris"
+                      >
+                        <Heart size={13} className="fill-current" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </motion.div>
+        )}
       </div>
     </DashboardLayout>
   );

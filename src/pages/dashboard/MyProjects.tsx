@@ -1,10 +1,18 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Clock,
   CheckCircle2,
@@ -14,10 +22,132 @@ import {
   ChevronUp,
   Flag,
   ThumbsUp,
+  AlertTriangle,
+  Upload,
+  Star,
 } from "lucide-react";
-import { useContracts, useContractSummary, useRequestCompletion, useConfirmCompletion } from "@/hooks/useContracts";
+import { useContracts, useContractSummary, useRequestCompletion, useConfirmCompletion, useSubmitDeliverable } from "@/hooks/useContracts";
+import { useCreateClientReview } from "@/hooks/useRankings";
 import { useToast } from "@/hooks/use-toast";
+import { DisputeModal } from "@/components/contracts/DisputeModal";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import type { ApiContractList } from "@/types";
+
+// ── Star Rating Input ─────────────────────────────────────────────────────────
+
+function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [hovered, setHovered] = useState(0);
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange(star)}
+          onMouseEnter={() => setHovered(star)}
+          onMouseLeave={() => setHovered(0)}
+        >
+          <Star
+            size={24}
+            className={`transition-colors ${
+              star <= (hovered || value)
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-muted-foreground"
+            }`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── Client Review Dialog ──────────────────────────────────────────────────────
+
+function ClientReviewDialog({
+  contractId,
+  clientUsername,
+  open,
+  onOpenChange,
+  onSuccess,
+}: {
+  contractId: string;
+  clientUsername: string;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onSuccess?: () => void;
+}) {
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const createReview = useCreateClientReview();
+  const { toast } = useToast();
+
+  const handleClose = () => {
+    setRating(0);
+    setComment("");
+    onOpenChange(false);
+  };
+
+  const handleSubmit = async () => {
+    if (rating === 0) {
+      toast({ title: "Sélectionnez une note", variant: "destructive" });
+      return;
+    }
+    try {
+      await createReview.mutateAsync({ contract: contractId, rating, comment: comment.trim() || undefined });
+      toast({ title: "Avis envoyé", description: `Votre évaluation de ${clientUsername} a été soumise.` });
+      onSuccess?.();
+      handleClose();
+    } catch (err) {
+      toast({
+        title: "Erreur",
+        description: err instanceof Error ? err.message : "Une erreur est survenue.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Star size={16} className="text-yellow-400" />
+            Évaluer le client
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <p className="text-sm text-muted-foreground">
+            Comment s'est passée votre collaboration avec <strong>{clientUsername}</strong> ?
+          </p>
+          <div className="space-y-1.5">
+            <Label>Note *</Label>
+            <StarRating value={rating} onChange={setRating} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="review-comment">Commentaire</Label>
+            <Textarea
+              id="review-comment"
+              rows={3}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Décrivez votre expérience avec ce client…"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose} disabled={createReview.isPending}>
+            Annuler
+          </Button>
+          <Button onClick={handleSubmit} disabled={createReview.isPending || rating === 0} className="gap-2">
+            {createReview.isPending ? <Loader2 size={14} className="animate-spin" /> : <Star size={14} />}
+            Envoyer
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 // ── Contract status styling ───────────────────────────────────────────────────
 
@@ -32,7 +162,7 @@ const statusConfig: Record<string, { label: string; badgeClass: string }> = {
 // ── Contract Summary (lazy-fetched on expand) ─────────────────────────────────
 
 function ContractSummarySection({ contractId }: { contractId: string }) {
-  const { data, isLoading } = useContractSummary(contractId);
+  const { data, isLoading, isError } = useContractSummary(contractId);
 
   if (isLoading) {
     return (
@@ -43,7 +173,13 @@ function ContractSummarySection({ contractId }: { contractId: string }) {
     );
   }
 
-  if (!data) return null;
+  if (isError || !data) {
+    return (
+      <div className="py-3 text-sm text-muted-foreground">
+        Résumé financier indisponible.
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 gap-3 pt-3 text-sm">
@@ -59,7 +195,7 @@ function ContractSummarySection({ contractId }: { contractId: string }) {
           {parseFloat(data.amount_remaining).toLocaleString("fr-FR")} GNF
         </p>
       </div>
-      <div className="col-span-2">
+      <div className="col-span-2 flex flex-wrap items-center gap-2">
         <span
           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
             data.is_paid
@@ -68,9 +204,21 @@ function ContractSummarySection({ contractId }: { contractId: string }) {
           }`}
         >
           {data.is_paid ? <CheckCircle2 size={12} /> : <Clock size={12} />}
-          {data.is_paid ? "Paiement complet" : "Paiement en attente"}
+          {data.is_paid ? "Paiement confirmé" : "Paiement en attente"}
         </span>
+        {data.is_paid && data.payment_date && (
+          <span className="text-xs text-muted-foreground">
+            le {new Date(data.payment_date).toLocaleDateString("fr-FR")}
+            {data.payment_provider && ` · ${data.payment_provider}`}
+          </span>
+        )}
       </div>
+      {data.is_paid && data.transaction_reference && (
+        <div className="col-span-2">
+          <p className="text-muted-foreground mb-0.5">Référence</p>
+          <p className="font-mono text-xs text-foreground truncate">{data.transaction_reference}</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -85,7 +233,37 @@ function ContractCard({
   index: number;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [disputeOpen, setDisputeOpen] = useState(false);
+  const [submitOpen, setSubmitOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewDone, setReviewDone] = useState(false);
+  const [delivFile, setDelivFile] = useState<File | null>(null);
+  const [delivDesc, setDelivDesc] = useState("");
   const { toast } = useToast();
+
+  const submitDeliverable = useSubmitDeliverable();
+
+  const handleSubmitDeliverable = () => {
+    if (!delivFile) {
+      toast({ title: "Fichier requis", description: "Sélectionnez un fichier à soumettre.", variant: "destructive" });
+      return;
+    }
+    const formData = new FormData();
+    formData.append("file", delivFile);
+    formData.append("description", delivDesc.trim());
+    submitDeliverable.mutate(
+      { contractId: contract.id, formData },
+      {
+        onSuccess: () => {
+          toast({ title: "Livrable soumis !", description: "Le client a été notifié." });
+          setDelivFile(null);
+          setDelivDesc("");
+          setSubmitOpen(false);
+        },
+        onError: (err) => toast({ title: "Erreur", description: err instanceof Error ? err.message : "Une erreur est survenue.", variant: "destructive" }),
+      }
+    );
+  };
   const requestCompletion = useRequestCompletion();
   const confirmCompletion = useConfirmCompletion();
 
@@ -171,6 +349,18 @@ function ContractCard({
         )}
 
         <div className="flex flex-wrap items-center gap-2">
+          {(contract.status === "IN_PROGRESS" || contract.status === "ON_HOLD") && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2 border-secondary text-secondary hover:bg-secondary hover:text-white"
+              onClick={() => setSubmitOpen(true)}
+            >
+              <Upload size={14} />
+              Soumettre un livrable
+            </Button>
+          )}
+
           {contract.status === "IN_PROGRESS" && !requestedByProvider && !requestedByClient && (
             <Button
               size="sm"
@@ -203,6 +393,37 @@ function ContractCard({
             </Button>
           )}
 
+          {(contract.status === "IN_PROGRESS" || contract.status === "ON_HOLD") && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2 border-destructive/50 text-destructive hover:bg-destructive hover:text-white"
+              onClick={() => setDisputeOpen(true)}
+            >
+              <AlertTriangle size={14} />
+              {contract.status === "ON_HOLD" ? "Litige en cours" : "Ouvrir un litige"}
+            </Button>
+          )}
+
+          {contract.status === "COMPLETED" && !reviewDone && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2 border-yellow-400 text-yellow-600 hover:bg-yellow-50"
+              onClick={() => setReviewOpen(true)}
+            >
+              <Star size={14} />
+              Évaluer le client
+            </Button>
+          )}
+
+          {contract.status === "COMPLETED" && reviewDone && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <CheckCircle2 size={13} className="text-primary" />
+              Avis envoyé
+            </span>
+          )}
+
           <Button
             size="sm"
             variant="ghost"
@@ -214,6 +435,62 @@ function ContractCard({
           </Button>
         </div>
       </Card>
+
+      {/* Submit Deliverable Dialog */}
+      <Dialog open={submitOpen} onOpenChange={(v) => !v && setSubmitOpen(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload size={16} /> Soumettre un livrable
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="block text-sm font-semibold mb-2">Fichier <span className="text-destructive">*</span></label>
+              <input
+                type="file"
+                onChange={(e) => setDelivFile(e.target.files?.[0] ?? null)}
+                className="w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+              />
+              {delivFile && <p className="text-xs text-muted-foreground mt-1">{delivFile.name}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2">Description</label>
+              <textarea
+                value={delivDesc}
+                onChange={(e) => setDelivDesc(e.target.value)}
+                placeholder="Décrivez ce que vous livrez…"
+                rows={3}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors resize-none text-sm"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSubmitOpen(false)} disabled={submitDeliverable.isPending}>
+              Annuler
+            </Button>
+            <Button onClick={handleSubmitDeliverable} disabled={submitDeliverable.isPending || !delivFile} className="gap-2">
+              {submitDeliverable.isPending ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+              Soumettre
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <DisputeModal
+        contractId={contract.id}
+        contractTitle={contract.project.title}
+        open={disputeOpen}
+        onClose={() => setDisputeOpen(false)}
+      />
+
+      <ClientReviewDialog
+        contractId={contract.id}
+        clientUsername={contract.client.username}
+        open={reviewOpen}
+        onOpenChange={setReviewOpen}
+        onSuccess={() => setReviewDone(true)}
+      />
     </motion.div>
   );
 }

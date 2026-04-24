@@ -31,6 +31,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Link } from "react-router-dom";
+import { ROUTES } from "@/constants/routes";
 import {
   Plus,
   Loader2,
@@ -38,6 +40,12 @@ import {
   Trash2,
   SendHorizonal,
   Briefcase,
+  Paperclip,
+  FileText,
+  X,
+  Upload,
+  Download,
+  Archive,
 } from "lucide-react";
 import {
   useProjects,
@@ -46,11 +54,17 @@ import {
   useUpdateProject,
   useDeleteProject,
   useSubmitProjectForReview,
+  useProjectDocuments,
+  useUploadProjectDocument,
+  useDeleteProjectDocument,
+  useProjectHistory,
+  useProjectCategories,
+  downloadProjectHistoryCsv,
 } from "@/hooks/useProjects";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/services/api.service";
 import { useToast } from "@/hooks/use-toast";
-import type { ApiProjectList, ApiProjectCreateRequest, BudgetBandEnum } from "@/types";
+import type { ApiProjectList, ApiProjectCreateRequest, BudgetBandEnum, ProjectDocumentType } from "@/types";
 
 const budgetBands: { value: BudgetBandEnum; label: string }[] = [
   { value: "BAND_25_50", label: "2.5M – 5M GNF" },
@@ -95,16 +109,12 @@ function ProjectFormDialog({
   const isEdit = !!projectId;
   const createProject = useCreateProject();
   const updateProject = useUpdateProject();
+  const { data: categoriesData } = useProjectCategories();
   const { data: allProjects } = useProjects();
 
-  // Derive unique categories, specialities, and skills from published projects
-  // (no dedicated endpoints for these resources)
+  const categories = categoriesData ?? [];
+
   const allResults = allProjects?.results ?? [];
-
-  const categories = Array.from(
-    new Map(allResults.map((p) => [p.category.id, p.category])).values()
-  );
-
   const specialities = Array.from(
     new Map(
       allResults
@@ -112,7 +122,6 @@ function ProjectFormDialog({
         .map((p) => [p.speciality.id, p.speciality])
     ).values()
   );
-
   const skills = Array.from(
     new Map(
       allResults.flatMap((p) => p.skills).map((s) => [s.id, s])
@@ -311,14 +320,144 @@ function ProjectFormDialog({
   );
 }
 
+// ── Project Documents Section ─────────────────────────────────────────────────
+
+const DOC_TYPE_LABELS: Record<ProjectDocumentType, string> = {
+  CAHIER_DE_CHARGE: "Cahier de charge",
+  OTHER: "Autre",
+};
+
+function ProjectDocumentsSection({ projectId }: { projectId: string }) {
+  const { data: docs, isLoading } = useProjectDocuments(projectId);
+  const upload = useUploadProjectDocument(projectId);
+  const deleteMutation = useDeleteProjectDocument(projectId);
+  const { toast } = useToast();
+
+  const [docType, setDocType] = useState<ProjectDocumentType>("CAHIER_DE_CHARGE");
+  const [docTitle, setDocTitle] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async () => {
+    if (!file || !docTitle.trim()) {
+      toast({ title: "Titre et fichier obligatoires", variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    try {
+      await upload.mutateAsync({ file, doc_type: docType, title: docTitle.trim() });
+      setDocTitle("");
+      setFile(null);
+      toast({ title: "Document ajouté" });
+    } catch {
+      toast({ title: "Erreur lors de l'upload", variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="mt-4 border-t border-border pt-4 space-y-3">
+      <p className="text-sm font-medium flex items-center gap-1.5">
+        <Paperclip size={14} />
+        Documents du projet
+      </p>
+
+      {isLoading ? (
+        <Loader2 size={16} className="animate-spin text-muted-foreground" />
+      ) : (docs ?? []).length === 0 ? (
+        <p className="text-xs text-muted-foreground">Aucun document joint.</p>
+      ) : (
+        <div className="space-y-1.5">
+          {(docs ?? []).map((doc) => (
+            <div key={doc.id} className="flex items-center justify-between gap-2 text-sm">
+              <a
+                href={doc.file}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-primary hover:underline min-w-0"
+              >
+                <FileText size={13} className="flex-shrink-0" />
+                <span className="truncate">{doc.title}</span>
+                <span className="text-muted-foreground text-xs flex-shrink-0">
+                  ({doc.doc_type_display})
+                </span>
+              </a>
+              <button
+                onClick={() => deleteMutation.mutate(doc.id)}
+                disabled={deleteMutation.isPending}
+                className="text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
+                aria-label="Supprimer"
+              >
+                <X size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Upload form */}
+      <div className="flex flex-wrap gap-2 items-end">
+        <div className="space-y-1">
+          <Label className="text-xs">Type</Label>
+          <Select value={docType} onValueChange={(v) => setDocType(v as ProjectDocumentType)}>
+            <SelectTrigger className="h-8 w-[160px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(DOC_TYPE_LABELS) as ProjectDocumentType[]).map((k) => (
+                <SelectItem key={k} value={k} className="text-xs">
+                  {DOC_TYPE_LABELS[k]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1 flex-1 min-w-[140px]">
+          <Label className="text-xs">Titre</Label>
+          <Input
+            className="h-8 text-xs"
+            placeholder="Ex: Cahier des charges v1"
+            value={docTitle}
+            onChange={(e) => setDocTitle(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-xs">Fichier</Label>
+          <Input
+            type="file"
+            className="h-8 text-xs w-[180px]"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
+        </div>
+
+        <Button
+          size="sm"
+          className="h-8 gap-1.5 text-xs"
+          onClick={handleUpload}
+          disabled={uploading || !file || !docTitle.trim()}
+        >
+          {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+          Ajouter
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 const ClientProjects = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [editProject, setEditProject] = useState<ApiProjectList | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"active" | "history">("active");
+  const [historyPage, setHistoryPage] = useState(1);
 
   const { data, isLoading } = useMyProjects();
+  const { data: historyData, isLoading: historyLoading } = useProjectHistory(historyPage);
   const { user } = useAuth();
   const { toast } = useToast();
   const deleteProject = useDeleteProject();
@@ -327,6 +466,8 @@ const ClientProjects = () => {
   // The API returns both published projects from everyone AND the client's own projects.
   // Filter to only show the current user's own projects.
   const projects = (data?.results ?? []).filter((p) => p.client.id === user?.id);
+  const historyItems = historyData?.results ?? [];
+  const historyTotal = historyData?.count ?? 0;
 
   return (
     <DashboardLayout userType="client">
@@ -336,17 +477,128 @@ const ClientProjects = () => {
             <h1 className="text-3xl font-bold mb-2">Mes Projets</h1>
             <p className="text-muted-foreground">Créez et gérez vos offres de projets</p>
           </div>
-          <Button className="gap-2" onClick={() => setShowCreate(true)}>
-            <Plus size={18} />
-            Nouveau Projet
-          </Button>
+          {activeTab === "active" && (
+            <Button className="gap-2" onClick={() => setShowCreate(true)}>
+              <Plus size={18} />
+              Nouveau Projet
+            </Button>
+          )}
         </div>
 
-        {isLoading ? (
+        {/* Tabs */}
+        <div className="flex items-center gap-1 bg-muted rounded-lg p-1 w-fit">
+          <button
+            onClick={() => setActiveTab("active")}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              activeTab === "active" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"
+            }`}
+          >
+            Projets actifs
+          </button>
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${
+              activeTab === "history" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"
+            }`}
+          >
+            <Archive size={13} />
+            Archivés
+          </button>
+        </div>
+
+        {/* History tab */}
+        {activeTab === "history" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">{historyTotal} projet{historyTotal !== 1 ? "s" : ""} archivé{historyTotal !== 1 ? "s" : ""}</p>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => downloadProjectHistoryCsv()}>
+                <Download size={14} />
+                Exporter CSV
+              </Button>
+            </div>
+            {historyLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="animate-spin text-primary" size={40} />
+              </div>
+            ) : historyItems.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Archive className="mx-auto mb-4" size={48} />
+                <p className="text-lg font-medium">Aucun projet archivé</p>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-4">
+                  {historyItems.map((item, index) => (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.04 }}
+                    >
+                      <Card className="p-6">
+                        <div className="flex items-start justify-between mb-3">
+                          <h3 className="text-lg font-semibold">{item.title}</h3>
+                          <Badge className={item.status === "CLOSED" ? "bg-muted text-foreground" : "bg-red-100 text-red-700"}>
+                            {item.status_display}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{item.description}</p>
+                        <div className="grid sm:grid-cols-4 gap-3 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Budget</p>
+                            <p className="font-medium">{item.budget_band_display}</p>
+                          </div>
+                          {item.final_cost && (
+                            <div>
+                              <p className="text-muted-foreground">Coût final</p>
+                              <p className="font-medium">{Number(item.final_cost).toLocaleString("fr-FR")} GNF</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-muted-foreground">Propositions</p>
+                            <p className="font-medium">{item.total_proposals}</p>
+                          </div>
+                          {item.duration_days !== null && (
+                            <div>
+                              <p className="text-muted-foreground">Durée</p>
+                              <p className="font-medium">{item.duration_days} jours</p>
+                            </div>
+                          )}
+                        </div>
+                        {item.closed_at && (
+                          <p className="text-xs text-muted-foreground mt-3">
+                            Archivé le {new Date(item.closed_at).toLocaleDateString("fr-FR")}
+                          </p>
+                        )}
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+                {/* Pagination */}
+                {historyTotal > 10 && (
+                  <div className="flex justify-center gap-2 pt-2">
+                    <Button variant="outline" size="sm" disabled={historyPage === 1} onClick={() => setHistoryPage(p => p - 1)}>
+                      Précédent
+                    </Button>
+                    <span className="flex items-center text-sm text-muted-foreground px-2">
+                      Page {historyPage}
+                    </span>
+                    <Button variant="outline" size="sm" disabled={historyItems.length < 10} onClick={() => setHistoryPage(p => p + 1)}>
+                      Suivant
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Active projects tab */}
+        {activeTab === "active" && isLoading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="animate-spin text-primary" size={40} />
           </div>
-        ) : projects.length === 0 ? (
+        ) : activeTab === "active" && projects.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">
             <Briefcase className="mx-auto mb-4" size={48} />
             <p className="text-lg font-medium mb-4">Aucun projet pour le moment</p>
@@ -373,7 +625,12 @@ const ClientProjects = () => {
                   <Card className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <h3 className="text-xl font-semibold mb-1">{project.title}</h3>
+                        <Link
+                          to={ROUTES.CLIENT.PROJECT_DETAIL.replace(":id", project.id)}
+                          className="text-xl font-semibold mb-1 hover:text-primary transition-colors line-clamp-1 block"
+                        >
+                          {project.title}
+                        </Link>
                         <p className="text-sm text-muted-foreground">{project.category.name}</p>
                       </div>
                       <Badge className={sc.class}>{sc.label}</Badge>
@@ -403,6 +660,9 @@ const ClientProjects = () => {
                         </div>
                       )}
                     </div>
+
+                    {/* Documents section */}
+                    <ProjectDocumentsSection projectId={project.id} />
 
                     <div className="flex flex-wrap gap-2 pt-4 border-t border-border">
                       {/* Submit for review — DRAFT only */}

@@ -37,6 +37,17 @@ class ProjectService {
   async getProjectById(id: string): Promise<ApiProjectDetail> {
     return apiService.get<ApiProjectDetail>(`/projects/${id}/`);
   }
+
+  async getPublicProjects(ordering = '-budget_amount', page_size = 3): Promise<DjangoPaginatedResponse<ApiProjectList>> {
+    return apiService.getPublic<DjangoPaginatedResponse<ApiProjectList>>('/projects/', {
+      ordering,
+      page_size: String(page_size),
+    });
+  }
+
+  async trackInteraction(id: string): Promise<void> {
+    await apiService.post<{ status: string }>(`/projects/${id}/track_interaction/`);
+  }
 }
 
 export const projectService = new ProjectService();

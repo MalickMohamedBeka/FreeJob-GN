@@ -89,6 +89,10 @@ class ApiService {
       throw new ApiError(401, 'Session expirée');
     }
 
+    if (response.status === 429) {
+      throw new ApiError(429, 'Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.');
+    }
+
     return this.handleResponse<T>(response);
   }
 
@@ -161,6 +165,10 @@ class ApiService {
     return this.request<T>('DELETE', endpoint);
   }
 
+  async deleteWithBody<T>(endpoint: string, body: unknown): Promise<T> {
+    return this.request<T>('DELETE', endpoint, body);
+  }
+
   /** PATCH with multipart/form-data — for file uploads (profile picture, documents) */
   async patchFormData<T>(endpoint: string, formData: FormData): Promise<T> {
     const token = localStorage.getItem('access_token');
@@ -182,6 +190,32 @@ class ApiService {
     }
 
     return this.handleResponse<T>(response);
+  }
+
+  /** GET as Blob — for binary downloads (PDF, etc.) requiring auth */
+  async getBlob(endpoint: string): Promise<Blob> {
+    const token = localStorage.getItem('access_token');
+    const headers: HeadersInit = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: 'GET',
+      headers,
+      credentials: 'include',
+    });
+
+    if (response.status === 401) {
+      const refreshed = await this.tryRefresh();
+      if (refreshed) return this.getBlob(endpoint);
+      this.clearAuth();
+      throw new ApiError(401, 'Session expirée');
+    }
+
+    if (!response.ok) {
+      throw new ApiError(response.status, `Erreur ${response.status}`);
+    }
+
+    return response.blob();
   }
 
   /** POST with multipart/form-data — for file uploads (documents) */

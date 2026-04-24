@@ -16,6 +16,7 @@ export {
   useUpdateProject,
   useDeleteProject,
   useSubmitProjectForReview,
+  useProjectCategories,
 } from './useProjects';
 export { useFreelancers, useFreelancer } from './useFreelancers';
 export {
@@ -88,3 +89,9 @@ export {
   useCreateReview,
   usePortfolio,
 } from './useRankings';
+export {
+  useJobAlerts,
+  useCreateJobAlert,
+  useUpdateJobAlert,
+  useDeleteJobAlert,
+} from './useJobAlerts';
