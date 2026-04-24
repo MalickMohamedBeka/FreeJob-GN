@@ -26,5 +26,6 @@ dist-ssr
 *.md
 *.env
 *.env.production
+*.env.prod
 
 /claude-context

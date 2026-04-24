@@ -55,6 +55,7 @@ const Rankings = lazy(() => import("./pages/Rankings"));
 const Agencies = lazy(() => import("./pages/Agencies"));
 const AgencyDetail = lazy(() => import("./pages/AgencyDetail"));
 const AgencyOnboarding = lazy(() => import("./pages/agency/AgencyOnboarding"));
+const ClientOnboarding = lazy(() => import("./pages/client/ClientOnboarding"));
 const ProviderProfile = lazy(() => import("./pages/dashboard/ProviderProfile"));
 const ClientPublicProfile = lazy(() => import("./pages/ClientPublicProfile"));
 
@@ -116,6 +117,7 @@ const App = () => (
               <Route path={ROUTES.FORGOT_PASSWORD} element={<PublicRoute><ForgotPassword /></PublicRoute>} />
               <Route path={ROUTES.RESET_PASSWORD} element={<PublicRoute><ResetPassword /></PublicRoute>} />
               <Route path={ROUTES.ONBOARDING} element={<Onboarding />} />
+              <Route path={ROUTES.CLIENT.ONBOARDING} element={<ClientOnboarding />} />
 
               {/* Admin — superusers only */}
               <Route path={ROUTES.ADMIN.DASHBOARD} element={

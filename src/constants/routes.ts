@@ -68,6 +68,7 @@ export const ROUTES = {
   // Client routes
   CLIENT: {
     ROOT: '/client',
+    ONBOARDING: '/client/onboarding',
     DASHBOARD: '/client/dashboard',
     PROJECTS: '/client/projects',
     PROJECT_DETAIL: '/client/projects/:id',

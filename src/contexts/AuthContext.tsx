@@ -27,6 +27,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profileInitialized, setProfileInitialized] = useState<boolean | null>(null);
 
   const checkProfileStatus = useCallback(async (u: ApiUser) => {
+    if (u.role === 'CLIENT') {
+      try {
+        const res = await apiService.get<{ client_profile: unknown | null }>(
+          '/users/client/profile/',
+        );
+        setProfileInitialized(res?.client_profile != null);
+      } catch {
+        setProfileInitialized(true);
+      }
+      return;
+    }
     if (u.role !== 'PROVIDER') {
       setProfileInitialized(true);
       return;

@@ -25,7 +25,7 @@ export default function ProtectedRoute({
 
   if (isLoading) return <PageLoader />;
 
-  if (!isAuthenticated) return <Navigate to="/admin" replace />;
+  if (!isAuthenticated) return <Navigate to={requireSuperuser ? '/admin' : '/login'} replace />;
 
   // Superuser-only routes — redirect non-superusers to their own dashboard
   if (requireSuperuser && !user?.is_superuser) {
@@ -42,12 +42,18 @@ export default function ProtectedRoute({
     return <Navigate to={getDashboard(user?.role, user?.provider_kind)} replace />;
   }
 
-  // Provider profile check — redirect to onboarding if profile not yet created
+  // Profile check — redirect to onboarding if profile not yet created
   if (user?.role === 'PROVIDER') {
     if (profileInitialized === null) return <PageLoader />;
     if (profileInitialized === false) {
       const onboarding = user.provider_kind === 'AGENCY' ? '/agency/onboarding' : '/onboarding';
       return <Navigate to={onboarding} replace />;
+    }
+  }
+  if (user?.role === 'CLIENT') {
+    if (profileInitialized === null) return <PageLoader />;
+    if (profileInitialized === false) {
+      return <Navigate to="/client/onboarding" replace />;
     }
   }
 
